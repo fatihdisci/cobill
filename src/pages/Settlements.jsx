@@ -67,7 +67,7 @@ export default function Settlements() {
             </div>
 
             {/* Summary Stats */}
-            <div className="grid grid-3 mb-xl" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+            <div className="grid grid-3 mb-xl mobile-scroller" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
                 <div className="stat-card animate-fade-in-up stagger-1">
                     <div className="stat-icon" style={{ background: 'rgba(245, 158, 11, 0.15)', color: 'var(--accent-amber)' }}>
                         <Clock size={22} />
@@ -87,7 +87,7 @@ export default function Settlements() {
                         <Zap size={22} />
                     </div>
                     <div className="stat-value text-gradient">{allTransactions.length}</div>
-                    <div className="stat-label">Toplam İşlem (Sadeleştirilmiş)</div>
+                    <div className="stat-label">Toplam İşlem</div>
                 </div>
             </div>
 

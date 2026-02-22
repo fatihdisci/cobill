@@ -101,9 +101,11 @@ export default function Layout({ children }) {
             </main>
 
             {/* Mobile FAB */}
-            <NavLink to="/add-expense" className="mobile-fab">
-                <PlusCircle size={26} />
-            </NavLink>
+            {location.pathname !== '/add-expense' && (
+                <NavLink to="/add-expense" className="mobile-fab">
+                    <PlusCircle size={26} />
+                </NavLink>
+            )}
 
             {/* Mobile Bottom Tab Bar */}
             <div className="mobile-tab-bar">

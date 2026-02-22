@@ -109,7 +109,7 @@ export default function Dashboard() {
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-4 mb-xl">
+            <div className="grid grid-4 mb-xl mobile-scroller">
                 {stats.map((stat, i) => (
                     <div key={i} className={`stat-card animate-fade-in-up stagger-${i + 1}`}>
                         <div className="stat-icon" style={{ background: stat.iconBg, color: stat.iconColor }}>
@@ -136,29 +136,24 @@ export default function Dashboard() {
                         <h3>Grupların</h3>
                         <span className="badge badge-purple">{state.groups.length} grup</span>
                     </div>
-                    <div className="grid grid-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+                    <div className="grid grid-2 mobile-scroller" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', paddingBottom: 'var(--space-lg)' }}>
                         {state.groups.map((group, i) => (
                             <GroupCard key={group.id} group={group} index={i} />
                         ))}
 
                         {/* Add Group Card */}
                         <div
-                            className="glass-card animate-fade-in-up"
+                            className="glass-card animate-fade-in-up flex items-center justify-center flex-col"
                             style={{
                                 cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                minHeight: 200,
+                                minHeight: 180,
                                 border: '2px dashed var(--border-secondary)',
                                 background: 'transparent',
                             }}
                             onClick={() => setShowNewGroup(true)}
                         >
-                            <div className="text-center">
-                                <PlusCircle size={32} style={{ color: 'var(--text-muted)', marginBottom: 8 }} />
-                                <p className="text-sm text-muted">Yeni Grup Oluştur</p>
-                            </div>
+                            <PlusCircle size={32} style={{ color: 'var(--text-muted)', marginBottom: 8 }} />
+                            <p className="text-sm text-muted">Yeni Grup Oluştur</p>
                         </div>
                     </div>
                 </div>

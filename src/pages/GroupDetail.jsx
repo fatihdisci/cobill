@@ -95,7 +95,7 @@ export default function GroupDetail() {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-3 mb-xl" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+            <div className="grid grid-3 mb-xl mobile-scroller" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
                 <div className="stat-card animate-fade-in-up stagger-1">
                     <div className="stat-label">Toplam Harcama</div>
                     <div className="stat-value text-gradient">{formatCurrency(totalSpent, group.currency)}</div>
