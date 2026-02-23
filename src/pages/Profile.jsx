@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     User, Mail, Phone, Bell, Globe, Palette, Shield,
-    LogOut, Copy, Check, Edit2, CircleUser, ChevronRight
+    LogOut, Copy, Check, Edit2, CircleUser, ChevronRight, ChevronDown
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getAvatarColor, getInitials } from '../utils/helpers';
@@ -12,9 +12,29 @@ export default function Profile() {
     const navigate = useNavigate();
     const currentUser = state.members[state.currentUser];
 
+    // Card States
     const [isEditingIban, setIsEditingIban] = useState(false);
     const [tempIban, setTempIban] = useState(currentUser?.iban || '');
     const [copyFeedback, setCopyFeedback] = useState(false);
+
+    // Accordion States
+    const [expanded, setExpanded] = useState(null); // 'account', 'settings', 'security'
+
+    // Form States
+    const [accountForm, setAccountForm] = useState({
+        email: currentUser?.email || '',
+        phone: currentUser?.phone || ''
+    });
+
+    const [securityForm, setSecurityForm] = useState({
+        currentPass: '',
+        newPass: '',
+        confirmPass: ''
+    });
+
+    // Settings States
+    const [notifications, setNotifications] = useState(state.settings?.notifications ?? true);
+    const [language, setLanguage] = useState(state.settings?.language || 'TR');
 
     const formatIBAN = (value) => {
         const cleaned = value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
@@ -39,9 +59,60 @@ export default function Profile() {
         setIsEditingIban(false);
     };
 
+    const handleToggleExtend = (section) => {
+        setExpanded(expanded === section ? null : section);
+    };
+
+    const handleSaveAccount = (e) => {
+        e.preventDefault();
+        dispatch({
+            type: 'UPDATE_MEMBER',
+            payload: { id: state.currentUser, email: accountForm.email, phone: accountForm.phone }
+        });
+        setExpanded(null);
+        alert('Hesap bilgileri güncellendi.');
+    };
+
+    const handleNotificationsToggle = (e) => {
+        e.stopPropagation();
+        const newVal = !notifications;
+        setNotifications(newVal);
+        dispatch({
+            type: 'UPDATE_SETTINGS',
+            payload: { ...state.settings, notifications: newVal }
+        });
+    };
+
+    const handleSaveSettings = (e) => {
+        e.preventDefault();
+        dispatch({
+            type: 'UPDATE_SETTINGS',
+            payload: { ...state.settings, language }
+        });
+        setExpanded(null);
+        alert('Uygulama ayarları başarıyla kaydedildi.');
+    };
+
+    const handleSaveSecurity = (e) => {
+        e.preventDefault();
+        if (securityForm.newPass !== securityForm.confirmPass) {
+            alert('Yeni şifreler uyuşmuyor, lütfen tekrar deneyin.');
+            return;
+        }
+        if (securityForm.newPass.length < 6) {
+            alert('Şifre en az 6 karakter olmalıdır.');
+            return;
+        }
+
+        // Simulating Password Update
+        setSecurityForm({ currentPass: '', newPass: '', confirmPass: '' });
+        setExpanded(null);
+        alert('Güvenlik ayarlarınız başarıyla güncellendi.');
+    };
+
     const handleLogout = () => {
-        if (window.confirm('Çıkış yapmak istediğinize emin misiniz?')) {
-            // Gerçek bir auth sisteminde burada logout tetiklenirdi
+        if (window.confirm('Hesabınızdan çıkış yapmak istediğinize emin misiniz?')) {
+            // Gerçek bir uygulamada token silinir vs.
             navigate('/');
         }
     };
@@ -54,14 +125,14 @@ export default function Profile() {
                     background: getAvatarColor(state.currentUser),
                     width: '100px',
                     height: '100px',
-                    fontSize: '2rem',
+                    fontSize: '2.5rem',
                     border: '4px solid var(--border-primary)',
                     boxShadow: '0 0 30px rgba(139, 92, 246, 0.2)'
                 }}>
                     {getInitials(currentUser?.name)}
                 </div>
                 <h2 className="animate-slide-up" style={{ fontSize: 'var(--font-2xl)', marginTop: 'var(--space-sm)' }}>
-                    {currentUser?.name || 'Kullanıcı'}
+                    {currentUser?.name || 'Kullanıcı Kimliği'}
                 </h2>
             </div>
 
@@ -74,6 +145,7 @@ export default function Profile() {
                             className="btn btn-ghost btn-sm btn-icon"
                             onClick={handleCopyIBAN}
                             style={{ height: '32px', width: '32px' }}
+                            title="Kopyala"
                         >
                             {copyFeedback ? <Check size={16} className="text-emerald" /> : <Copy size={16} />}
                         </button>
@@ -101,7 +173,7 @@ export default function Profile() {
                 ) : (
                     <div className="flex justify-between items-center">
                         <div className="text-lg font-mono" style={{ letterSpacing: '0.05em' }}>
-                            {currentUser?.iban || <span className="text-muted italic">Kayıtlı IBAN yok</span>}
+                            {currentUser?.iban || <span className="text-muted italic">Kayıtlı IBAN bulunamadı</span>}
                         </div>
                         <button
                             className="btn btn-ghost btn-sm"
@@ -120,21 +192,37 @@ export default function Profile() {
             {/* 3. İşlem Listesi (Action List) */}
             <div className="glass-card mb-2xl stagger-2" style={{ padding: 0, overflow: 'hidden' }}>
                 <div className="action-list">
+
                     {/* Hesap Bilgileri */}
-                    <div className="action-item" style={itemStyle}>
+                    <div className="action-item" style={itemStyle} onClick={() => handleToggleExtend('account')}>
                         <div className="flex items-center gap-md">
-                            <div className="icon-box purple"><Shield size={18} /></div>
+                            <div className="icon-box purple"><User size={18} /></div>
                             <div className="flex flex-col">
                                 <span className="text-sm font-semibold">Hesap Bilgileri</span>
-                                <span className="text-xs text-muted">E-posta ve telefon</span>
+                                <span className="text-xs text-muted">E-posta ve telefon numarası</span>
                             </div>
                         </div>
-                        <ChevronRight size={16} className="text-muted" />
+                        {expanded === 'account' ? <ChevronDown size={16} className="text-muted" /> : <ChevronRight size={16} className="text-muted" />}
                     </div>
+                    {expanded === 'account' && (
+                        <div className="animate-slide-up" style={expandableStyle}>
+                            <form onSubmit={handleSaveAccount} className="flex flex-col gap-sm">
+                                <div className="form-group">
+                                    <label className="form-label text-xs">E-posta Adresi</label>
+                                    <input type="email" required className="form-input btn-sm" value={accountForm.email} onChange={(e) => setAccountForm({ ...accountForm, email: e.target.value })} placeholder="ornek@mail.com" />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label text-xs">Telefon Numarası</label>
+                                    <input type="tel" className="form-input btn-sm" value={accountForm.phone} onChange={(e) => setAccountForm({ ...accountForm, phone: e.target.value })} placeholder="0555 555 55 55" />
+                                </div>
+                                <button type="submit" className="btn btn-primary btn-sm mt-xs">Güncelle</button>
+                            </form>
+                        </div>
+                    )}
                     <div className="divider" style={dividerStyle} />
 
                     {/* Bildirimler */}
-                    <div className="action-item" style={itemStyle}>
+                    <div className="action-item" style={itemStyle} onClick={handleNotificationsToggle}>
                         <div className="flex items-center gap-md">
                             <div className="icon-box amber"><Bell size={18} /></div>
                             <div className="flex flex-col">
@@ -142,40 +230,79 @@ export default function Profile() {
                                 <span className="text-xs text-muted">Uygulama içi uyarılar</span>
                             </div>
                         </div>
-                        <div className="toggle active" style={{ zoom: 0.8 }} />
+                        <div className={`toggle ${notifications ? 'active' : ''}`} style={{ zoom: 0.8 }} />
                     </div>
                     <div className="divider" style={dividerStyle} />
 
                     {/* Uygulama Ayarları */}
-                    <div className="action-item" style={itemStyle}>
+                    <div className="action-item" style={itemStyle} onClick={() => handleToggleExtend('settings')}>
                         <div className="flex items-center gap-md">
                             <div className="icon-box cyan"><Globe size={18} /></div>
                             <div className="flex flex-col">
                                 <span className="text-sm font-semibold">Uygulama Ayarları</span>
-                                <span className="text-xs text-muted">Dil: Türkçe / Tema: OLED</span>
+                                <span className="text-xs text-muted">Dil ve Tema (<span style={{ fontFamily: 'monospace' }}>{language}</span>/OLED)</span>
                             </div>
                         </div>
-                        <ChevronRight size={16} className="text-muted" />
+                        {expanded === 'settings' ? <ChevronDown size={16} className="text-muted" /> : <ChevronRight size={16} className="text-muted" />}
                     </div>
+                    {expanded === 'settings' && (
+                        <div className="animate-slide-up" style={expandableStyle}>
+                            <form onSubmit={handleSaveSettings} className="flex flex-col gap-sm">
+                                <div className="form-group">
+                                    <label className="form-label text-xs">Dil Seçimi</label>
+                                    <select className="form-select btn-sm" value={language} onChange={e => setLanguage(e.target.value)}>
+                                        <option value="TR">Türkçe (TR)</option>
+                                        <option value="EN">English (EN)</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label text-xs">Arayüz Teması</label>
+                                    <input type="text" className="form-input btn-sm" value="Koyu Tema (OLED Siyahı)" disabled style={{ opacity: 0.7 }} />
+                                    <span className="text-xs text-muted mt-xs">CoBill, göz yorgunluğunu azaltan ve amoled ekranlarda pil tasarrufu sağlayan kesintisiz bir "OLED" denetimine sahiptir. Tema sabittir.</span>
+                                </div>
+                                <button type="submit" className="btn btn-primary btn-sm mt-xs">Ayarları Kaydet</button>
+                            </form>
+                        </div>
+                    )}
                     <div className="divider" style={dividerStyle} />
 
                     {/* Güvenlik */}
-                    <div className="action-item" style={itemStyle}>
+                    <div className="action-item" style={itemStyle} onClick={() => handleToggleExtend('security')}>
                         <div className="flex items-center gap-md">
                             <div className="icon-box emerald"><Shield size={18} /></div>
                             <div className="flex flex-col">
                                 <span className="text-sm font-semibold">Güvenlik</span>
-                                <span className="text-xs text-muted">Şifre güncelleme (placeholder)</span>
+                                <span className="text-xs text-muted">Şifre güncelle</span>
                             </div>
                         </div>
-                        <ChevronRight size={16} className="text-muted" />
+                        {expanded === 'security' ? <ChevronDown size={16} className="text-muted" /> : <ChevronRight size={16} className="text-muted" />}
                     </div>
+                    {expanded === 'security' && (
+                        <div className="animate-slide-up" style={expandableStyle}>
+                            <form onSubmit={handleSaveSecurity} className="flex flex-col gap-sm">
+                                <div className="form-group">
+                                    <label className="form-label text-xs">Mevcut Şifre</label>
+                                    <input type="password" required className="form-input btn-sm" value={securityForm.currentPass} onChange={(e) => setSecurityForm({ ...securityForm, currentPass: e.target.value })} placeholder="••••••••" />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label text-xs">Yeni Şifre</label>
+                                    <input type="password" required className="form-input btn-sm" value={securityForm.newPass} onChange={(e) => setSecurityForm({ ...securityForm, newPass: e.target.value })} placeholder="••••••••" />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label text-xs">Şifre Tekrar</label>
+                                    <input type="password" required className="form-input btn-sm" value={securityForm.confirmPass} onChange={(e) => setSecurityForm({ ...securityForm, confirmPass: e.target.value })} placeholder="••••••••" />
+                                </div>
+                                <button type="submit" className="btn btn-primary btn-sm mt-xs">Şifreyi Güncelle</button>
+                            </form>
+                        </div>
+                    )}
+
                 </div>
             </div>
 
             {/* 4. Çıkış Yap */}
             <button
-                className="btn btn-ghost w-full stagger-3"
+                className="btn btn-ghost w-full stagger-3 mb-2xl hover:bg-rose-500/10"
                 onClick={handleLogout}
                 style={{
                     color: 'var(--accent-rose)',
@@ -188,7 +315,7 @@ export default function Profile() {
                 Hesaptan Çıkış Yap
             </button>
 
-            {/* Inline Styles for clarity or move to index.css if preferred */}
+            {/* Inline Styles */}
             <style>{`
                 .action-item {
                     display: flex;
@@ -225,8 +352,14 @@ const itemStyle = {
     minHeight: '72px'
 };
 
+const expandableStyle = {
+    padding: '0 var(--space-xl) var(--space-xl) var(--space-xl)',
+    background: 'rgba(255, 255, 255, 0.02)',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+};
+
 const dividerStyle = {
     height: '1px',
     background: 'var(--border-primary)',
-    margin: '0 var(--space-xl)'
+    margin: '0',
 };
