@@ -353,7 +353,7 @@ const itemStyle = {
 };
 
 const expandableStyle = {
-    padding: '0 var(--space-xl) var(--space-xl) var(--space-xl)',
+    padding: 'var(--space-md) var(--space-xl) var(--space-xl) var(--space-xl)',
     background: 'rgba(255, 255, 255, 0.02)',
     borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
 };
