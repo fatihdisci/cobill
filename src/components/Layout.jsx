@@ -1,12 +1,13 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, Users, PlusCircle, ArrowLeftRight,
-    BarChart3, Settings, Receipt, Bell, LogOut
+    BarChart3, Settings, Receipt, Bell, LogOut, CircleUser
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export default function Layout({ children }) {
     const location = useLocation();
+    const navigate = useNavigate();
     const { state } = useApp();
 
     const pendingCount = state.settlements.filter(s => s.status !== 'paid').length;
@@ -17,7 +18,7 @@ export default function Layout({ children }) {
         { to: '/add-expense', icon: PlusCircle, label: 'Masraf Ekle' },
         { to: '/settlements', icon: ArrowLeftRight, label: 'Ödemeler', badge: pendingCount || null },
         { to: '/reports', icon: BarChart3, label: 'Raporlar' },
-        { to: '/settings', icon: Settings, label: 'Ayarlar' },
+        { to: '/profile', icon: CircleUser, label: 'Profil' },
     ];
 
     const mobileNavItems = [
@@ -25,7 +26,7 @@ export default function Layout({ children }) {
         { to: '/groups', icon: Users, label: 'Gruplar' },
         { to: '/settlements', icon: ArrowLeftRight, label: 'Ödemeler' },
         { to: '/reports', icon: BarChart3, label: 'Raporlar' },
-        { to: '/settings', icon: Settings, label: 'Ayarlar' },
+        { to: '/profile', icon: CircleUser, label: 'Profil' },
     ];
 
     return (
@@ -68,7 +69,7 @@ export default function Layout({ children }) {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <div className="nav-item" style={{ opacity: 0.6, justifyContent: 'flex-start' }}>
+                    <div className="nav-item" onClick={() => navigate('/profile')} style={{ cursor: 'pointer', justifyContent: 'flex-start' }}>
                         <div className="avatar avatar-sm" style={{ background: 'var(--gradient-primary)' }}>
                             {state.members[state.currentUser]?.name?.[0] || 'U'}
                         </div>
