@@ -118,9 +118,9 @@ export default function Profile() {
     };
 
     return (
-        <div className="page-content animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto', width: '100%', minWidth: 0 }}>
+        <div className="page-content animate-fade-in flex flex-col gap-xl" style={{ maxWidth: '600px', margin: '0 auto', width: '100%', minWidth: 0, paddingBottom: '100px' }}>
             {/* 1. Header (Kimlik Bölümü) */}
-            <div className="flex flex-col items-center gap-md mb-3xl text-center">
+            <div className="flex flex-col items-center gap-md text-center mt-md">
                 <div className="avatar avatar-xl" style={{
                     background: getAvatarColor(state.currentUser),
                     width: '100px',
@@ -137,7 +137,7 @@ export default function Profile() {
             </div>
 
             {/* 2. Kendi IBAN Kartın */}
-            <div className="glass-card mb-2xl stagger-1">
+            <div className="glass-card stagger-1">
                 <div className="flex justify-between items-start mb-md">
                     <span className="form-label" style={{ fontSize: 'var(--font-xs)' }}>Kendi IBAN Bilgin</span>
                     {!isEditingIban && currentUser?.iban && (
@@ -190,7 +190,7 @@ export default function Profile() {
             </div>
 
             {/* 3. İşlem Listesi (Action List) */}
-            <div className="glass-card mb-2xl stagger-2" style={{ padding: 0, overflow: 'hidden' }}>
+            <div className="glass-card stagger-2" style={{ padding: 0, overflow: 'hidden' }}>
                 <div className="action-list">
 
                     {/* Hesap Bilgileri */}
@@ -205,7 +205,7 @@ export default function Profile() {
                         {expanded === 'account' ? <ChevronDown size={16} className="text-muted" /> : <ChevronRight size={16} className="text-muted" />}
                     </div>
                     {expanded === 'account' && (
-                        <div className="animate-slide-up" style={expandableStyle}>
+                        <div className="animate-fade-in" style={expandableStyle}>
                             <form onSubmit={handleSaveAccount} className="flex flex-col gap-sm">
                                 <div className="form-group">
                                     <label className="form-label text-xs">E-posta Adresi</label>
@@ -246,7 +246,7 @@ export default function Profile() {
                         {expanded === 'settings' ? <ChevronDown size={16} className="text-muted" /> : <ChevronRight size={16} className="text-muted" />}
                     </div>
                     {expanded === 'settings' && (
-                        <div className="animate-slide-up" style={expandableStyle}>
+                        <div className="animate-fade-in" style={expandableStyle}>
                             <form onSubmit={handleSaveSettings} className="flex flex-col gap-sm">
                                 <div className="form-group">
                                     <label className="form-label text-xs">Dil Seçimi</label>
@@ -278,7 +278,7 @@ export default function Profile() {
                         {expanded === 'security' ? <ChevronDown size={16} className="text-muted" /> : <ChevronRight size={16} className="text-muted" />}
                     </div>
                     {expanded === 'security' && (
-                        <div className="animate-slide-up" style={expandableStyle}>
+                        <div className="animate-fade-in" style={expandableStyle}>
                             <form onSubmit={handleSaveSecurity} className="flex flex-col gap-sm">
                                 <div className="form-group">
                                     <label className="form-label text-xs">Mevcut Şifre</label>
@@ -302,7 +302,7 @@ export default function Profile() {
 
             {/* 4. Çıkış Yap */}
             <button
-                className="btn btn-ghost w-full stagger-3 mb-2xl hover:bg-rose-500/10"
+                className="btn btn-ghost w-full stagger-3 hover:bg-rose-500/10"
                 onClick={handleLogout}
                 style={{
                     color: 'var(--accent-rose)',
