@@ -128,10 +128,11 @@ export default function Dashboard() {
                 ))}
             </div>
 
-            {/* Main Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 'var(--space-xl)' }} className="dashboard-grid">
+            {/* Main Grid - EKLENDİ: minWidth: 0 ile flexbox/grid patlaması önlendi */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 'var(--space-xl)', minWidth: 0 }} className="dashboard-grid">
+                
                 {/* Left: Groups */}
-                <div>
+                <div style={{ minWidth: 0 }}>
                     <div className="flex items-center justify-between mb-lg">
                         <h3>Grupların</h3>
                         <span className="badge badge-purple">{state.groups.length} grup</span>
@@ -158,18 +159,25 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* Right: Activity + Chart */}
-                <div className="flex flex-col gap-xl sidebar-panel">
+                {/* Right: Activity + Chart - EKLENDİ: minWidth: 0 */}
+                <div className="flex flex-col gap-xl sidebar-panel" style={{ minWidth: 0 }}>
+                    
                     {/* Spending Chart */}
-                    <div className="glass-card">
+                    <div className="glass-card" style={{ minWidth: 0 }}>
                         <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Harcama Dağılımı</h4>
-                        <SpendingByCategory />
+                        {/* EKLENDİ: Grafiğin taşıp ekranı bozmasını engelleyen kaydırılabilir sarmalayıcı */}
+                        <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '4px' }}>
+                            <SpendingByCategory />
+                        </div>
                     </div>
 
                     {/* Activity Feed */}
-                    <div className="glass-card">
+                    <div className="glass-card" style={{ minWidth: 0 }}>
                         <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Son Aktiviteler</h4>
-                        <ActivityFeed limit={8} />
+                        {/* İçerik çok uzun olursa kendi içinde kaysın, sayfayı bozmasın */}
+                        <div style={{ width: '100%', overflowX: 'auto' }}>
+                             <ActivityFeed limit={8} />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -190,6 +198,11 @@ export default function Dashboard() {
         @media (max-width: 767px) {
           .dashboard-grid {
             grid-template-columns: 1fr !important;
+            width: 100%;
+          }
+          .dashboard-grid > div {
+            min-width: 0;
+            width: 100%;
           }
           .sidebar-panel {
             order: -1;
