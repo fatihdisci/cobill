@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Users } from 'lucide-react';
+import { PlusCircle, Users, UserPlus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import GroupCard from '../components/GroupCard';
 
@@ -45,9 +45,14 @@ export default function Groups() {
                     <h2>Gruplar</h2>
                     <p className="page-subtitle">{state.groups.length} aktif grup</p>
                 </div>
-                <button className="btn btn-primary" onClick={() => setShowNew(true)}>
-                    <PlusCircle size={16} /> Yeni Grup
-                </button>
+                <div className="flex gap-md">
+                    <button className="btn btn-secondary" onClick={() => navigate('/add-member')}>
+                        <UserPlus size={16} /> Yeni Üye Ekle
+                    </button>
+                    <button className="btn btn-primary" onClick={() => setShowNew(true)}>
+                        <PlusCircle size={16} /> Yeni Grup
+                    </button>
+                </div>
             </div>
 
             <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>

@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Groups from './pages/Groups';
 import GroupDetail from './pages/GroupDetail';
 import AddExpense from './pages/AddExpense';
+import AddMember from './pages/AddMember';
 import Settlements from './pages/Settlements';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
@@ -19,6 +20,7 @@ function App() {
             <Route path="/groups" element={<Groups />} />
             <Route path="/group/:groupId" element={<GroupDetail />} />
             <Route path="/add-expense" element={<AddExpense />} />
+            <Route path="/add-member" element={<AddMember />} />
             <Route path="/settlements" element={<Settlements />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />

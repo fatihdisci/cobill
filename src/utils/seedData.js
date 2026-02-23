@@ -11,12 +11,12 @@ const daysAgo = (n) => new Date(now - n * 86400000).toISOString();
 
 // Members
 const members = {
-    m1: { id: 'm1', name: 'Ayşe Yılmaz', email: 'ayse@example.com', isGhost: false, phone: '' },
-    m2: { id: 'm2', name: 'Burak Kaya', email: 'burak@example.com', isGhost: false, phone: '' },
-    m3: { id: 'm3', name: 'Cem Demir', email: '', isGhost: true, phone: '' },
-    m4: { id: 'm4', name: 'Deniz Acar', email: 'deniz@example.com', isGhost: true, phone: '' },
-    m5: { id: 'm5', name: 'Elif Şen', email: 'elif@example.com', isGhost: false, phone: '' },
-    m6: { id: 'm6', name: 'Fatih Öz', email: '', isGhost: true, phone: '' },
+    m1: { id: 'm1', name: 'Ayşe Yılmaz', email: 'ayse@example.com', isGhost: false, phone: '', iban: 'TR12 3456 7890 1234 5678 9012 34' },
+    m2: { id: 'm2', name: 'Burak Kaya', email: 'burak@example.com', isGhost: false, phone: '', iban: 'TR98 7654 3210 9876 5432 1098 76' },
+    m3: { id: 'm3', name: 'Cem Demir', email: '', isGhost: true, phone: '', iban: 'TR11 2233 4455 6677 8899 0011 22' },
+    m4: { id: 'm4', name: 'Deniz Acar', email: 'deniz@example.com', isGhost: true, phone: '', iban: 'TR33 4455 6677 8899 0011 2233 44' },
+    m5: { id: 'm5', name: 'Elif Şen', email: 'elif@example.com', isGhost: false, phone: '', iban: 'TR55 6677 8899 0011 2233 4455 66' },
+    m6: { id: 'm6', name: 'Fatih Öz', email: '', isGhost: true, phone: '', iban: 'TR77 8899 0011 2233 4455 6677 88' },
 };
 
 // Groups

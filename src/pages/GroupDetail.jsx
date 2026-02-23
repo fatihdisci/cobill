@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     UserPlus, PlusCircle, ArrowLeft, Trash2, Ghost,
-    Receipt, CalendarClock, MoreHorizontal
+    Receipt, CalendarClock, MoreHorizontal, Copy, Check, Edit2
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import MemberManager from '../components/MemberManager';
@@ -23,6 +23,7 @@ export default function GroupDetail() {
     const [showMembers, setShowMembers] = useState(false);
     const [showExpenseForm, setShowExpenseForm] = useState(false);
     const [activeTab, setActiveTab] = useState('debts');
+    const [copyFeedback, setCopyFeedback] = useState({});
 
     const group = state.groups.find(g => g.id === groupId);
     if (!group) {
@@ -52,6 +53,17 @@ export default function GroupDetail() {
 
     const handleDeleteExpense = (expenseId) => {
         dispatch({ type: 'DELETE_EXPENSE', payload: expenseId });
+    };
+
+    const handleCopyIBAN = (iban, memberId) => {
+        if (!iban) return;
+        const cleanIban = iban.replace(/\s/g, '');
+        navigator.clipboard.writeText(cleanIban).then(() => {
+            setCopyFeedback(prev => ({ ...prev, [memberId]: true }));
+            setTimeout(() => {
+                setCopyFeedback(prev => ({ ...prev, [memberId]: false }));
+            }, 2000);
+        });
     };
 
     const tabs = [
@@ -123,34 +135,72 @@ export default function GroupDetail() {
                 <div className="flex flex-col gap-sm">
                     {groupMembers.map((member, i) => {
                         const balance = balances[member.id] || 0;
+                        const hasIban = member.iban && member.iban.length > 5;
+
                         return (
                             <div key={member.id} className="flex items-center gap-md" style={{
                                 padding: 'var(--space-md)',
                                 background: 'var(--bg-glass)',
                                 borderRadius: 'var(--radius-md)',
+                                minWidth: 0
                             }}>
                                 <div className="avatar" style={{ background: getAvatarColor(member.id) }}>
                                     {getInitials(member.name)}
                                 </div>
-                                <div style={{ flex: 1 }}>
+                                <div style={{ flex: 1, minWidth: 0 }}>
                                     <div className="text-sm font-semibold flex items-center gap-sm">
                                         {member.name}
                                         {member.isGhost && <span className="badge badge-ghost"><Ghost size={9} /> Hayalet</span>}
                                     </div>
+                                    {hasIban ? (
+                                        <div className="text-xs text-muted flex items-center gap-xs mt-xs">
+                                            <span style={{ fontFamily: 'monospace' }}>{member.iban}</span>
+                                        </div>
+                                    ) : (
+                                        <div className="text-xs text-tertiary mt-xs">IBAN bilgisi yok</div>
+                                    )}
                                 </div>
-                                <div className="text-sm font-bold" style={{
-                                    color: balance >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)',
-                                }}>
-                                    {balance >= 0 ? '+' : ''}{formatCurrency(balance, group.currency)}
+
+                                <div className="flex items-center gap-sm">
+                                    {hasIban ? (
+                                        <button
+                                            className={`btn btn-sm ${copyFeedback[member.id] ? 'btn-success' : 'btn-secondary'}`}
+                                            onClick={() => handleCopyIBAN(member.iban, member.id)}
+                                            title="IBAN Kopyala"
+                                            style={{ padding: '4px 8px', height: 'auto' }}
+                                        >
+                                            {copyFeedback[member.id] ? (
+                                                <><Check size={12} /> Kopyalandı!</>
+                                            ) : (
+                                                <><Copy size={12} /> Kopyala</>
+                                            )}
+                                        </button>
+                                    ) : (
+                                        <button
+                                            className="btn btn-sm btn-ghost"
+                                            onClick={() => setShowMembers(true)}
+                                            title="IBAN Ekle"
+                                            style={{ padding: '4px 8px', height: 'auto', fontSize: 'var(--font-xs)' }}
+                                        >
+                                            <Edit2 size={12} /> IBAN Ekle
+                                        </button>
+                                    )}
+
+                                    <div className="text-sm font-bold ml-sm" style={{
+                                        color: balance >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)',
+                                        whiteSpace: 'nowrap'
+                                    }}>
+                                        {balance >= 0 ? '+' : ''}{formatCurrency(balance, group.currency)}
+                                    </div>
+                                    {balance < 0 && (
+                                        <NudgeButton
+                                            memberId={member.id}
+                                            amount={balance}
+                                            groupName={group.name}
+                                            currency={group.currency}
+                                        />
+                                    )}
                                 </div>
-                                {balance < 0 && (
-                                    <NudgeButton
-                                        memberId={member.id}
-                                        amount={balance}
-                                        groupName={group.name}
-                                        currency={group.currency}
-                                    />
-                                )}
                             </div>
                         );
                     })}

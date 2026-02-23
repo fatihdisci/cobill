@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Ghost, UserPlus, X, Mail } from 'lucide-react';
+import { Ghost, UserPlus, X, Mail, Edit2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { generateId, getInitials, getAvatarColor } from '../utils/helpers';
 
@@ -8,7 +8,10 @@ export default function MemberManager({ groupId, onClose }) {
     const group = state.groups.find(g => g.id === groupId);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [iban, setIban] = useState('');
     const [isGhost, setIsGhost] = useState(true);
+    const [editingId, setEditingId] = useState(null);
+    const [editIban, setEditIban] = useState('');
 
     if (!group) return null;
 
@@ -23,6 +26,7 @@ export default function MemberManager({ groupId, onClose }) {
             id,
             name: name.trim(),
             email: email.trim(),
+            iban: iban.trim(),
             isGhost,
             phone: '',
         };
@@ -32,6 +36,21 @@ export default function MemberManager({ groupId, onClose }) {
 
         setName('');
         setEmail('');
+        setIban('');
+    };
+
+    const handleSaveIban = (memberId) => {
+        dispatch({
+            type: 'UPDATE_MEMBER',
+            payload: { id: memberId, iban: editIban.trim() }
+        });
+        setEditingId(null);
+    };
+
+    const formatIBAN = (value) => {
+        const cleaned = value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+        const limited = cleaned.slice(0, 26);
+        return limited.match(/.{1,4}/g)?.join(' ') || limited;
     };
 
     const handleRemove = (memberId) => {
@@ -51,33 +70,79 @@ export default function MemberManager({ groupId, onClose }) {
                 {/* Member List */}
                 <div className="flex flex-col gap-sm mb-xl">
                     {groupMembers.map(member => (
-                        <div key={member.id} className="flex items-center gap-md" style={{
+                        <div key={member.id} className="flex flex-col gap-xs" style={{
                             padding: 'var(--space-md)',
                             background: 'var(--bg-glass)',
                             borderRadius: 'var(--radius-md)',
                         }}>
-                            <div className="avatar avatar-sm" style={{ background: getAvatarColor(member.id) }}>
-                                {getInitials(member.name)}
-                            </div>
-                            <div style={{ flex: 1 }}>
-                                <div className="text-sm font-semibold flex items-center gap-sm">
-                                    {member.name}
-                                    {member.isGhost && (
-                                        <span className="badge badge-ghost">
-                                            <Ghost size={9} /> Hayalet
-                                        </span>
+                            <div className="flex items-center gap-md">
+                                <div className="avatar avatar-sm" style={{ background: getAvatarColor(member.id) }}>
+                                    {getInitials(member.name)}
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <div className="text-sm font-semibold flex items-center gap-sm">
+                                        {member.name}
+                                        {member.isGhost && (
+                                            <span className="badge badge-ghost">
+                                                <Ghost size={9} /> Hayalet
+                                            </span>
+                                        )}
+                                    </div>
+                                    {member.email && (
+                                        <div className="text-xs text-muted flex items-center gap-xs">
+                                            <Mail size={10} /> {member.email}
+                                        </div>
                                     )}
                                 </div>
-                                {member.email && (
-                                    <div className="text-xs text-muted flex items-center gap-xs">
-                                        <Mail size={10} /> {member.email}
-                                    </div>
-                                )}
+                                <div className="flex items-center gap-xs">
+                                    <button
+                                        className="btn btn-ghost btn-icon btn-sm"
+                                        onClick={() => {
+                                            if (editingId === member.id) {
+                                                setEditingId(null);
+                                            } else {
+                                                setEditingId(member.id);
+                                                setEditIban(member.iban || '');
+                                            }
+                                        }}
+                                        title="IBAN Düzenle"
+                                    >
+                                        <Edit2 size={14} />
+                                    </button>
+                                    {member.id !== state.currentUser && (
+                                        <button className="btn btn-ghost btn-sm" onClick={() => handleRemove(member.id)} title="Gruptan Çıkar">
+                                            <X size={14} />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                            {member.id !== state.currentUser && (
-                                <button className="btn btn-ghost btn-sm" onClick={() => handleRemove(member.id)}>
-                                    <X size={14} />
-                                </button>
+
+                            {(editingId === member.id || (member.iban && editingId !== member.id)) && (
+                                <div className="mt-xs pt-xs" style={{ borderTop: '1px solid var(--border-primary)' }}>
+                                    {editingId === member.id ? (
+                                        <div className="flex gap-sm items-center">
+                                            <input
+                                                className="form-input btn-sm"
+                                                style={{ height: '32px', fontSize: 'var(--font-xs)', fontFamily: 'monospace' }}
+                                                placeholder="IBAN Girin (TR...)"
+                                                value={editIban}
+                                                onChange={(e) => setEditIban(formatIBAN(e.target.value))}
+                                                autoFocus
+                                            />
+                                            <button
+                                                className="btn btn-primary btn-sm"
+                                                style={{ height: '32px', padding: '0 12px' }}
+                                                onClick={() => handleSaveIban(member.id)}
+                                            >
+                                                Kaydet
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="text-xs text-muted font-mono" style={{ padding: '0 4px' }}>
+                                            {member.iban}
+                                        </div>
+                                    )}
+                                </div>
                             )}
                         </div>
                     ))}
@@ -107,6 +172,17 @@ export default function MemberManager({ groupId, onClose }) {
                             placeholder="ornek@mail.com"
                             value={email}
                             onChange={e => setEmail(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">IBAN (opsiyonel)</label>
+                        <input
+                            className="form-input"
+                            placeholder="TR00 0000..."
+                            style={{ fontFamily: 'monospace' }}
+                            value={iban}
+                            onChange={e => setIban(formatIBAN(e.target.value))}
                         />
                     </div>
 
