@@ -82,19 +82,21 @@ export default function Layout({ children }) {
                 </div>
             </aside>
 
-            {/* Mobile Header */}
-            <header className="mobile-header">
-                <div className="sidebar-logo">
-                    <div className="logo-icon" style={{ width: 32, height: 32, fontSize: '0.9rem' }}>₺</div>
-                    <h1 style={{ fontSize: 'var(--font-lg)' }}>CoBill</h1>
-                </div>
-                <button className="btn btn-ghost btn-icon">
-                    <Bell size={20} />
-                </button>
-            </header>
-
             {/* Main Content */}
             <main className="main-content">
+                {/* DÜZELTME: Mobile Header buraya, main-content içine taşındı! 
+                  Böylece Flexbox onu sayfanın soluna itip boşluk yaratmayacak.
+                */}
+                <header className="mobile-header">
+                    <div className="sidebar-logo">
+                        <div className="logo-icon" style={{ width: 32, height: 32, fontSize: '0.9rem' }}>₺</div>
+                        <h1 style={{ fontSize: 'var(--font-lg)' }}>CoBill</h1>
+                    </div>
+                    <button className="btn btn-ghost btn-icon">
+                        <Bell size={20} />
+                    </button>
+                </header>
+
                 <div className="page-content">
                     {children}
                 </div>
