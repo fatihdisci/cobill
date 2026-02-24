@@ -135,3 +135,22 @@ export function getMemberStats(memberId, expenses) {
         netBalance: totalPaid - totalOwed
     };
 }
+
+/**
+ * Calculate total user debt (totalYouOwe) across all groups
+ */
+export function getTotalUserDebt(state) {
+    let totalYouOwe = 0;
+    if (!state || !state.groups) return 0;
+
+    state.groups.forEach(group => {
+        const groupMembers = group.members.map(id => state.members[id]).filter(Boolean);
+        const groupExpenses = state.expenses.filter(e => e.groupId === group.id);
+        const balances = calculateBalances(groupExpenses, groupMembers);
+        const myBalance = balances[state.currentUser] || 0;
+
+        if (myBalance < 0) totalYouOwe += Math.abs(myBalance);
+    });
+
+    return totalYouOwe;
+}

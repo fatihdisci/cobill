@@ -12,6 +12,7 @@
     "deploy": "vite build && gh-pages -d dist"
   },
   "dependencies": {
+    "@capacitor/local-notifications": "^8.0.1",
     "@fontsource/inter": "^5.2.8",
     "chart.js": "^4.5.1",
     "lucide-react": "^0.575.0",

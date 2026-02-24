@@ -8,7 +8,7 @@ import { useApp } from '../context/AppContext';
 import GroupCard from '../components/GroupCard';
 import ActivityFeed from '../components/ActivityFeed';
 import { SpendingByCategory } from '../components/BalanceChart';
-import { calculateBalances, simplifyDebts } from '../utils/debtSimplification';
+import { calculateBalances, simplifyDebts, getTotalUserDebt } from '../utils/debtSimplification';
 import { formatCurrency } from '../utils/currencyUtils';
 
 export default function Dashboard() {
@@ -19,7 +19,7 @@ export default function Dashboard() {
 
     // Calculate global stats
     let totalOwedToYou = 0;
-    let totalYouOwe = 0;
+    let totalYouOwe = getTotalUserDebt(state);
     let totalExpenses = 0;
     let pendingSettlements = 0;
 
@@ -30,7 +30,6 @@ export default function Dashboard() {
         const myBalance = balances[state.currentUser] || 0;
 
         if (myBalance > 0) totalOwedToYou += myBalance;
-        if (myBalance < 0) totalYouOwe += Math.abs(myBalance);
 
         totalExpenses += groupExpenses.reduce((s, e) => s + e.amount, 0);
     });
@@ -130,7 +129,7 @@ export default function Dashboard() {
 
             {/* Main Grid - EKLENDİ: minWidth: 0 ile flexbox/grid patlaması önlendi */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 'var(--space-xl)', minWidth: 0 }} className="dashboard-grid">
-                
+
                 {/* Left: Groups */}
                 <div style={{ minWidth: 0 }}>
                     <div className="flex items-center justify-between mb-lg">
@@ -161,7 +160,7 @@ export default function Dashboard() {
 
                 {/* Right: Activity + Chart - EKLENDİ: minWidth: 0 */}
                 <div className="flex flex-col gap-xl sidebar-panel" style={{ minWidth: 0 }}>
-                    
+
                     {/* Spending Chart */}
                     <div className="glass-card" style={{ minWidth: 0 }}>
                         <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Harcama Dağılımı</h4>
@@ -176,7 +175,7 @@ export default function Dashboard() {
                         <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Son Aktiviteler</h4>
                         {/* İçerik çok uzun olursa kendi içinde kaysın, sayfayı bozmasın */}
                         <div style={{ width: '100%', overflowX: 'auto' }}>
-                             <ActivityFeed limit={8} />
+                            <ActivityFeed limit={8} />
                         </div>
                     </div>
                 </div>

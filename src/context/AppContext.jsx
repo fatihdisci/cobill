@@ -1,5 +1,7 @@
 import { createContext, useContext, useReducer, useEffect } from 'react';
 import { SEED_DATA } from '../utils/seedData';
+import { updateDebtReminder } from '../utils/notificationService';
+import { getTotalUserDebt } from '../utils/debtSimplification';
 
 const AppContext = createContext(null);
 
@@ -122,6 +124,14 @@ export function AppProvider({ children }) {
     useEffect(() => {
         saveState(state);
     }, [state]);
+
+    // Debt Reminder Automation
+    useEffect(() => {
+        if (!state) return;
+        const totalDebt = getTotalUserDebt(state);
+        const frequency = state.settings?.reminderFrequency || 'never';
+        updateDebtReminder(frequency, totalDebt);
+    }, [state?.expenses, state?.settings?.reminderFrequency]);
 
     // Process recurring expenses on mount
     useEffect(() => {

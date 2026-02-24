@@ -33,7 +33,7 @@ export default function Profile() {
     });
 
     // Settings States
-    const [notifications, setNotifications] = useState(state.settings?.notifications ?? true);
+    const [reminderFrequency, setReminderFrequency] = useState(state.settings?.reminderFrequency || 'never');
     const [language, setLanguage] = useState(state.settings?.language || 'TR');
 
     const formatIBAN = (value) => {
@@ -73,13 +73,12 @@ export default function Profile() {
         alert('Hesap bilgileri güncellendi.');
     };
 
-    const handleNotificationsToggle = (e) => {
-        e.stopPropagation();
-        const newVal = !notifications;
-        setNotifications(newVal);
+    const handleFrequencyChange = (e) => {
+        const value = e.target.value;
+        setReminderFrequency(value);
         dispatch({
             type: 'UPDATE_SETTINGS',
-            payload: { ...state.settings, notifications: newVal }
+            payload: { ...state.settings, reminderFrequency: value }
         });
     };
 
@@ -222,16 +221,37 @@ export default function Profile() {
                     <div className="divider" style={dividerStyle} />
 
                     {/* Bildirimler */}
-                    <div className="action-item" style={itemStyle} onClick={handleNotificationsToggle}>
+                    <div className="action-item" style={itemStyle} onClick={() => handleToggleExtend('notifications')}>
                         <div className="flex items-center gap-md">
                             <div className="icon-box amber"><Bell size={18} /></div>
                             <div className="flex flex-col">
                                 <span className="text-sm font-semibold">Bildirimler</span>
-                                <span className="text-xs text-muted">Uygulama içi uyarılar</span>
+                                <span className="text-xs text-muted">Borç Hatırlatıcı (
+                                    {reminderFrequency === 'daily' ? 'Her Gün' : reminderFrequency === 'weekly' ? 'Her Hafta' : 'Kapalı'}
+                                    )</span>
                             </div>
                         </div>
-                        <div className={`toggle ${notifications ? 'active' : ''}`} style={{ zoom: 0.8 }} />
+                        {expanded === 'notifications' ? <ChevronDown size={16} className="text-muted" /> : <ChevronRight size={16} className="text-muted" />}
                     </div>
+                    {expanded === 'notifications' && (
+                        <div className="animate-fade-in" style={expandableStyle}>
+                            <div className="flex flex-col gap-sm">
+                                <div className="form-group">
+                                    <label className="form-label text-xs">Hatırlatma Sıklığı</label>
+                                    <select
+                                        className="form-select btn-sm"
+                                        value={reminderFrequency}
+                                        onChange={handleFrequencyChange}
+                                    >
+                                        <option value="never">Kapalı</option>
+                                        <option value="daily">Her Gün</option>
+                                        <option value="weekly">Her Hafta</option>
+                                    </select>
+                                </div>
+                                <span className="text-xs text-muted mt-xs">Ödenmemiş borçlarınız için size hatırlatma göndereceğiz.</span>
+                            </div>
+                        </div>
+                    )}
                     <div className="divider" style={dividerStyle} />
 
                     {/* Uygulama Ayarları */}
