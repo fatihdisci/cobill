@@ -130,7 +130,7 @@ export default function Layout() {
                 */}
                 <header className="mobile-header" style={{ display: 'flex', alignItems: 'center', position: 'relative', justifyContent: 'center', zIndex: 101 }}>
                     <div className="sidebar-logo">
-                        <img src={appIconImg} alt="CoBill" style={{ width: 56, height: 56, borderRadius: '12px', objectFit: 'contain', background: 'white' }} />
+                        <img src={appIconImg} alt="CoBill" style={{ width: 72, height: 72, borderRadius: '12px', objectFit: 'contain', background: 'white' }} />
                     </div>
 
                     <div style={{ position: 'absolute', right: 'var(--space-md)' }}>

@@ -94,7 +94,7 @@
   /* Layout */
   --sidebar-width: 260px;
   --header-height: 64px;
-  --mobile-tab-height: 68px;
+  --mobile-tab-height: 84px;
 }
 
 /* ===== Reset & Base ===== */
@@ -1063,10 +1063,10 @@ a:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   padding: var(--space-sm);
   color: var(--text-muted);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -1094,8 +1094,8 @@ a:hover {
 }
 
 .tab-item svg {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
 }
 
 /* FAB on mobile */
@@ -1130,7 +1130,7 @@ a:hover {
   top: 0;
   left: 0;
   right: 0;
-  height: calc(var(--header-height) + env(safe-area-inset-top, 0));
+  height: calc(84px + env(safe-area-inset-top, 0));
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
