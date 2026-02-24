@@ -6,16 +6,19 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import GroupCard from '../components/GroupCard';
-import ActivityFeed from '../components/ActivityFeed';
 import { SpendingByCategory } from '../components/BalanceChart';
 import { calculateBalances, simplifyDebts, getTotalUserDebt } from '../utils/debtSimplification';
 import { formatCurrency } from '../utils/currencyUtils';
+import ProUpgradeModal from '../components/ProUpgradeModal';
 
 export default function Dashboard() {
     const { state } = useApp();
     const navigate = useNavigate();
     const [showNewGroup, setShowNewGroup] = useState(false);
+    const [showProModal, setShowProModal] = useState(false);
     const [newGroup, setNewGroup] = useState({ name: '', description: '', currency: 'TRY', color: '#8b5cf6' });
+
+    const isPro = state.members[state.currentUser]?.isPro;
 
     // Calculate global stats
     let totalOwedToYou = 0;
@@ -165,7 +168,19 @@ export default function Dashboard() {
                     <div className="glass-card" style={{ minWidth: 0 }}>
                         <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Harcama Dağılımı</h4>
                         {/* EKLENDİ: Grafiğin taşıp ekranı bozmasını engelleyen kaydırılabilir sarmalayıcı */}
-                        <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '4px' }}>
+                        <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '4px', position: 'relative' }}>
+                            {!isPro && (
+                                <div style={{
+                                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                                    backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 10,
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                    backgroundColor: 'rgba(26, 32, 53, 0.3)', borderRadius: 12
+                                }}>
+                                    <button className="btn btn-primary" style={{ background: 'var(--gradient-primary)', border: 'none', boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)' }} onClick={() => setShowProModal(true)}>
+                                        Bu özelliği görmek için Pro'ya geçin
+                                    </button>
+                                </div>
+                            )}
                             <SpendingByCategory />
                         </div>
                     </div>
@@ -190,6 +205,10 @@ export default function Dashboard() {
                         navigate(`/group/${group.id}`);
                     }}
                 />
+            )}
+
+            {showProModal && (
+                <ProUpgradeModal onClose={() => setShowProModal(false)} />
             )}
 
             {/* Dashboard mobile grid override */}

@@ -10,7 +10,18 @@ const STORAGE_KEY = 'cobill_data';
 function loadState() {
     try {
         const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) return JSON.parse(saved);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+
+            // Ensure currentUser has isPro defined
+            if (parsed.members && parsed.currentUser && parsed.members[parsed.currentUser]) {
+                if (parsed.members[parsed.currentUser].isPro === undefined) {
+                    parsed.members[parsed.currentUser].isPro = false;
+                }
+            }
+
+            return parsed;
+        }
     } catch (e) {
         console.warn('Failed to load state:', e);
     }
