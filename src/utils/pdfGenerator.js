@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-import { formatDate, formatCurrency } from './helpers';
+import { formatDate } from './helpers';
+import { formatCurrency } from './currencyUtils';
 
 export const generateGroupPDF = (group, members, expenses, balances, settlements) => {
     const doc = new jsPDF();
