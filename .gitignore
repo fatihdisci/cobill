@@ -36,3 +36,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .eslintcache
+
+# Secrets
+android/app/google-services.json
