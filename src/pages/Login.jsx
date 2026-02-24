@@ -100,7 +100,7 @@ export default function Login() {
                     <button
                         type="submit"
                         className="btn btn-primary w-full mt-lg flex items-center justify-center gap-sm"
-                        style={{ background: 'var(--gradient-primary)', padding: '14px', fontSize: '1rem', fontWeight: 600 }}
+                        style={{ background: 'var(--gradient-primary)' }}
                         disabled={loading}
                     >
                         {loading ? 'Giriş Yapılıyor...' : <><LogIn size={20} /> Giriş Yap</>}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "764092752651",
+    "project_id": "cobill-52909",
+    "storage_bucket": "cobill-52909.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:764092752651:android:c7e9091ef86e48ea55380e",
+        "android_client_info": {
+          "package_name": "com.fatihdisci.cobill"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAV1EuhZdmdsTZ1A6-0R5IfEQfhFMQ1WI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

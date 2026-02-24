@@ -327,6 +327,7 @@ export function AppProvider({ children, user }) {
             }
         } catch (error) {
             console.error("Firestore sync error:", error);
+            alert("İşlem başarısız, lütfen internet bağlantınızı kontrol edin.");
         }
     };
 
