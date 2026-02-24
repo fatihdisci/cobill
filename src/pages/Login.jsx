@@ -4,7 +4,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'fire
 import { auth } from '../config/firebase';
 import { dbService } from '../utils/dbService';
 import { LogIn } from 'lucide-react';
-import splashScreenImg from '../assets/splash.png';
+import splashScreenImg from '../../assets/splash.png';
 
 export default function Login() {
     const [email, setEmail] = useState('test');
