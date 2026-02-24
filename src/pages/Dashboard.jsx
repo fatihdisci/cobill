@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import GroupCard from '../components/GroupCard';
+import ActivityFeed from '../components/ActivityFeed';
 import { SpendingByCategory } from '../components/BalanceChart';
 import { calculateBalances, simplifyDebts, getTotalUserDebt } from '../utils/debtSimplification';
 import { formatCurrency } from '../utils/currencyUtils';
