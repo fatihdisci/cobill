@@ -4,6 +4,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'fire
 import { auth } from '../config/firebase';
 import { dbService } from '../utils/dbService';
 import { LogIn } from 'lucide-react';
+import splashScreenImg from '../assets/splash.png';
 
 export default function Login() {
     const [email, setEmail] = useState('test');
@@ -17,7 +18,7 @@ export default function Login() {
         setError('');
         setLoading(true);
 
-        if (email.toLowerCase() === 'test' && password === 'test') {
+        if ((email.toLowerCase() === 'test' && password === 'test') || (email.toLowerCase() === 'demo' && password === 'demo')) {
             // Tamamen sahte (mock) user objesi yaratarak Firebase'i by-pass ederiz.
             // Bu event listener sadece App.jsx'teki state'i değiştiğinde devreye girer.
             // Bu local mock router işini session storage üstünden de yapabilirsek daha stabil olur.
@@ -25,10 +26,11 @@ export default function Login() {
 
             // App.jsx mock user alabilmesi için window objesine hook atıp sayfayı yeniletmek en kısasıdır
             // (Ya da onAuthStateChanged dinleyicisini ezip mocklamak gereklidir).
+            const isDemo = email.toLowerCase() === 'demo';
             sessionStorage.setItem('MOCK_FIREBASE_USER', JSON.stringify({
-                uid: 'test-user-id',
-                email: 'test@cobill.local',
-                displayName: 'Test Kullanıcısı'
+                uid: isDemo ? 'demo-user-id' : 'test-user-id',
+                email: isDemo ? 'demo@cobill.local' : 'test@cobill.local',
+                displayName: isDemo ? 'Demo Kullanıcısı' : 'Test Kullanıcısı'
             }));
             window.location.reload();
             return;
@@ -50,9 +52,9 @@ export default function Login() {
             <div className="glass-card w-full" style={{ maxWidth: 420, padding: 'var(--space-2xl)' }}>
                 <div className="flex flex-col items-center mb-xl">
                     <img
-                        src="/icon.png"
+                        src={splashScreenImg}
                         alt="CoBill Logo"
-                        style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 'var(--space-md)' }}
+                        style={{ width: 140, height: 140, objectFit: 'contain', marginBottom: 'var(--space-md)' }}
                     />
                     <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>CoBill'e Giriş Yapın</h2>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textAlign: 'center' }}>

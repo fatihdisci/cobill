@@ -133,20 +133,22 @@ export function AppProvider({ children, user }) {
 
             try {
                 // If this is our local mock user, bypass Firebase DB fetching
-                if (user.uid === 'test-user-id') {
+                if (user.uid === 'test-user-id' || user.uid === 'demo-user-id') {
                     if (isMounted) {
+                        const isDemo = user.uid === 'demo-user-id';
 
-                        // Map 'm1' to 'test-user-id' in the seed data dynamically
+                        // Map 'm1' to user id in the seed data dynamically
                         const mockMembers = { ...SEED_DATA.members };
-                        mockMembers['test-user-id'] = {
+                        mockMembers[user.uid] = {
                             ...mockMembers.m1,
-                            id: 'test-user-id',
-                            name: 'Test Kullanıcısı',
-                            email: 'test@cobill.local'
+                            id: user.uid,
+                            name: isDemo ? 'Demo Kullanıcısı' : 'Test Kullanıcısı',
+                            email: isDemo ? 'demo@cobill.local' : 'test@cobill.local',
+                            isPro: !isDemo // Demo user is NOT pro
                         };
                         delete mockMembers.m1;
 
-                        const replaceM1 = (id) => id === 'm1' ? 'test-user-id' : id;
+                        const replaceM1 = (id) => id === 'm1' ? user.uid : id;
 
                         const mockGroups = SEED_DATA.groups.map(g => ({
                             ...g,
@@ -168,7 +170,7 @@ export function AppProvider({ children, user }) {
                         defaultDispatch({
                             type: 'INIT_DATA',
                             payload: {
-                                currentUser: 'test-user-id',
+                                currentUser: user.uid,
                                 members: mockMembers,
                                 groups: mockGroups,
                                 expenses: mockExpenses,
