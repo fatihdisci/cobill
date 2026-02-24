@@ -4,6 +4,7 @@ import { Receipt, CalendarClock, Check } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { generateId, CATEGORIES } from '../utils/helpers';
 import { getSupportedCurrencies } from '../utils/currencyUtils';
+import { showExpenseInterstitialAd } from '../utils/adService';
 
 export default function ExpenseForm({ groupId, onClose }) {
     const { state, dispatch } = useApp();
@@ -30,6 +31,8 @@ export default function ExpenseForm({ groupId, onClose }) {
         ? selectedGroup.members.map(id => state.members[id]).filter(Boolean)
         : [];
 
+    const isPro = state.members[state.currentUser]?.isPro;
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!form.description || !form.amount || !form.groupId) return;
@@ -51,10 +54,19 @@ export default function ExpenseForm({ groupId, onClose }) {
 
         dispatch({ type: 'ADD_EXPENSE', payload: expense });
 
-        if (onClose) {
-            onClose();
+        const finishNavigation = () => {
+            if (onClose) {
+                onClose();
+            } else {
+                navigate(`/group/${form.groupId}`);
+            }
+        };
+
+        if (!isPro) {
+            // Show ad, then navigate
+            showExpenseInterstitialAd().then(finishNavigation);
         } else {
-            navigate(`/group/${form.groupId}`);
+            finishNavigation();
         }
     };
 

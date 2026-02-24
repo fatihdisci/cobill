@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     TrendingUp, TrendingDown, Wallet, Users, PlusCircle,
@@ -11,6 +11,7 @@ import { SpendingByCategory } from '../components/BalanceChart';
 import { calculateBalances, simplifyDebts, getTotalUserDebt } from '../utils/debtSimplification';
 import { formatCurrency } from '../utils/currencyUtils';
 import ProUpgradeModal from '../components/ProUpgradeModal';
+import { showBannerAd, hideBannerAd } from '../utils/adService';
 
 export default function Dashboard() {
     const { state } = useApp();
@@ -20,6 +21,15 @@ export default function Dashboard() {
     const [newGroup, setNewGroup] = useState({ name: '', description: '', currency: 'TRY', color: '#8b5cf6' });
 
     const isPro = state.members[state.currentUser]?.isPro;
+
+    useEffect(() => {
+        if (!isPro) {
+            showBannerAd();
+        }
+        return () => {
+            hideBannerAd();
+        };
+    }, [isPro]);
 
     // Calculate global stats
     let totalOwedToYou = 0;

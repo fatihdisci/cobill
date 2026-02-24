@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
+import { initializeAdMob } from './utils/adService';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Groups from './pages/Groups';
@@ -12,6 +14,10 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 
 function App() {
+  useEffect(() => {
+    initializeAdMob();
+  }, []);
+
   return (
     <AppProvider>
       <HashRouter>

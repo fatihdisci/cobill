@@ -12,9 +12,14 @@
     "deploy": "vite build && gh-pages -d dist"
   },
   "dependencies": {
+    "@capacitor-community/admob": "^8.0.0",
+    "@capacitor/filesystem": "^8.1.2",
     "@capacitor/local-notifications": "^8.0.1",
+    "@capacitor/share": "^8.0.1",
     "@fontsource/inter": "^5.2.8",
     "chart.js": "^4.5.1",
+    "jspdf": "^4.2.0",
+    "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.575.0",
     "react": "^19.2.0",
     "react-chartjs-2": "^5.3.1",

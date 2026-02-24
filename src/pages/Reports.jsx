@@ -3,12 +3,16 @@ import { useApp } from '../context/AppContext';
 import { SpendingByCategory, MemberBalanceChart } from '../components/BalanceChart';
 import { formatCurrency } from '../utils/currencyUtils';
 import { CATEGORIES, formatDate } from '../utils/helpers';
-import { FileText, Download, Mail, Copy } from 'lucide-react';
+import { FileText, Download, Mail, Copy, Lock } from 'lucide-react';
+import ProUpgradeModal from '../components/ProUpgradeModal';
 
 export default function Reports() {
     const { state } = useApp();
     const [selectedGroup, setSelectedGroup] = useState(state.groups[0]?.id || '');
     const [showExport, setShowExport] = useState(false);
+    const [showProModal, setShowProModal] = useState(false);
+
+    const isPro = state.members[state.currentUser]?.isPro;
 
     const group = state.groups.find(g => g.id === selectedGroup);
     const expenses = state.expenses.filter(e => e.groupId === selectedGroup);
@@ -76,21 +80,39 @@ export default function Reports() {
     };
 
     return (
-        <div className="animate-fade-in">
+        <div className="animate-fade-in relative">
             <div className="page-header">
                 <div>
-                    <h2>Raporlar</h2>
+                    <h2>Raporlar <span className="badge badge-purple" style={{ marginLeft: 8, verticalAlign: 'middle' }}>PRO</span></h2>
                     <p className="page-subtitle">Harcama analizi ve dışa aktarma</p>
                 </div>
                 <div className="flex gap-sm">
-                    <button className="btn btn-secondary" onClick={handleCopy}>
+                    <button className="btn btn-secondary" onClick={handleCopy} disabled={!isPro}>
                         <Copy size={14} /> Kopyala
                     </button>
-                    <button className="btn btn-primary" onClick={handleEmail}>
+                    <button className="btn btn-primary" onClick={handleEmail} disabled={!isPro}>
                         <Mail size={14} /> E-posta Gönder
                     </button>
                 </div>
             </div>
+
+            {!isPro && (
+                <div style={{
+                    position: 'absolute', top: 80, left: 0, right: 0, bottom: 0,
+                    backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', zIndex: 10,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '10vh',
+                    backgroundColor: 'rgba(26, 32, 53, 0.4)', borderRadius: 12, minHeight: 400
+                }}>
+                    <div style={{ background: 'var(--bg-card)', padding: 'var(--space-2xl)', borderRadius: 'var(--radius-lg)', textAlign: 'center', border: '1px solid var(--border-primary)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', maxWidth: 360 }}>
+                        <Lock size={48} style={{ color: 'var(--accent-purple)', margin: '0 auto', marginBottom: 'var(--space-md)' }} />
+                        <h3 className="mb-sm">Pro Özelliği</h3>
+                        <p className="text-muted text-sm mb-lg">Detaylı harcama analizleri, kategori bazlı dağılımlar ve rapor çıktıları sadece CoBill Pro üyelerine özeldir.</p>
+                        <button className="btn btn-primary w-full" style={{ background: 'var(--gradient-primary)', border: 'none' }} onClick={() => setShowProModal(true)}>
+                            Pro'ya Geçiş Yap
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Group Selector */}
             <div className="form-group mb-xl" style={{ maxWidth: 300 }}>
@@ -190,6 +212,10 @@ export default function Reports() {
           .reports-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
+
+            {showProModal && (
+                <ProUpgradeModal onClose={() => setShowProModal(false)} />
+            )}
         </div>
     );
 }

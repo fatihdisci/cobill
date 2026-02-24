@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlusCircle, Users, UserPlus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import GroupCard from '../components/GroupCard';
+import { showBannerAd, hideBannerAd } from '../utils/adService';
 
 export default function Groups() {
     const { state, dispatch } = useApp();
@@ -11,9 +12,19 @@ export default function Groups() {
     const [name, setName] = useState('');
     const [desc, setDesc] = useState('');
     const [currency, setCurrency] = useState('TRY');
+    const isPro = state.members[state.currentUser]?.isPro;
 
     const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#f43f5e', '#3b82f6', '#ec4899'];
     const [color, setColor] = useState(colors[0]);
+
+    useEffect(() => {
+        if (!isPro) {
+            showBannerAd();
+        }
+        return () => {
+            hideBannerAd();
+        };
+    }, [isPro]);
 
     const handleCreate = (e) => {
         e.preventDefault();

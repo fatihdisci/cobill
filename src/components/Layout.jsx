@@ -9,6 +9,7 @@ export default function Layout({ children }) {
     const location = useLocation();
     const navigate = useNavigate();
     const { state } = useApp();
+    const isPro = state.members[state.currentUser]?.isPro;
 
     const pendingCount = state.settlements.filter(s => s.status !== 'paid').length;
 
@@ -84,7 +85,7 @@ export default function Layout({ children }) {
             </aside>
 
             {/* Main Content */}
-            <main className="main-content">
+            <main className="main-content" style={{ paddingBottom: !isPro ? '60px' : '0' }}>
                 {/* DÜZELTME: Mobile Header buraya, main-content içine taşındı! 
                   Böylece Flexbox onu sayfanın soluna itip boşluk yaratmayacak.
                 */}

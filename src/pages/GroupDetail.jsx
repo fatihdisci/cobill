@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     UserPlus, PlusCircle, ArrowLeft, Trash2, Ghost,
-    Receipt, CalendarClock, MoreHorizontal, Copy, Check, Edit2
+    Receipt, CalendarClock, MoreHorizontal, Copy, Check, Edit2, FileText
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import MemberManager from '../components/MemberManager';
@@ -11,9 +11,12 @@ import DebtSummary from '../components/DebtSummary';
 import NudgeButton from '../components/NudgeButton';
 import ActivityFeed from '../components/ActivityFeed';
 import { MemberBalanceChart } from '../components/BalanceChart';
-import { calculateBalances } from '../utils/debtSimplification';
+import { calculateBalances, simplifyDebts } from '../utils/debtSimplification';
 import { formatCurrency } from '../utils/currencyUtils';
 import { getInitials, getAvatarColor, CATEGORIES, formatShortDate } from '../utils/helpers';
+import ProUpgradeModal from '../components/ProUpgradeModal';
+import { generateGroupPDF } from '../utils/pdfGenerator';
+import { sharePDF } from '../utils/fileService';
 
 export default function GroupDetail() {
     const { groupId } = useParams();
@@ -22,8 +25,12 @@ export default function GroupDetail() {
 
     const [showMembers, setShowMembers] = useState(false);
     const [showExpenseForm, setShowExpenseForm] = useState(false);
+    const [showProModal, setShowProModal] = useState(false);
     const [activeTab, setActiveTab] = useState('debts');
     const [copyFeedback, setCopyFeedback] = useState({});
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    const isPro = state.members[state.currentUser]?.isPro;
 
     const group = state.groups.find(g => g.id === groupId);
     if (!group) {
@@ -66,6 +73,26 @@ export default function GroupDetail() {
         });
     };
 
+    const handleExportPDF = async () => {
+        if (!isPro) {
+            setShowProModal(true);
+            return;
+        }
+
+        try {
+            setIsGenerating(true);
+            const simplifiedDebts = simplifyDebts(groupExpenses, groupMembers);
+            const base64PDF = generateGroupPDF(group, groupMembers, groupExpenses, balances, simplifiedDebts);
+
+            await sharePDF(base64PDF, `CoBill_${group.name.replace(/\s+/g, '_')}_Rapor.pdf`);
+        } catch (error) {
+            console.error('PDF Export Error:', error);
+            alert('PDF oluşturulurken bir hata oluştu.');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     const tabs = [
         { id: 'debts', label: 'Borç Özeti', icon: '💰' },
         { id: 'expenses', label: 'Harcamalar', icon: '📋' },
@@ -94,6 +121,9 @@ export default function GroupDetail() {
                     </div>
                 </div>
                 <div className="flex items-center gap-sm">
+                    <button className="btn btn-secondary" onClick={handleExportPDF} disabled={isGenerating}>
+                        <FileText size={14} /> {isGenerating ? 'Hazırlanıyor...' : 'PDF İndir'}
+                    </button>
                     <button className="btn btn-secondary" onClick={() => setShowMembers(true)}>
                         <UserPlus size={14} /> Üyeler
                     </button>
@@ -347,6 +377,10 @@ export default function GroupDetail() {
                         <ExpenseForm groupId={groupId} onClose={() => setShowExpenseForm(false)} />
                     </div>
                 </div>
+            )}
+
+            {showProModal && (
+                <ProUpgradeModal onClose={() => setShowProModal(false)} />
             )}
         </div>
     );
