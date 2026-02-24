@@ -1,49 +1,174 @@
-import { Check, Star } from 'lucide-react';
+import { Check, Star, Zap, Download, Bell, LayoutDashboard, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function ProUpgradeModal({ onClose }) {
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 480);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 480);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const features = [
-        "Gelişmiş Harcama Grafikleri",
-        "WhatsApp & E-posta ile Borç Hatırlatma",
-        "Satır içi PDF Dışa Aktarım",
-        "Reklamsız Deneyim"
+        {
+            icon: Download,
+            title: 'Profesyonel Dışa Aktarım',
+            desc: 'Bankacılık standartlarında, PDF ve metin bazlı detaylı rapor çıktıları.',
+            color: 'var(--accent-cyan)'
+        },
+        {
+            icon: Bell,
+            title: 'Akıllı Borç Hatırlatıcı',
+            desc: 'Tek tıkla WhatsApp veya E-posta üzerinden otomatik borç hatırlatmaları.',
+            color: 'var(--accent-emerald)'
+        },
+        {
+            icon: LayoutDashboard,
+            title: 'Gelişmiş Harcama Analizi',
+            desc: 'Kategori ve üye bazlı interaktif grafiklerle finansal durum takibi.',
+            color: 'var(--accent-purple)'
+        },
+        {
+            icon: Zap,
+            title: 'Sınırsız & Reklamsız',
+            desc: 'Tüm reklamlar kaldırılır, sınırsız grup ve masraf ekleme imkanı sağlanır.',
+            color: 'var(--accent-rose)'
+        }
     ];
 
     return (
-        <div className="modal-overlay animate-fade-in" onClick={onClose} style={{ zIndex: 1000 }}>
-            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 420, padding: 0, overflow: 'hidden' }}>
-                <div style={{ background: 'var(--gradient-primary)', padding: 'var(--space-2xl) var(--space-lg)', textAlign: 'center', position: 'relative' }}>
+        <div className="modal-overlay animate-fade-in" onClick={onClose} style={{
+            zIndex: 1100,
+            padding: isMobile ? '20px 16px' : '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(5, 8, 15, 0.75)',
+            backdropFilter: 'blur(8px)'
+        }}>
+            <div className="modal-content" onClick={e => e.stopPropagation()} style={{
+                width: '100%',
+                maxWidth: '440px',
+                maxHeight: '85vh',
+                padding: 0,
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                background: 'rgb(10, 15, 28)',
+                borderRadius: '32px',
+                border: 'none',
+                boxShadow: 'none',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative',
+                animation: 'modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                outline: 'none'
+            }}>
+                {/* Header section with gradient */}
+                <div style={{
+                    background: 'linear-gradient(135deg, #312e81 0%, #1e1b4b 100%)',
+                    padding: isMobile ? 'var(--space-xl) var(--space-lg)' : 'var(--space-2xl) var(--space-xl)',
+                    textAlign: 'center',
+                    position: 'relative',
+                    flexShrink: 0
+                }}>
                     <button
                         className="btn btn-ghost btn-icon"
                         onClick={onClose}
-                        style={{ position: 'absolute', top: 12, right: 12, color: 'white' }}
-                    >✕</button>
-                    <Star size={48} color="white" fill="white" style={{ margin: '0 auto', marginBottom: 'var(--space-md)' }} />
-                    <h2 style={{ color: 'white', fontSize: 'var(--font-2xl)', margin: 0 }}>CoBill Pro</h2>
-                    <p style={{ color: 'rgba(255,255,255,0.8)', marginTop: 'var(--space-sm)' }}>Finansal yönetimini bir üst seviyeye taşı.</p>
+                        style={{ position: 'absolute', top: 16, right: 16, color: 'rgba(255,255,255,0.5)', zIndex: 10 }}
+                    >
+                        <X size={20} />
+                    </button>
+
+                    <div style={{
+                        width: isMobile ? 60 : 80, height: isMobile ? 60 : 80, borderRadius: '20px',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        backdropFilter: 'blur(10px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        margin: '0 auto var(--space-lg)',
+                        border: 'none',
+                        boxShadow: 'none'
+                    }}>
+                        <Star size={isMobile ? 32 : 40} color="#f59e0b" fill="#f59e0b" />
+                    </div>
+
+                    <h2 style={{ color: 'white', fontSize: isMobile ? 'var(--font-2xl)' : 'var(--font-3xl)', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
+                        CoBill <span className="text-gradient" style={{ background: 'linear-gradient(to right, #f59e0b, #fbbf24)' }}>Pro</span>
+                    </h2>
+                    <p style={{ color: 'rgba(255,255,255,0.6)', marginTop: 'var(--space-sm)', fontSize: isMobile ? '0.9rem' : '1rem' }}>
+                        Finansal kontrolünüzü bir üst seviyeye taşıyın.
+                    </p>
                 </div>
 
-                <div style={{ padding: 'var(--space-xl)' }}>
-                    <div className="flex flex-col gap-md mb-xl">
-                        {features.map((feature, i) => (
-                            <div key={i} className="flex items-center gap-md">
-                                <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: 6, borderRadius: '50%' }}>
-                                    <Check size={16} style={{ color: 'var(--accent-purple)' }} />
+                <div style={{ padding: isMobile ? 'var(--space-xl)' : 'var(--space-2xl)', flex: 1 }}>
+                    <div className="flex flex-col gap-lg mb-xl">
+                        {features.map((f, i) => (
+                            <div key={i} className="flex gap-md animate-fade-in-up" style={{ animationDelay: `${i * 0.1}s` }}>
+                                <div style={{
+                                    width: 40, height: 40, borderRadius: '10px',
+                                    background: 'rgba(255,255,255,0.03)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    color: f.color, flexShrink: 0,
+                                    border: '1px solid rgba(255,255,255,0.05)'
+                                }}>
+                                    <f.icon size={20} />
                                 </div>
-                                <span style={{ fontWeight: 500 }}>{feature}</span>
+                                <div style={{ flex: 1 }}>
+                                    <h4 style={{ color: 'white', margin: '0 0 2px', fontSize: '0.95rem', fontWeight: 600 }}>{f.title}</h4>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', lineHeight: 1.3, margin: 0 }}>{f.desc}</p>
+                                </div>
                             </div>
                         ))}
                     </div>
 
+                    <div style={{
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        padding: 'var(--space-md) var(--space-lg)',
+                        borderRadius: '16px',
+                        marginBottom: 'var(--space-lg)',
+                        border: 'none',
+                        boxShadow: 'none',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}>
+                        <div>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Aylık Abonelik</div>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'white' }}>29,99₺ <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 400 }}>/ay</span></div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                            <span className="badge badge-purple" style={{ fontSize: '10px' }}>PRO AKTİF</span>
+                        </div>
+                    </div>
+
                     <button
                         className="btn btn-primary w-full btn-lg"
-                        style={{ background: 'var(--gradient-primary)', border: 'none', fontSize: 'var(--font-lg)' }}
+                        style={{
+                            background: 'var(--gradient-primary)',
+                            border: 'none',
+                            fontSize: '1rem',
+                            fontWeight: 700,
+                            padding: '14px',
+                            boxShadow: 'none',
+                            transition: 'all 0.2s ease',
+                            marginBottom: 'var(--space-md)'
+                        }}
                         onClick={() => {
-                            alert("Şu anda Beta aşamasında olduğumuz için Pro hesap yükseltmeleri geçici olarak devre dışıdır.");
+                            alert("Bize olan güvenin için teşekkürler! Şu anda Beta aşamasındayız, Pro hesabın testlerin bitince otomatik aktif olacak.");
                             onClose();
                         }}
                     >
-                        Pro'ya Yükselt
+                        Pro'yu Hemen Dene
                     </button>
+
+                    <p style={{
+                        textAlign: 'center',
+                        color: 'var(--text-muted)',
+                        fontSize: '0.7rem',
+                        margin: 0
+                    }}>
+                        Beta test sürecinde tüm özellikler ücretsizdir.
+                    </p>
                 </div>
             </div>
         </div>

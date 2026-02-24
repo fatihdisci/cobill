@@ -74,6 +74,8 @@
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-xl: 1.25rem;
+  --radius-2xl: 2rem;
+  --radius-3xl: 3rem;
   --radius-full: 9999px;
 
   /* Shadows */

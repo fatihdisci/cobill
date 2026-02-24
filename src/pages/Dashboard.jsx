@@ -174,36 +174,54 @@ export default function Dashboard() {
 
                 {/* Right: Activity + Chart - EKLENDİ: minWidth: 0 */}
                 <div className="flex flex-col gap-xl sidebar-panel" style={{ minWidth: 0 }}>
-
-                    {/* Spending Chart */}
-                    <div className="glass-card" style={{ minWidth: 0 }}>
-                        <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Harcama Dağılımı</h4>
-                        {/* EKLENDİ: Grafiğin taşıp ekranı bozmasını engelleyen kaydırılabilir sarmalayıcı */}
-                        <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '4px', position: 'relative' }}>
-                            {!isPro && (
-                                <div style={{
-                                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                                    backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 10,
-                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                    backgroundColor: 'rgba(26, 32, 53, 0.3)', borderRadius: 12
-                                }}>
-                                    <button className="btn btn-primary" style={{ background: 'var(--gradient-primary)', border: 'none', boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)' }} onClick={() => setShowProModal(true)}>
-                                        Bu özelliği görmek için Pro'ya geçin
-                                    </button>
+                    {/* Activity Feed - PRO değilse üstte, PRO ise altta (veya sabit yerinde, kullanıcı talebi üzerine PRO değilse grafik altta) */}
+                    {!isPro ? (
+                        <>
+                            {/* Activity Feed */}
+                            <div className="glass-card" style={{ minWidth: 0 }}>
+                                <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Son Aktiviteler</h4>
+                                <div style={{ width: '100%', overflowX: 'auto' }}>
+                                    <ActivityFeed limit={8} />
                                 </div>
-                            )}
-                            <SpendingByCategory />
-                        </div>
-                    </div>
+                            </div>
 
-                    {/* Activity Feed */}
-                    <div className="glass-card" style={{ minWidth: 0 }}>
-                        <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Son Aktiviteler</h4>
-                        {/* İçerik çok uzun olursa kendi içinde kaysın, sayfayı bozmasın */}
-                        <div style={{ width: '100%', overflowX: 'auto' }}>
-                            <ActivityFeed limit={8} />
-                        </div>
-                    </div>
+                            {/* Spending Chart (Blurred for non-pro) */}
+                            <div className="glass-card" style={{ minWidth: 0 }}>
+                                <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Harcama Dağılımı</h4>
+                                <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '4px', position: 'relative' }}>
+                                    <div style={{
+                                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                                        backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 10,
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                        backgroundColor: 'rgba(26, 32, 53, 0.3)', borderRadius: 12
+                                    }}>
+                                        <button className="btn btn-primary" style={{ background: 'var(--gradient-primary)', border: 'none', boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)' }} onClick={() => setShowProModal(true)}>
+                                            Bu özelliği görmek için Pro'ya geçin
+                                        </button>
+                                    </div>
+                                    <SpendingByCategory />
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            {/* Spending Chart (Default for PRO) */}
+                            <div className="glass-card" style={{ minWidth: 0 }}>
+                                <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Harcama Dağılımı</h4>
+                                <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '4px' }}>
+                                    <SpendingByCategory />
+                                </div>
+                            </div>
+
+                            {/* Activity Feed */}
+                            <div className="glass-card" style={{ minWidth: 0 }}>
+                                <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Son Aktiviteler</h4>
+                                <div style={{ width: '100%', overflowX: 'auto' }}>
+                                    <ActivityFeed limit={8} />
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 

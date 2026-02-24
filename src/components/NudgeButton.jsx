@@ -11,8 +11,15 @@ export default function NudgeButton({ memberId, amount, groupName, currency }) {
 
     const isPro = state.members[state.currentUser]?.isPro;
     const [showOptions, setShowOptions] = useState(false);
-    const [showProModal, setShowProModal] = useState(false);
+    const [isShaking, setIsShaking] = useState(false);
     const menuRef = useRef();
+
+    useEffect(() => {
+        if (isShaking) {
+            const timer = setTimeout(() => setIsShaking(false), 500);
+            return () => clearTimeout(timer);
+        }
+    }, [isShaking]);
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -61,16 +68,17 @@ export default function NudgeButton({ memberId, amount, groupName, currency }) {
     const handleActionClick = (e) => {
         e.stopPropagation();
         if (!isPro) {
-            setShowProModal(true);
+            setIsShaking(true);
+            window.dispatchEvent(new CustomEvent('show-pro-banner'));
         } else {
             setShowOptions(true);
         }
     };
 
     return (
-        <div className="flex flex-col gap-sm w-full">
+        <div className="flex flex-col gap-sm w-full relative">
             <button
-                className={`btn w-full flex justify-center items-center ${isPro ? 'btn-pro-active' : 'btn-pro-gold'}`}
+                className={`btn w-full flex justify-center items-center ${isPro ? 'btn-pro-active' : 'btn-pro-gold'} ${isShaking ? 'shake-animation' : ''}`}
                 onClick={handleActionClick}
                 style={{ padding: '8px 12px', height: 'auto', fontSize: '0.85rem', fontWeight: 600, borderRadius: 'var(--radius-md)', whiteSpace: 'nowrap' }}
             >
@@ -80,33 +88,52 @@ export default function NudgeButton({ memberId, amount, groupName, currency }) {
             {showOptions && isPro && (
                 <div ref={menuRef} style={{
                     width: '100%',
-                    minWidth: '220px',
-                    backgroundColor: 'var(--bg-primary)',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--border-primary)',
+                    minWidth: '240px',
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1px solid rgba(139, 92, 246, 0.3)',
                     padding: 'var(--space-md)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                    animation: 'slideUp 0.15s ease-out'
+                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4)',
+                    animation: 'slideUp 0.2s ease-out',
+                    zIndex: 2000,
+                    position: 'absolute',
+                    bottom: '100%',
+                    left: 0,
+                    marginBottom: '8px'
                 }}>
-                    <div className="modal-header mb-md">
-                        <h3 className="flex items-center gap-xs"><BellDot size={18} /> Hatırlatıcı Gönder</h3>
-                        <button className="btn btn-ghost btn-icon" onClick={() => setShowOptions(false)}><X size={18} /></button>
+                    <div className="flex justify-between items-center mb-md border-b border-white/5 pb-sm">
+                        <h4 className="flex items-center gap-xs m-0 text-sm text-white">
+                            <Star size={14} fill="var(--accent-amber)" color="var(--accent-amber)" />
+                            Hatırlatıcı Gönder
+                        </h4>
+                        <button className="btn btn-ghost btn-icon p-0 w-6 h-6 text-white/50" onClick={() => setShowOptions(false)}><X size={14} /></button>
                     </div>
                     <div className="flex flex-col gap-sm">
-                        <button className="btn btn-secondary w-full flex justify-start items-center gap-md" onClick={() => { handleWhatsApp(); setShowOptions(false); }}>
-                            <MessageCircle size={18} style={{ color: '#25D366' }} /> WhatsApp ile Gönder
+                        <button className="btn btn-secondary w-full flex justify-start items-center gap-md text-sm py-2" onClick={() => { handleWhatsApp(); setShowOptions(false); }}>
+                            <MessageCircle size={16} style={{ color: '#25D366' }} /> WhatsApp
                         </button>
-                        <button className="btn btn-secondary w-full flex justify-start items-center gap-md" onClick={() => { handleEmail(); setShowOptions(false); }}>
-                            <Mail size={18} style={{ color: 'var(--accent-purple)' }} /> E-posta Gönder
+                        <button className="btn btn-secondary w-full flex justify-start items-center gap-md text-sm py-2" onClick={() => { handleEmail(); setShowOptions(false); }}>
+                            <Mail size={16} style={{ color: 'var(--accent-purple)' }} /> E-posta
                         </button>
-                        <button className="btn btn-secondary w-full flex justify-start items-center gap-md" onClick={() => { handleCopy(); setShowOptions(false); }}>
-                            <Send size={18} style={{ color: 'var(--text-secondary)' }} /> Metin Olarak Kopyala
+                        <button className="btn btn-secondary w-full flex justify-start items-center gap-md text-sm py-2" onClick={() => { handleCopy(); setShowOptions(false); }}>
+                            <Send size={16} style={{ color: 'var(--text-secondary)' }} /> Kopyala
                         </button>
                     </div>
                 </div>
             )}
 
-            {showProModal && <ProUpgradeModal onClose={() => setShowProModal(false)} />}
+            <style>{`
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-4px); }
+                    75% { transform: translateX(4px); }
+                }
+                .shake-animation {
+                    animation: shake 0.2s ease-in-out infinite;
+                }
+            `}</style>
         </div>
     );
 }

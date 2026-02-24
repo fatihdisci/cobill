@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import {
     LayoutDashboard, Users, PlusCircle, ArrowLeftRight,
@@ -7,14 +7,31 @@ import {
 import { useApp } from '../context/AppContext';
 import appIconImg from '../../assets/icon.png';
 import NotificationMenu from './NotificationMenu';
+import ProBenefitsMenu from './ProBenefitsMenu';
+import ProUpgradeModal from './ProUpgradeModal';
+import UpgradeBanner from './UpgradeBanner';
+import { Star } from 'lucide-react';
 
 export default function Layout() {
     const location = useLocation();
     const navigate = useNavigate();
     const { state } = useApp();
     const [showNotifications, setShowNotifications] = useState(false);
+    const [showProBenefits, setShowProBenefits] = useState(false);
+    const [showProModal, setShowProModal] = useState(false);
+    const [showUpgradeBanner, setShowUpgradeBanner] = useState(false);
 
     const isPro = state.members[state.currentUser]?.isPro;
+
+    useEffect(() => {
+        const handler = () => {
+            setShowUpgradeBanner(true);
+            // Auto hide after 5 seconds
+            setTimeout(() => setShowUpgradeBanner(false), 5000);
+        };
+        window.addEventListener('show-pro-banner', handler);
+        return () => window.removeEventListener('show-pro-banner', handler);
+    }, []);
 
     const pendingCount = state.settlements.filter(s => s.status !== 'paid').length;
 
@@ -74,6 +91,24 @@ export default function Layout() {
                 </nav>
 
                 <div className="sidebar-footer">
+                    {!isPro && (
+                        <div
+                            className="nav-item animate-pulse-subtle"
+                            onClick={() => setShowProModal(true)}
+                            style={{
+                                cursor: 'pointer',
+                                background: 'var(--gradient-primary)',
+                                color: 'white',
+                                borderRadius: 'var(--radius-md)',
+                                marginBottom: 'var(--space-md)',
+                                padding: 'var(--space-md)',
+                                border: 'none'
+                            }}
+                        >
+                            <Star size={18} fill="white" />
+                            <span style={{ fontWeight: 700 }}>Pro'ya Geç</span>
+                        </div>
+                    )}
                     <div className="nav-item" onClick={() => navigate('/profile')} style={{ cursor: 'pointer', justifyContent: 'flex-start' }}>
                         <div className="avatar avatar-sm" style={{ background: 'var(--gradient-primary)' }}>
                             {state.members[state.currentUser]?.name?.[0] || 'U'}
@@ -82,7 +117,7 @@ export default function Layout() {
                             <div className="text-sm font-semibold truncate">
                                 {state.members[state.currentUser]?.name || 'Kullanıcı'}
                             </div>
-                            <div className="text-xs text-muted">Pro Plan</div>
+                            <div className="text-xs text-muted">{isPro ? 'Pro Plan' : 'Ücretsiz Plan'}</div>
                         </div>
                     </div>
                 </div>
@@ -137,6 +172,77 @@ export default function Layout() {
                     ))}
                 </nav>
             </div>
+            {/* Mobile Pro Upgrade FAB */}
+            {!isPro && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        bottom: '92px',
+                        left: '16px',
+                        zIndex: 99
+                    }}
+                    className="hide-desktop"
+                >
+                    <div style={{ position: 'relative' }}>
+                        <button
+                            className="btn-pro-gold flex items-center justify-center animate-pulse-subtle"
+                            style={{
+                                width: 52,
+                                height: 52,
+                                borderRadius: '50%',
+                                padding: 0,
+                                boxShadow: '0 8px 30px rgba(217, 119, 6, 0.4)',
+                                border: '2px solid rgba(251, 191, 36, 0.5)'
+                            }}
+                            onClick={() => setShowProBenefits(!showProBenefits)}
+                        >
+                            <Star size={24} fill="currentColor" />
+                        </button>
+                        <div style={{
+                            position: 'absolute',
+                            top: '-4px',
+                            left: '-4px',
+                            background: 'var(--gradient-primary)',
+                            color: 'white',
+                            fontSize: '9px',
+                            fontWeight: 900,
+                            padding: '2px 5px',
+                            borderRadius: '6px',
+                            boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            zIndex: 10
+                        }}>
+                            PRO
+                        </div>
+                    </div>
+                    {showProBenefits && (
+                        <ProBenefitsMenu
+                            onClose={() => setShowProBenefits(false)}
+                            onUpgrade={() => {
+                                setShowProBenefits(false);
+                                setShowProModal(true);
+                            }}
+                        />
+                    )}
+                </div>
+            )}
+
+            {/* Upgrade Banner for Pro Features */}
+            {!isPro && (
+                <UpgradeBanner
+                    visible={showUpgradeBanner}
+                    onClose={() => setShowUpgradeBanner(false)}
+                    onUpgrade={() => {
+                        setShowUpgradeBanner(false);
+                        setShowProModal(true);
+                    }}
+                />
+            )}
+
+            {/* Modals */}
+            {showProModal && (
+                <ProUpgradeModal onClose={() => setShowProModal(false)} />
+            )}
         </div>
     );
 }
