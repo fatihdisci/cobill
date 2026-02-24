@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     UserPlus, PlusCircle, ArrowLeft, Trash2, Ghost,
-    Receipt, CalendarClock, MoreHorizontal, Copy, Check, Edit2, FileText
+    Receipt, CalendarClock, MoreHorizontal, Copy, Check, Edit2, FileText,
+    LogOut
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import MemberManager from '../components/MemberManager';
@@ -26,7 +27,6 @@ export default function GroupDetail() {
     const [showMembers, setShowMembers] = useState(false);
     const [showExpenseForm, setShowExpenseForm] = useState(false);
     const [showProModal, setShowProModal] = useState(false);
-    const [activeTab, setActiveTab] = useState('debts');
     const [copyFeedback, setCopyFeedback] = useState({});
     const [isGenerating, setIsGenerating] = useState(false);
 
@@ -38,8 +38,8 @@ export default function GroupDetail() {
             <div className="empty-state animate-fade-in">
                 <div className="empty-icon">🔍</div>
                 <h3>Grup bulunamadı</h3>
-                <button className="btn btn-secondary mt-lg" onClick={() => navigate('/')}>
-                    <ArrowLeft size={16} /> Dashboard'a Dön
+                <button className="btn btn-secondary mt-lg" onClick={() => navigate('/groups')}>
+                    <ArrowLeft size={16} /> Gruplara Dön
                 </button>
             </div>
         );
@@ -47,6 +47,7 @@ export default function GroupDetail() {
 
     const groupMembers = group.members.map(id => state.members[id]).filter(Boolean);
     const groupExpenses = state.expenses.filter(e => e.groupId === groupId);
+    const isAdmin = group.createdBy === state.currentUser;
     const balances = calculateBalances(groupExpenses, groupMembers);
     const totalSpent = groupExpenses.reduce((s, e) => s + e.amount, 0);
     const recurringExpenses = groupExpenses.filter(e => e.isRecurring);
@@ -54,12 +55,21 @@ export default function GroupDetail() {
     const handleDeleteGroup = () => {
         if (window.confirm(`"${group.name}" grubunu silmek istediğinize emin misiniz?`)) {
             dispatch({ type: 'DELETE_GROUP', payload: groupId });
-            navigate('/');
+            navigate('/groups');
         }
     };
 
-    const handleDeleteExpense = (expenseId) => {
-        dispatch({ type: 'DELETE_EXPENSE', payload: expenseId });
+    const handleLeaveGroup = () => {
+        if (window.confirm(`"${group.name}" grubundan çıkmak istediğinize emin misiniz?`)) {
+            dispatch({ type: 'REMOVE_MEMBER_FROM_GROUP', payload: { groupId, memberId: state.currentUser } });
+            navigate('/groups');
+        }
+    };
+
+    const handleDeleteExpense = (expense) => {
+        if (window.confirm(`"${expense.description}" tutarındaki bu masrafı silmek istediğinize emin misiniz?`)) {
+            dispatch({ type: 'DELETE_EXPENSE', payload: expense.id });
+        }
     };
 
     const handleCopyIBAN = (iban, memberId) => {
@@ -81,8 +91,8 @@ export default function GroupDetail() {
 
         try {
             setIsGenerating(true);
-            const simplifiedDebts = simplifyDebts(groupExpenses, groupMembers);
-            const base64PDF = generateGroupPDF(group, groupMembers, groupExpenses, balances, simplifiedDebts);
+            const simplifiedDebts = simplifyDebts(balances);
+            const base64PDF = await generateGroupPDF(group, groupMembers, groupExpenses, balances, simplifiedDebts);
 
             await sharePDF(base64PDF, `CoBill_${group.name.replace(/\s+/g, '_')}_Rapor.pdf`);
         } catch (error) {
@@ -93,46 +103,50 @@ export default function GroupDetail() {
         }
     };
 
-    const tabs = [
-        { id: 'debts', label: 'Borç Özeti', icon: '💰' },
-        { id: 'expenses', label: 'Harcamalar', icon: '📋' },
-        { id: 'chart', label: 'Grafikler', icon: '📊' },
-        { id: 'activity', label: 'Aktivite', icon: '🕐' },
-    ];
-
     return (
         <div className="animate-fade-in">
             {/* Header */}
             <div className="page-header">
                 <div className="flex items-center gap-lg">
-                    <button className="btn btn-ghost btn-icon" onClick={() => navigate('/')}>
+                    <button className="btn btn-ghost btn-icon" onClick={() => navigate('/groups')}>
                         <ArrowLeft size={18} />
                     </button>
                     <div>
                         <h2 style={{
                             borderLeft: `3px solid ${group.color || 'var(--accent-purple)'}`,
                             paddingLeft: 'var(--space-md)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 'var(--space-md)'
                         }}>
                             {group.name}
+                            {!isAdmin && <span className="badge badge-secondary" style={{ fontSize: '0.65rem' }}>Paylaşılan</span>}
                         </h2>
                         <p className="page-subtitle" style={{ paddingLeft: 'var(--space-md)' }}>
                             {group.description || `${groupMembers.length} üye`}
                         </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-sm">
-                    <button className="btn btn-secondary" onClick={handleExportPDF} disabled={isGenerating}>
+                <div className="flex items-center gap-sm flex-wrap" style={{ justifyContent: 'flex-start', marginTop: 'var(--space-md)' }}>
+                    <button className={`btn btn-sm ${isPro ? 'btn-pro-active' : 'btn-pro-gold'}`} onClick={handleExportPDF} disabled={isGenerating}>
                         <FileText size={14} /> {isGenerating ? 'Hazırlanıyor...' : 'PDF İndir'}
+                        <span className={`badge ${isPro ? 'badge-pro-active' : 'badge-pro-gold'}`} style={{ marginLeft: 6, padding: '2px 6px', fontSize: '9px' }}>PRO</span>
                     </button>
-                    <button className="btn btn-secondary" onClick={() => setShowMembers(true)}>
+                    <button className="btn btn-secondary btn-sm" onClick={() => setShowMembers(true)}>
                         <UserPlus size={14} /> Üyeler
                     </button>
-                    <button className="btn btn-primary" onClick={() => setShowExpenseForm(true)}>
-                        <PlusCircle size={14} /> Masraf Ekle
+                    <button className="btn btn-primary btn-sm" onClick={() => setShowExpenseForm(true)}>
+                        <PlusCircle size={14} /> Masraf
                     </button>
-                    <button className="btn btn-ghost btn-icon" onClick={handleDeleteGroup} title="Grubu Sil">
-                        <Trash2 size={16} style={{ color: 'var(--accent-rose)' }} />
-                    </button>
+                    {isAdmin ? (
+                        <button className="btn btn-ghost btn-icon btn-sm" onClick={handleDeleteGroup} title="Grubu Sil">
+                            <Trash2 size={16} style={{ color: 'var(--accent-rose)' }} />
+                        </button>
+                    ) : (
+                        <button className="btn btn-ghost btn-icon btn-sm" onClick={handleLeaveGroup} title="Gruptan Çık">
+                            <LogOut size={16} style={{ color: 'var(--text-secondary)' }} />
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -168,68 +182,70 @@ export default function GroupDetail() {
                         const hasIban = member.iban && member.iban.length > 5;
 
                         return (
-                            <div key={member.id} className="flex items-center gap-md" style={{
+                            <div key={member.id} className="flex items-start gap-md" style={{
                                 padding: 'var(--space-md)',
                                 background: 'var(--bg-glass)',
                                 borderRadius: 'var(--radius-md)',
-                                minWidth: 0
                             }}>
-                                <div className="avatar" style={{ background: getAvatarColor(member.id) }}>
+                                <div className="avatar" style={{ background: getAvatarColor(member.id), flexShrink: 0 }}>
                                     {getInitials(member.name)}
                                 </div>
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div className="text-sm font-semibold flex items-center gap-sm">
-                                        {member.name}
-                                        {member.isGhost && <span className="badge badge-ghost"><Ghost size={9} /> Hayalet</span>}
-                                    </div>
-                                    {hasIban ? (
-                                        <div className="text-xs text-muted flex items-center gap-xs mt-xs">
-                                            <span style={{ fontFamily: 'monospace' }}>{member.iban}</span>
-                                        </div>
-                                    ) : (
-                                        <div className="text-xs text-tertiary mt-xs">IBAN bilgisi yok</div>
-                                    )}
-                                </div>
-
-                                <div className="flex items-center gap-sm">
-                                    {hasIban ? (
-                                        <button
-                                            className={`btn btn-sm ${copyFeedback[member.id] ? 'btn-success' : 'btn-secondary'}`}
-                                            onClick={() => handleCopyIBAN(member.iban, member.id)}
-                                            title="IBAN Kopyala"
-                                            style={{ padding: '4px 8px', height: 'auto' }}
-                                        >
-                                            {copyFeedback[member.id] ? (
-                                                <><Check size={12} /> Kopyalandı!</>
-                                            ) : (
-                                                <><Copy size={12} /> Kopyala</>
+                                    <div className="flex justify-between items-start mb-sm gap-sm flex-wrap">
+                                        <div>
+                                            <div className="text-sm font-semibold flex items-center gap-sm flex-wrap">
+                                                {member.name}
+                                                {member.isGhost && <span className="badge badge-ghost"><Ghost size={9} /> Hayalet</span>}
+                                            </div>
+                                            {!hasIban && (
+                                                <div className="text-xs text-tertiary mt-xs">IBAN bilgisi yok</div>
                                             )}
-                                        </button>
-                                    ) : (
-                                        <button
-                                            className="btn btn-sm btn-ghost"
-                                            onClick={() => setShowMembers(true)}
-                                            title="IBAN Ekle"
-                                            style={{ padding: '4px 8px', height: 'auto', fontSize: 'var(--font-xs)' }}
-                                        >
-                                            <Edit2 size={12} /> IBAN Ekle
-                                        </button>
-                                    )}
-
-                                    <div className="text-sm font-bold ml-sm" style={{
-                                        color: balance >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)',
-                                        whiteSpace: 'nowrap'
-                                    }}>
-                                        {balance >= 0 ? '+' : ''}{formatCurrency(balance, group.currency)}
+                                        </div>
+                                        <div className="text-sm font-bold" style={{
+                                            color: balance >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)',
+                                            whiteSpace: 'nowrap'
+                                        }}>
+                                            {balance >= 0 ? '+' : ''}{formatCurrency(balance, group.currency)}
+                                        </div>
                                     </div>
-                                    {balance < 0 && (
-                                        <NudgeButton
-                                            memberId={member.id}
-                                            amount={balance}
-                                            groupName={group.name}
-                                            currency={group.currency}
-                                        />
-                                    )}
+
+                                    <div className="flex flex-col gap-sm w-full mt-sm">
+                                        <div className="flex justify-between items-center w-full">
+                                            {hasIban ? (
+                                                <button
+                                                    className={`btn btn-sm ${copyFeedback[member.id] ? 'btn-success' : 'btn-secondary'}`}
+                                                    onClick={() => handleCopyIBAN(member.iban, member.id)}
+                                                    title="IBAN Kopyala"
+                                                >
+                                                    {copyFeedback[member.id] ? (
+                                                        <><Check size={12} /> Kopyalandı!</>
+                                                    ) : (
+                                                        <><Copy size={12} /> IBAN Kopyala</>
+                                                    )}
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    className="btn btn-sm btn-ghost"
+                                                    onClick={() => setShowMembers(true)}
+                                                    title="IBAN Ekle"
+                                                >
+                                                    <Edit2 size={12} /> IBAN Ekle
+                                                </button>
+                                            )}
+                                        </div>
+                                        {balance < 0 && (
+                                            <div className="w-full flex justify-end">
+                                                <div style={{ width: '100%', maxWidth: '280px' }}>
+                                                    <NudgeButton
+                                                        memberId={member.id}
+                                                        amount={balance}
+                                                        groupName={group.name}
+                                                        currency={group.currency}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         );
@@ -237,129 +253,103 @@ export default function GroupDetail() {
                 </div>
             </div>
 
-            {/* Tabs */}
-            <div className="flex gap-sm mb-xl" style={{ borderBottom: '1px solid var(--border-primary)', paddingBottom: 'var(--space-sm)' }}>
-                {tabs.map(tab => (
-                    <button
-                        key={tab.id}
-                        className={`btn btn-ghost ${activeTab === tab.id ? 'active' : ''}`}
-                        onClick={() => setActiveTab(tab.id)}
-                        style={{
-                            borderBottom: activeTab === tab.id ? '2px solid var(--accent-purple)' : '2px solid transparent',
-                            borderRadius: 0,
-                            color: activeTab === tab.id ? 'var(--accent-purple-light)' : 'var(--text-tertiary)',
-                        }}
-                    >
-                        <span>{tab.icon}</span> {tab.label}
-                    </button>
-                ))}
-            </div>
+            {/* Sections */}
+            <div className="flex flex-col gap-xl">
+                <div className="glass-card">
+                    <h4 className="mb-lg flex items-center gap-sm">💰 Sadeleştirilmiş Borçlar</h4>
+                    <DebtSummary groupId={groupId} />
+                </div>
 
-            {/* Tab Content */}
-            <div className="animate-fade-in" key={activeTab}>
-                {activeTab === 'debts' && (
-                    <div className="glass-card">
-                        <h4 className="mb-lg">Sadeleştirilmiş Borçlar</h4>
-                        <DebtSummary groupId={groupId} />
+                <div className="glass-card">
+                    <div className="flex items-center justify-between mb-lg">
+                        <h4 className="flex items-center gap-sm">📋 Harcama Geçmişi</h4>
+                        <span className="badge badge-purple">{groupExpenses.length} masraf</span>
                     </div>
-                )}
-
-                {activeTab === 'expenses' && (
-                    <div className="glass-card">
-                        <div className="flex items-center justify-between mb-lg">
-                            <h4>Harcama Geçmişi</h4>
-                            <span className="badge badge-purple">{groupExpenses.length} masraf</span>
-                        </div>
-                        <div className="hide-mobile">
-                            <table className="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Açıklama</th>
-                                        <th>Kategori</th>
-                                        <th>Ödeyen</th>
-                                        <th>Tarih</th>
-                                        <th style={{ textAlign: 'right' }}>Tutar</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {groupExpenses.map(expense => {
-                                        const payer = state.members[expense.paidBy];
-                                        const cat = CATEGORIES[expense.category] || CATEGORIES.other;
-                                        return (
-                                            <tr key={expense.id}>
-                                                <td>
-                                                    <div className="flex items-center gap-sm">
-                                                        {expense.isRecurring && <CalendarClock size={14} style={{ color: 'var(--accent-amber)' }} />}
-                                                        <span className="font-medium">{expense.description}</span>
+                    <div className="hide-mobile">
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Açıklama</th>
+                                    <th>Kategori</th>
+                                    <th>Ödeyen</th>
+                                    <th>Tarih</th>
+                                    <th style={{ textAlign: 'right' }}>Tutar</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {groupExpenses.map(expense => {
+                                    const payer = state.members[expense.paidBy];
+                                    const cat = CATEGORIES[expense.category] || CATEGORIES.other;
+                                    return (
+                                        <tr key={expense.id}>
+                                            <td>
+                                                <div className="flex items-center gap-sm">
+                                                    {expense.isRecurring && <CalendarClock size={14} style={{ color: 'var(--accent-amber)' }} />}
+                                                    <span className="font-medium">{expense.description}</span>
+                                                </div>
+                                            </td>
+                                            <td><span>{cat.icon} {cat.label}</span></td>
+                                            <td>
+                                                <div className="flex items-center gap-sm">
+                                                    <div className="avatar avatar-sm" style={{ background: getAvatarColor(payer?.id || '') }}>
+                                                        {getInitials(payer?.name || '?')}
                                                     </div>
-                                                </td>
-                                                <td><span>{cat.icon} {cat.label}</span></td>
-                                                <td>
-                                                    <div className="flex items-center gap-sm">
-                                                        <div className="avatar avatar-sm" style={{ background: getAvatarColor(payer?.id || '') }}>
-                                                            {getInitials(payer?.name || '?')}
-                                                        </div>
-                                                        {payer?.name?.split(' ')[0]}
-                                                    </div>
-                                                </td>
-                                                <td className="text-muted">{formatShortDate(expense.date)}</td>
-                                                <td style={{ textAlign: 'right' }}>
-                                                    <span className="font-bold">{formatCurrency(expense.amount, expense.currency)}</span>
-                                                </td>
-                                                <td>
-                                                    <button
-                                                        className="btn btn-ghost btn-sm"
-                                                        onClick={() => handleDeleteExpense(expense.id)}
-                                                        style={{ color: 'var(--accent-rose)' }}
-                                                    >
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
+                                                    {payer?.name?.split(' ')[0]}
+                                                </div>
+                                            </td>
+                                            <td className="text-muted">{formatShortDate(expense.date)}</td>
+                                            <td style={{ textAlign: 'right' }}>
+                                                <span className="font-bold">{formatCurrency(expense.amount, expense.currency)}</span>
+                                            </td>
+                                            <td>
+                                                <button
+                                                    className="btn btn-ghost btn-sm"
+                                                    onClick={() => handleDeleteExpense(expense)}
+                                                    style={{ color: 'var(--accent-rose)' }}
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
 
-                        {/* Mobile expense list */}
-                        <div className="show-mobile" style={{ display: 'none', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-                            {groupExpenses.map(expense => {
-                                const payer = state.members[expense.paidBy];
-                                const cat = CATEGORIES[expense.category] || CATEGORIES.other;
-                                return (
-                                    <div key={expense.id} className="flex items-center gap-md" style={{
-                                        padding: 'var(--space-md)',
-                                        background: 'var(--bg-glass)',
-                                        borderRadius: 'var(--radius-md)',
-                                    }}>
-                                        <span style={{ fontSize: '1.2rem' }}>{cat.icon}</span>
-                                        <div style={{ flex: 1 }}>
-                                            <div className="text-sm font-semibold">{expense.description}</div>
-                                            <div className="text-xs text-muted">{payer?.name?.split(' ')[0]} • {formatShortDate(expense.date)}</div>
-                                        </div>
-                                        <span className="font-bold text-sm">{formatCurrency(expense.amount, expense.currency)}</span>
+                    {/* Mobile expense list */}
+                    <div className="show-mobile" style={{ display: 'none', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+                        {groupExpenses.map(expense => {
+                            const payer = state.members[expense.paidBy];
+                            const cat = CATEGORIES[expense.category] || CATEGORIES.other;
+                            return (
+                                <div key={expense.id} className="flex items-center gap-md" style={{
+                                    padding: 'var(--space-md)',
+                                    background: 'var(--bg-glass)',
+                                    borderRadius: 'var(--radius-md)',
+                                }}>
+                                    <span style={{ fontSize: '1.2rem' }}>{cat.icon}</span>
+                                    <div style={{ flex: 1 }}>
+                                        <div className="text-sm font-semibold">{expense.description}</div>
+                                        <div className="text-xs text-muted">{payer?.name?.split(' ')[0]} • {formatShortDate(expense.date)}</div>
                                     </div>
-                                );
-                            })}
-                        </div>
+                                    <span className="font-bold text-sm">{formatCurrency(expense.amount, expense.currency)}</span>
+                                </div>
+                            );
+                        })}
                     </div>
-                )}
+                </div>
 
-                {activeTab === 'chart' && (
-                    <div className="glass-card">
-                        <h4 className="mb-lg">Kişi Başı Harcama</h4>
-                        <MemberBalanceChart groupId={groupId} />
-                    </div>
-                )}
+                <div className="glass-card">
+                    <h4 className="mb-lg flex items-center gap-sm">📊 Kişi Başı Harcama</h4>
+                    <MemberBalanceChart groupId={groupId} />
+                </div>
 
-                {activeTab === 'activity' && (
-                    <div className="glass-card">
-                        <h4 className="mb-lg">Aktivite Akışı</h4>
-                        <ActivityFeed groupId={groupId} limit={20} />
-                    </div>
-                )}
+                <div className="glass-card">
+                    <h4 className="mb-lg flex items-center gap-sm">🕐 Aktivite Akışı</h4>
+                    <ActivityFeed groupId={groupId} limit={20} />
+                </div>
             </div>
 
             {/* Modals */}
@@ -369,7 +359,7 @@ export default function GroupDetail() {
 
             {showExpenseForm && (
                 <div className="modal-overlay" onClick={() => setShowExpenseForm(false)}>
-                    <div className="modal-content animate-slide-up" onClick={e => e.stopPropagation()} style={{ maxWidth: 560 }}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 560 }}>
                         <div className="modal-header">
                             <h3>Masraf Ekle</h3>
                             <button className="btn btn-ghost btn-icon" onClick={() => setShowExpenseForm(false)}>✕</button>

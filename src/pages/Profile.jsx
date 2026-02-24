@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     User, Mail, Phone, Bell, Globe, Palette, Shield,
-    LogOut, Copy, Check, Edit2, CircleUser, ChevronRight, ChevronDown
+    LogOut, Copy, Check, Edit2, CircleUser, ChevronRight, ChevronDown,
+    Eye, EyeOff
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getAvatarColor, getInitials } from '../utils/helpers';
+import { auth } from '../config/firebase';
+import { updatePassword } from 'firebase/auth';
 
 export default function Profile() {
     const { state, dispatch } = useApp();
@@ -16,6 +19,7 @@ export default function Profile() {
     const [isEditingIban, setIsEditingIban] = useState(false);
     const [tempIban, setTempIban] = useState(currentUser?.iban || '');
     const [copyFeedback, setCopyFeedback] = useState(false);
+    const [showIban, setShowIban] = useState(false);
 
     // Accordion States
     const [expanded, setExpanded] = useState(null); // 'account', 'settings', 'security'
@@ -84,15 +88,21 @@ export default function Profile() {
 
     const handleSaveSettings = (e) => {
         e.preventDefault();
+        const newSettings = { ...state.settings, language, reminderFrequency };
         dispatch({
             type: 'UPDATE_SETTINGS',
-            payload: { ...state.settings, language }
+            payload: newSettings
+        });
+        // Sadece AppContext değil, kullanıcı profiline de yansıtalım.
+        dispatch({
+            type: 'UPDATE_MEMBER',
+            payload: { id: state.currentUser, settings: newSettings }
         });
         setExpanded(null);
         alert('Uygulama ayarları başarıyla kaydedildi.');
     };
 
-    const handleSaveSecurity = (e) => {
+    const handleSaveSecurity = async (e) => {
         e.preventDefault();
         if (securityForm.newPass !== securityForm.confirmPass) {
             alert('Yeni şifreler uyuşmuyor, lütfen tekrar deneyin.');
@@ -103,16 +113,33 @@ export default function Profile() {
             return;
         }
 
-        // Simulating Password Update
-        setSecurityForm({ currentPass: '', newPass: '', confirmPass: '' });
-        setExpanded(null);
-        alert('Güvenlik ayarlarınız başarıyla güncellendi.');
+        try {
+            if (auth.currentUser && auth.currentUser.uid !== 'test-user-id') {
+                await updatePassword(auth.currentUser, securityForm.newPass);
+                alert('Güvenlik ayarlarınız başarıyla güncellendi.');
+            } else {
+                // Mock user
+                alert('Test hesabı: Şifreniz başarıyla güncellendi (Sanal işlem).');
+            }
+            setSecurityForm({ currentPass: '', newPass: '', confirmPass: '' });
+            setExpanded(null);
+        } catch (error) {
+            if (error.code === 'auth/requires-recent-login') {
+                alert('Güvenlik nedeniyle şifre değiştirmeden önce tekrar giriş yapmalısınız (Uygulamadan çıkıp tekrar girin).');
+            } else {
+                alert('Şifre güncellenirken hata oluştu: ' + error.message);
+            }
+        }
     };
 
     const handleLogout = () => {
         if (window.confirm('Hesabınızdan çıkış yapmak istediğinize emin misiniz?')) {
             // Gerçek bir uygulamada token silinir vs.
-            navigate('/');
+            sessionStorage.removeItem('MOCK_FIREBASE_USER');
+            // Normally you would sign out of Firebase here as well:
+            // auth.signOut();
+            navigate('/login');
+            window.location.reload();
         }
     };
 
@@ -130,7 +157,7 @@ export default function Profile() {
                 }}>
                     {getInitials(currentUser?.name)}
                 </div>
-                <h2 className="animate-slide-up" style={{ fontSize: 'var(--font-2xl)', marginTop: 'var(--space-sm)' }}>
+                <h2 style={{ fontSize: 'var(--font-2xl)', marginTop: 'var(--space-sm)' }}>
                     {currentUser?.name || 'Kullanıcı Kimliği'}
                 </h2>
             </div>
@@ -171,8 +198,24 @@ export default function Profile() {
                     </div>
                 ) : (
                     <div className="flex justify-between items-center">
-                        <div className="text-lg font-mono" style={{ letterSpacing: '0.05em' }}>
-                            {currentUser?.iban || <span className="text-muted italic">Kayıtlı IBAN bulunamadı</span>}
+                        <div className="flex items-center gap-xs">
+                            <div className="text-lg font-mono" style={{ letterSpacing: '0.05em' }}>
+                                {currentUser?.iban ? (
+                                    showIban ? currentUser.iban : currentUser.iban.replace(/^(.{2})(.+)(.{4})$/, (_, p1, p2, p3) => `${p1}**** **** **** ${p3}`)
+                                ) : (
+                                    <span className="text-muted italic">Kayıtlı IBAN bulunamadı</span>
+                                )}
+                            </div>
+                            {currentUser?.iban && (
+                                <button
+                                    className="btn btn-ghost btn-sm btn-icon ml-xs"
+                                    onClick={() => setShowIban(!showIban)}
+                                    title={showIban ? "Gizle" : "Göster"}
+                                    style={{ height: '24px', width: '24px' }}
+                                >
+                                    {showIban ? <EyeOff size={14} /> : <Eye size={14} />}
+                                </button>
+                            )}
                         </div>
                         <button
                             className="btn btn-ghost btn-sm"
@@ -260,7 +303,7 @@ export default function Profile() {
                             <div className="icon-box cyan"><Globe size={18} /></div>
                             <div className="flex flex-col">
                                 <span className="text-sm font-semibold">Uygulama Ayarları</span>
-                                <span className="text-xs text-muted">Dil ve Tema (<span style={{ fontFamily: 'monospace' }}>{language}</span>/OLED)</span>
+                                <span className="text-xs text-muted">Dil ve Tema (<span style={{ fontFamily: 'monospace' }}>{language}</span>/Light)</span>
                             </div>
                         </div>
                         {expanded === 'settings' ? <ChevronDown size={16} className="text-muted" /> : <ChevronRight size={16} className="text-muted" />}
@@ -277,8 +320,8 @@ export default function Profile() {
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label text-xs">Arayüz Teması</label>
-                                    <input type="text" className="form-input btn-sm" value="Koyu Tema (OLED Siyahı)" disabled style={{ opacity: 0.7 }} />
-                                    <span className="text-xs text-muted mt-xs">CoBill, göz yorgunluğunu azaltan ve amoled ekranlarda pil tasarrufu sağlayan kesintisiz bir "OLED" denetimine sahiptir. Tema sabittir.</span>
+                                    <input type="text" className="form-input btn-sm" value="Açık Tema (Minimalist)" disabled style={{ opacity: 0.7 }} />
+                                    <span className="text-xs text-muted mt-xs">CoBill, göz yorgunluğunu azaltan ve modern bir görünüm sunan açık tema kullanmaktadır. Tema sabittir.</span>
                                 </div>
                                 <button type="submit" className="btn btn-primary btn-sm mt-xs">Ayarları Kaydet</button>
                             </form>

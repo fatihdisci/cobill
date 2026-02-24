@@ -277,7 +277,7 @@ function NewGroupModal({ onClose, onSubmit }) {
 
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
                     <h3>Yeni Grup Oluştur</h3>
                     <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>

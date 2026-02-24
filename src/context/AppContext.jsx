@@ -1,43 +1,29 @@
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useReducer, useEffect, useState } from 'react';
+import { auth } from '../config/firebase';
+import { dbService } from '../utils/dbService';
 import { SEED_DATA } from '../utils/seedData';
+import { encryptIBAN, decryptIBAN } from '../utils/cryptoUtils';
 import { updateDebtReminder } from '../utils/notificationService';
 import { getTotalUserDebt } from '../utils/debtSimplification';
 
 const AppContext = createContext(null);
 
-const STORAGE_KEY = 'cobill_data';
-
-function loadState() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-            const parsed = JSON.parse(saved);
-
-            // Ensure currentUser has isPro defined
-            if (parsed.members && parsed.currentUser && parsed.members[parsed.currentUser]) {
-                if (parsed.members[parsed.currentUser].isPro === undefined) {
-                    parsed.members[parsed.currentUser].isPro = false;
-                }
-            }
-
-            return parsed;
-        }
-    } catch (e) {
-        console.warn('Failed to load state:', e);
-    }
-    return SEED_DATA;
-}
-
-function saveState(state) {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) {
-        console.warn('Failed to save state:', e);
-    }
-}
+const INITIAL_STATE = {
+    currentUser: null,
+    members: {},
+    groups: [],
+    expenses: [],
+    settlements: [],
+    settings: { reminderFrequency: 'never' }
+};
 
 function appReducer(state, action) {
+    if (!state) return INITIAL_STATE;
+
     switch (action.type) {
+        case 'INIT_DATA':
+            return { ...state, ...action.payload };
+
         // Groups
         case 'ADD_GROUP':
             return { ...state, groups: [...state.groups, action.payload] };
@@ -121,54 +107,245 @@ function appReducer(state, action) {
 
         // Reset
         case 'RESET_DATA':
-            return SEED_DATA;
+            return INITIAL_STATE;
 
         default:
             return state;
     }
 }
 
-export function AppProvider({ children }) {
-    const [state, dispatch] = useReducer(appReducer, null, loadState);
+export function AppProvider({ children, user }) {
+    const [state, defaultDispatch] = useReducer(appReducer, INITIAL_STATE);
+    const [isDataLoaded, setIsDataLoaded] = useState(false);
 
-    // Auto-save on every state change
+    // Initial Data Fetching from Firebase when fully authenticated
     useEffect(() => {
-        saveState(state);
-    }, [state]);
+        let isMounted = true;
+
+        const loadFirebaseData = async () => {
+            if (!user) {
+                if (isMounted) {
+                    defaultDispatch({ type: 'RESET_DATA' });
+                    setIsDataLoaded(true);
+                }
+                return;
+            }
+
+            try {
+                // If this is our local mock user, bypass Firebase DB fetching
+                if (user.uid === 'test-user-id') {
+                    if (isMounted) {
+
+                        // Map 'm1' to 'test-user-id' in the seed data dynamically
+                        const mockMembers = { ...SEED_DATA.members };
+                        mockMembers['test-user-id'] = {
+                            ...mockMembers.m1,
+                            id: 'test-user-id',
+                            name: 'Test Kullanıcısı',
+                            email: 'test@cobill.local'
+                        };
+                        delete mockMembers.m1;
+
+                        const replaceM1 = (id) => id === 'm1' ? 'test-user-id' : id;
+
+                        const mockGroups = SEED_DATA.groups.map(g => ({
+                            ...g,
+                            members: g.members.map(replaceM1)
+                        }));
+
+                        const mockExpenses = SEED_DATA.expenses.map(e => ({
+                            ...e,
+                            paidBy: replaceM1(e.paidBy),
+                            splitAmong: e.splitAmong.map(replaceM1)
+                        }));
+
+                        const mockSettlements = SEED_DATA.settlements.map(s => ({
+                            ...s,
+                            from: replaceM1(s.from),
+                            to: replaceM1(s.to)
+                        }));
+
+                        defaultDispatch({
+                            type: 'INIT_DATA',
+                            payload: {
+                                currentUser: 'test-user-id',
+                                members: mockMembers,
+                                groups: mockGroups,
+                                expenses: mockExpenses,
+                                settlements: mockSettlements
+                            }
+                        });
+                        setIsDataLoaded(true);
+                    }
+                    return;
+                }
+
+                // 1. Fetch current user from DB (to get isPro, phone, etc.)
+                let currentUserData = await dbService.getUser(user.uid);
+                if (!currentUserData) {
+                    // Fallback create if not exists (e.g. they registered but doc failed)
+                    currentUserData = {
+                        id: user.uid,
+                        name: user.displayName || user.email.split('@')[0],
+                        email: user.email,
+                        isPro: false,
+                        isGhost: false
+                    };
+                    await dbService.saveUser(currentUserData);
+                } else if (currentUserData.iban) {
+                    currentUserData.iban = decryptIBAN(currentUserData.iban);
+                }
+
+                // 2. Fetch all groups for this user
+                const groups = await dbService.getGroupsForUser(user.uid);
+                const groupIds = groups.map(g => g.id);
+
+                // 3. Collect all unique member IDs across these groups
+                const allMemberIds = new Set([user.uid]);
+                groups.forEach(g => {
+                    g.members?.forEach(mId => allMemberIds.add(mId));
+                });
+
+                // 4. Fetch all user data for these members
+                let membersObj = {};
+                if (allMemberIds.size > 0) {
+                    membersObj = await dbService.getUsersByIds(Array.from(allMemberIds));
+                    // Decrypt IBANs for local state
+                    Object.values(membersObj).forEach(m => {
+                        if (m.iban) m.iban = decryptIBAN(m.iban);
+                    });
+                } else {
+                    membersObj = { [user.uid]: currentUserData };
+                }
+
+                // 5. Fetch expenses and settlements for these groups
+                let expenses = [];
+                let settlements = [];
+                if (groupIds.length > 0) {
+                    expenses = await dbService.getExpensesForGroups(groupIds);
+                    settlements = await dbService.getSettlementsForGroups(groupIds);
+                }
+
+                // Initialize State
+                if (isMounted) {
+                    defaultDispatch({
+                        type: 'INIT_DATA',
+                        payload: {
+                            currentUser: user.uid,
+                            members: membersObj,
+                            groups,
+                            expenses,
+                            settlements,
+                            settings: currentUserData.settings || { reminderFrequency: 'never', language: 'TR' }
+                        }
+                    });
+                    setIsDataLoaded(true);
+                }
+            } catch (error) {
+                console.error("Error loading data from Firebase:", error);
+                // Fallback to empty state on error to unblock UI
+                setIsDataLoaded(true);
+            }
+        };
+
+        setIsDataLoaded(false);
+        loadFirebaseData();
+
+        return () => { isMounted = false; };
+    }, [user]);
+
+    // Wrapper dispatch to intercept actions and route them to Firestore asynchronously
+    const dispatch = async (action) => {
+        // Optimistic update locally immediately
+        defaultDispatch(action);
+
+        // If mock user, do NOT attempt to sync with Firebase
+        if (state.currentUser === 'test-user-id') return;
+
+        // Async side effects to Firestore (Failures will log to console, but could be enhanced)
+        try {
+            switch (action.type) {
+                // Groups
+                case 'ADD_GROUP':
+                case 'UPDATE_GROUP':
+                    await dbService.saveGroup(action.payload);
+                    break;
+                case 'DELETE_GROUP':
+                    await dbService.deleteGroup(action.payload);
+                    break;
+
+                // Members (Ghost members or updating real profile)
+                case 'ADD_MEMBER':
+                case 'UPDATE_MEMBER': {
+                    const memberToSave = { ...action.payload };
+                    if (memberToSave.iban) {
+                        memberToSave.iban = encryptIBAN(memberToSave.iban);
+                    }
+                    await dbService.saveUser(memberToSave);
+                    break;
+                }
+                case 'ADD_MEMBER_TO_GROUP':
+                case 'REMOVE_MEMBER_FROM_GROUP': {
+                    // We need to re-save the group since its member array changed
+                    const targetGroup = state.groups.find(g => g.id === action.payload.groupId);
+                    if (targetGroup) {
+                        // Recalculate members locally to save accurate payload
+                        const updatedMembers = action.type === 'ADD_MEMBER_TO_GROUP'
+                            ? [...targetGroup.members, action.payload.memberId]
+                            : targetGroup.members.filter(id => id !== action.payload.memberId);
+
+                        await dbService.saveGroup({ ...targetGroup, members: updatedMembers });
+                    }
+                    break;
+                }
+
+                // Expenses
+                case 'ADD_EXPENSE':
+                case 'UPDATE_EXPENSE':
+                    await dbService.saveExpense(action.payload);
+                    break;
+                case 'DELETE_EXPENSE':
+                    await dbService.deleteExpense(action.payload);
+                    break;
+
+                // Settlements
+                case 'ADD_SETTLEMENT':
+                    await dbService.saveSettlement(action.payload);
+                    break;
+                case 'MARK_SETTLEMENT_PAID': {
+                    const targetSettlement = state.settlements.find(s => s.id === action.payload);
+                    if (targetSettlement) {
+                        await dbService.saveSettlement({ ...targetSettlement, status: 'paid', paidAt: new Date().toISOString() });
+                    }
+                    break;
+                }
+                default:
+                    // No firebase action needed for others like UPDATE_SETTINGS or INIT_DATA
+                    break;
+            }
+        } catch (error) {
+            console.error("Firestore sync error:", error);
+        }
+    };
 
     // Debt Reminder Automation
     useEffect(() => {
-        if (!state) return;
+        if (!state.currentUser || !isDataLoaded) return;
         const totalDebt = getTotalUserDebt(state);
         const frequency = state.settings?.reminderFrequency || 'never';
         updateDebtReminder(frequency, totalDebt);
-    }, [state?.expenses, state?.settings?.reminderFrequency]);
+    }, [state.expenses, state.settings?.reminderFrequency, isDataLoaded]);
 
-    // Process recurring expenses on mount
-    useEffect(() => {
-        const today = new Date();
-        const dayOfMonth = today.getDate();
+    const value = { state, dispatch, isDataLoaded };
 
-        state.expenses
-            .filter(e => e.isRecurring && e.recurringDay === dayOfMonth)
-            .forEach(recurring => {
-                // Check if already processed this month
-                const thisMonth = `${today.getFullYear()}-${today.getMonth()}`;
-                const alreadyProcessed = state.expenses.some(
-                    e => !e.isRecurring &&
-                        e.description === recurring.description &&
-                        e.groupId === recurring.groupId &&
-                        e.date?.startsWith(today.toISOString().slice(0, 7))
-                );
-
-                if (!alreadyProcessed) {
-                    // Auto-generated recurring expenses are handled by the user seeing them as templates
-                    console.log(`Recurring expense due: ${recurring.description}`);
-                }
-            });
-    }, []);
-
-    const value = { state, dispatch };
+    // Prevent rendering children until initial data from Firebase is hydrated (if user exists)
+    if (user && !isDataLoaded) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-muted">Verileriniz Senkronize Ediliyor...</div>
+            </div>
+        );
+    }
 
     return (
         <AppContext.Provider value={value}>

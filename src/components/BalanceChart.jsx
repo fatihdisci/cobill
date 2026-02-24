@@ -6,9 +6,9 @@ import { CATEGORIES } from '../utils/helpers';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
-// Override chart defaults for dark theme
-ChartJS.defaults.color = '#94a3b8';
-ChartJS.defaults.borderColor = 'rgba(255,255,255,0.06)';
+// Override chart defaults for light theme
+ChartJS.defaults.color = '#475569';
+ChartJS.defaults.borderColor = 'rgba(0,0,0,0.06)';
 
 export function SpendingByCategory({ groupId }) {
     const { state } = useApp();
@@ -59,10 +59,12 @@ export function SpendingByCategory({ groupId }) {
                             },
                         },
                         tooltip: {
-                            backgroundColor: '#1a2035',
+                            backgroundColor: '#ffffff',
+                            titleColor: '#0f172a',
+                            bodyColor: '#475569',
                             titleFont: { family: 'Inter', weight: 600 },
                             bodyFont: { family: 'Inter' },
-                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderColor: 'rgba(0,0,0,0.1)',
                             borderWidth: 1,
                             padding: 10,
                             cornerRadius: 8,
@@ -139,10 +141,12 @@ export function MemberBalanceChart({ groupId }) {
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: '#1a2035',
+                        backgroundColor: '#ffffff',
+                        titleColor: '#0f172a',
+                        bodyColor: '#475569',
                         titleFont: { family: 'Inter', weight: 600 },
                         bodyFont: { family: 'Inter' },
-                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderColor: 'rgba(0,0,0,0.1)',
                         borderWidth: 1,
                         padding: 10,
                         cornerRadius: 8,
@@ -154,7 +158,7 @@ export function MemberBalanceChart({ groupId }) {
                         ticks: { font: { family: 'Inter', size: 11 } },
                     },
                     y: {
-                        grid: { color: 'rgba(255,255,255,0.04)' },
+                        grid: { color: 'rgba(0,0,0,0.04)' },
                         ticks: {
                             font: { family: 'Inter', size: 11 },
                             callback: (v) => v.toLocaleString('tr-TR'),

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Mail, Send, BellDot } from 'lucide-react';
+import { MessageCircle, Mail, Send, BellDot, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { formatCurrency } from '../utils/currencyUtils';
 import ProUpgradeModal from './ProUpgradeModal';
@@ -12,7 +12,19 @@ export default function NudgeButton({ memberId, amount, groupName, currency }) {
     const isPro = state.members[state.currentUser]?.isPro;
     const [showOptions, setShowOptions] = useState(false);
     const [showProModal, setShowProModal] = useState(false);
-    const menuRef = useRef(null);
+    const menuRef = useRef();
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setShowOptions(false);
+            }
+        }
+        if (showOptions) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showOptions]);
 
     const message = `Merhaba ${member.name.split(' ')[0]},\n\n"${groupName}" grubunda toplam ${formatCurrency(Math.abs(amount), currency)} ödenmemiş borcun bulunuyor. Müsait olduğunda kontrol edebilir misin?\n\n(CoBill ile gönderildi)`;
 
@@ -46,59 +58,51 @@ export default function NudgeButton({ memberId, amount, groupName, currency }) {
         setShowOptions(false);
     };
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (menuRef.current && !menuRef.current.contains(event.target)) {
-                setShowOptions(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const handleActionClick = () => {
+    const handleActionClick = (e) => {
+        e.stopPropagation();
         if (!isPro) {
             setShowProModal(true);
         } else {
-            setShowOptions(!showOptions);
+            setShowOptions(true);
         }
     };
 
     return (
-        <div className="relative" ref={menuRef}>
+        <div className="flex flex-col gap-sm w-full">
             <button
-                className="btn btn-sm"
+                className={`btn w-full flex justify-center items-center ${isPro ? 'btn-pro-active' : 'btn-pro-gold'}`}
                 onClick={handleActionClick}
-                style={{
-                    padding: '4px 10px', height: 'auto', fontSize: 'var(--font-xs)',
-                    background: isPro ? 'rgba(139, 92, 246, 0.15)' : 'var(--bg-card)',
-                    color: isPro ? 'var(--accent-purple)' : 'var(--text-secondary)',
-                    border: `1px solid ${isPro ? 'rgba(139, 92, 246, 0.3)' : 'var(--border-secondary)'}`
-                }}
+                style={{ padding: '8px 12px', height: 'auto', fontSize: '0.85rem', fontWeight: 600, borderRadius: 'var(--radius-md)', whiteSpace: 'nowrap' }}
             >
-                <BellDot size={12} style={{ marginRight: 4 }} /> Hatırlat
+                <BellDot size={14} style={{ marginRight: 6 }} /> Hatırlat
             </button>
 
             {showOptions && isPro && (
-                <div
-                    className="animate-fade-in-up"
-                    style={{
-                        position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-                        background: 'var(--bg-glass)', backdropFilter: 'blur(12px)',
-                        border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)',
-                        padding: 'var(--space-xs)', zIndex: 100, minWidth: 200,
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
-                    }}
-                >
-                    <button className="dropdown-item" onClick={handleWhatsApp} style={dropdownItemStyle}>
-                        <MessageCircle size={14} style={{ color: '#25D366' }} /> WhatsApp ile Gönder
-                    </button>
-                    <button className="dropdown-item" onClick={handleEmail} style={dropdownItemStyle}>
-                        <Mail size={14} style={{ color: 'var(--accent-blue-light)' }} /> E-posta Gönder
-                    </button>
-                    <button className="dropdown-item" onClick={handleCopy} style={dropdownItemStyle}>
-                        <Send size={14} style={{ color: 'var(--text-secondary)' }} /> Metni Kopyala
-                    </button>
+                <div ref={menuRef} style={{
+                    width: '100%',
+                    minWidth: '220px',
+                    backgroundColor: 'var(--bg-primary)',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border-primary)',
+                    padding: 'var(--space-md)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                    animation: 'slideUp 0.15s ease-out'
+                }}>
+                    <div className="modal-header mb-md">
+                        <h3 className="flex items-center gap-xs"><BellDot size={18} /> Hatırlatıcı Gönder</h3>
+                        <button className="btn btn-ghost btn-icon" onClick={() => setShowOptions(false)}><X size={18} /></button>
+                    </div>
+                    <div className="flex flex-col gap-sm">
+                        <button className="btn btn-secondary w-full flex justify-start items-center gap-md" onClick={() => { handleWhatsApp(); setShowOptions(false); }}>
+                            <MessageCircle size={18} style={{ color: '#25D366' }} /> WhatsApp ile Gönder
+                        </button>
+                        <button className="btn btn-secondary w-full flex justify-start items-center gap-md" onClick={() => { handleEmail(); setShowOptions(false); }}>
+                            <Mail size={18} style={{ color: 'var(--accent-purple)' }} /> E-posta Gönder
+                        </button>
+                        <button className="btn btn-secondary w-full flex justify-start items-center gap-md" onClick={() => { handleCopy(); setShowOptions(false); }}>
+                            <Send size={18} style={{ color: 'var(--text-secondary)' }} /> Metin Olarak Kopyala
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -107,11 +111,4 @@ export default function NudgeButton({ memberId, amount, groupName, currency }) {
     );
 }
 
-const dropdownItemStyle = {
-    display: 'flex', alignItems: 'center', gap: '8px',
-    width: '100%', padding: '8px 12px',
-    background: 'transparent', border: 'none',
-    color: 'var(--text-primary)', fontSize: 'var(--font-sm)',
-    textAlign: 'left', cursor: 'pointer', borderRadius: '4px',
-    transition: 'background 0.2s'
-};
+// UI Refactored to Modal

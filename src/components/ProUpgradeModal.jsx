@@ -10,7 +10,7 @@ export default function ProUpgradeModal({ onClose }) {
 
     return (
         <div className="modal-overlay animate-fade-in" onClick={onClose} style={{ zIndex: 1000 }}>
-            <div className="modal-content animate-slide-up" onClick={e => e.stopPropagation()} style={{ maxWidth: 420, padding: 0, overflow: 'hidden' }}>
+            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 420, padding: 0, overflow: 'hidden' }}>
                 <div style={{ background: 'var(--gradient-primary)', padding: 'var(--space-2xl) var(--space-lg)', textAlign: 'center', position: 'relative' }}>
                     <button
                         className="btn btn-ghost btn-icon"

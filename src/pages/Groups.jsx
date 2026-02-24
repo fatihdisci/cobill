@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Users, UserPlus } from 'lucide-react';
+import { PlusCircle, Users } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import GroupCard from '../components/GroupCard';
 import { showBannerAd, hideBannerAd } from '../utils/adService';
@@ -39,6 +39,7 @@ export default function Groups() {
                 description: desc.trim(),
                 currency,
                 members: [state.currentUser],
+                createdBy: state.currentUser,
                 createdAt: new Date().toISOString(),
                 color,
             },
@@ -57,9 +58,6 @@ export default function Groups() {
                     <p className="page-subtitle">{state.groups.length} aktif grup</p>
                 </div>
                 <div className="flex gap-md">
-                    <button className="btn btn-secondary" onClick={() => navigate('/add-member')}>
-                        <UserPlus size={16} /> Yeni Üye Ekle
-                    </button>
                     <button className="btn btn-primary" onClick={() => setShowNew(true)}>
                         <PlusCircle size={16} /> Yeni Grup
                     </button>
@@ -85,7 +83,7 @@ export default function Groups() {
 
             {showNew && (
                 <div className="modal-overlay" onClick={() => setShowNew(false)}>
-                    <div className="modal-content animate-slide-up" onClick={e => e.stopPropagation()}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
                             <h3>Yeni Grup Oluştur</h3>
                             <button className="btn btn-ghost btn-icon" onClick={() => setShowNew(false)}>✕</button>

@@ -1,4 +1,5 @@
-import { ArrowRight, Zap, TrendingDown } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowRight, Zap, TrendingDown, ChevronDown, ChevronUp, FileText } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { calculateBalances, simplifyDebts, getNaiveTransactionCount } from '../utils/debtSimplification';
 import { formatCurrency } from '../utils/currencyUtils';
@@ -22,9 +23,28 @@ export default function DebtSummary({ groupId }) {
         );
     }
 
+    const [showDetails, setShowDetails] = useState(false);
+
     const balances = calculateBalances(groupExpenses, groupMembers);
     const transactions = simplifyDebts(balances);
     const naiveCount = getNaiveTransactionCount(groupExpenses);
+
+    // Calculate Raw Transactions
+    const rawTransactions = [];
+    groupExpenses.forEach(expense => {
+        if (!expense.splitAmong || expense.splitAmong.length === 0) return;
+        const amountPerPerson = expense.amount / expense.splitAmong.length;
+        expense.splitAmong.forEach(borrowerId => {
+            if (borrowerId !== expense.paidBy) {
+                rawTransactions.push({
+                    from: borrowerId,
+                    to: expense.paidBy,
+                    amount: amountPerPerson,
+                    expenseDesc: expense.description
+                });
+            }
+        });
+    });
 
     const getMember = (id) => state.members[id] || { name: 'Bilinmeyen', id };
 
@@ -47,6 +67,50 @@ export default function DebtSummary({ groupId }) {
                     <TrendingDown size={14} style={{ display: 'inline', marginLeft: 4, color: 'var(--accent-emerald)' }} />
                 </div>
             </div>
+
+            <div className="flex justify-end">
+                <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setShowDetails(!showDetails)}
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    Detay Gör {showDetails ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+            </div>
+
+            {/* Details Accordion */}
+            {showDetails && rawTransactions.length > 0 && (
+                <div className="animate-fade-in" style={{
+                    background: 'var(--bg-glass)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: 'var(--space-md)',
+                    border: '1px solid var(--border-primary)',
+                    marginBottom: 'var(--space-md)'
+                }}>
+                    <h5 className="mb-md flex items-center gap-xs text-sm text-muted">
+                        <FileText size={14} /> Sadeleştirmeden Önceki Ham İşlemler ({rawTransactions.length})
+                    </h5>
+                    <div className="flex flex-col gap-sm">
+                        {rawTransactions.map((tx, idx) => {
+                            const fromMember = getMember(tx.from);
+                            const toMember = getMember(tx.to);
+                            return (
+                                <div key={idx} className="flex justify-between items-center" style={{ fontSize: 'var(--font-xs)' }}>
+                                    <div className="flex items-center gap-xs text-tertiary" style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        <span className="font-semibold">{fromMember.name.split(' ')[0]}</span>
+                                        <ArrowRight size={10} />
+                                        <span className="font-semibold">{toMember.name.split(' ')[0]}</span>
+                                    </div>
+                                    <div className="flex items-center gap-sm">
+                                        <span className="text-muted truncate" style={{ maxWidth: 100 }}>{tx.expenseDesc}</span>
+                                        <span className="font-bold text-amber-500">{formatCurrency(tx.amount, group.currency)}</span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* Transaction List */}
             {transactions.map((tx, i) => {

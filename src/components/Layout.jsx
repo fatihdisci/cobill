@@ -1,14 +1,19 @@
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import {
     LayoutDashboard, Users, PlusCircle, ArrowLeftRight,
     BarChart3, Settings, Receipt, Bell, LogOut, CircleUser
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import appIconImg from '../../assets/icon.png';
+import NotificationMenu from './NotificationMenu';
 
-export default function Layout({ children }) {
+export default function Layout() {
     const location = useLocation();
     const navigate = useNavigate();
     const { state } = useApp();
+    const [showNotifications, setShowNotifications] = useState(false);
+
     const isPro = state.members[state.currentUser]?.isPro;
 
     const pendingCount = state.settlements.filter(s => s.status !== 'paid').length;
@@ -34,10 +39,9 @@ export default function Layout({ children }) {
         <div className="app-layout">
             {/* Desktop Sidebar */}
             <aside className="sidebar">
-                <div className="sidebar-header">
-                    <div className="sidebar-logo">
-                        <div className="logo-icon">₺</div>
-                        <h1>CoBill</h1>
+                <div className="sidebar-header" style={{ padding: 'var(--space-md) var(--space-xl)' }}>
+                    <div className="sidebar-logo" style={{ justifyContent: 'center' }}>
+                        <img src={appIconImg} alt="CoBill" style={{ width: 60, height: 60, borderRadius: '12px', objectFit: 'contain', background: 'white' }} />
                     </div>
                 </div>
 
@@ -89,18 +93,24 @@ export default function Layout({ children }) {
                 {/* DÜZELTME: Mobile Header buraya, main-content içine taşındı! 
                   Böylece Flexbox onu sayfanın soluna itip boşluk yaratmayacak.
                 */}
-                <header className="mobile-header">
+                <header className="mobile-header" style={{ display: 'flex', alignItems: 'center', position: 'relative', justifyContent: 'center', zIndex: 101 }}>
                     <div className="sidebar-logo">
-                        <div className="logo-icon" style={{ width: 32, height: 32, fontSize: '0.9rem' }}>₺</div>
-                        <h1 style={{ fontSize: 'var(--font-lg)' }}>CoBill</h1>
+                        <img src={appIconImg} alt="CoBill" style={{ width: 56, height: 56, borderRadius: '12px', objectFit: 'contain', background: 'white' }} />
                     </div>
-                    <button className="btn btn-ghost btn-icon">
-                        <Bell size={20} />
-                    </button>
+
+                    <div style={{ position: 'absolute', right: 'var(--space-md)' }}>
+                        <button className="btn btn-ghost btn-icon" onClick={() => setShowNotifications(!showNotifications)}>
+                            <Bell size={22} />
+                            {/* NotificationMenu handles the red dot Badge logic internally if passed right */}
+                        </button>
+                        {showNotifications && (
+                            <NotificationMenu onClose={() => setShowNotifications(false)} isMobile={true} />
+                        )}
+                    </div>
                 </header>
 
                 <div className="page-content">
-                    {children}
+                    <Outlet />
                 </div>
             </main>
 

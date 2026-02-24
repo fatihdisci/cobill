@@ -129,53 +129,77 @@ export default function Settlements() {
                                 <div key={`${tx.from}-${tx.to}-${i}`} className={`animate-fade-in-up stagger-${Math.min(i + 1, 6)}`} style={{
                                     padding: 'var(--space-lg)',
                                     background: 'var(--bg-glass)',
-                                    borderRadius: 'var(--radius-md)',
+                                    borderRadius: 'var(--radius-lg)',
                                     border: '1px solid var(--border-primary)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 'var(--space-md)',
+                                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)'
                                 }}>
-                                    <div className="flex items-center gap-md mb-md">
+                                    {/* Group Name Badge (Top Center) */}
+                                    <div className="flex justify-center w-full mb-xs">
+                                        <span style={{
+                                            background: 'rgba(255, 255, 255, 0.05)',
+                                            border: '1px solid var(--border-primary)',
+                                            padding: '4px 12px',
+                                            borderRadius: '20px',
+                                            fontSize: '11px',
+                                            color: 'var(--text-secondary)',
+                                            fontWeight: 600,
+                                            letterSpacing: '0.5px'
+                                        }}>
+                                            {tx.groupName}
+                                        </span>
+                                    </div>
+
+                                    {/* Middle section: Transaction Info */}
+                                    <div className="flex items-center justify-between w-full">
                                         {/* From */}
-                                        <div className="flex items-center gap-sm" style={{ minWidth: 0 }}>
-                                            <div className="avatar" style={{ background: getAvatarColor(fromMember?.id || '') }}>
+                                        <div className="flex flex-col items-center gap-xs" style={{ width: '80px' }}>
+                                            <div className="avatar" style={{ background: getAvatarColor(fromMember?.id || ''), width: 44, height: 44, fontSize: '1.1rem' }}>
                                                 {getInitials(fromMember?.name || '?')}
                                             </div>
-                                            <div>
-                                                <div className="text-sm font-semibold">{fromMember?.name?.split(' ')[0]}</div>
-                                                <div className="text-xs text-muted">borçlu</div>
-                                            </div>
+                                            <div className="text-sm font-semibold truncate w-full text-center" title={fromMember?.name}>{fromMember?.name?.split(' ')[0]}</div>
+                                            <div className="text-xs text-muted">Ödeyecek</div>
                                         </div>
 
-                                        {/* Arrow */}
-                                        <div style={{ flex: 1, textAlign: 'center' }}>
-                                            <div className="font-bold" style={{ color: 'var(--accent-amber-light)' }}>
+                                        {/* Amount & Arrow */}
+                                        <div className="flex flex-col items-center justify-center flex-1 px-sm">
+                                            <div className="font-bold text-lg" style={{ color: 'var(--accent-amber-light)', marginBottom: 4 }}>
                                                 {formatCurrency(tx.amount, tx.currency)}
                                             </div>
-                                            <ArrowRight size={18} style={{ color: 'var(--accent-cyan)', margin: '0 auto' }} />
+                                            <div style={{ width: '100%', height: 2, background: 'var(--gradient-primary)', position: 'relative' }}>
+                                                <ArrowRight size={16} style={{ position: 'absolute', right: -2, top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-cyan)' }} />
+                                            </div>
                                         </div>
 
                                         {/* To */}
-                                        <div className="flex items-center gap-sm" style={{ minWidth: 0 }}>
-                                            <div className="avatar" style={{ background: getAvatarColor(toMember?.id || '') }}>
+                                        <div className="flex flex-col items-center gap-xs" style={{ width: '80px' }}>
+                                            <div className="avatar" style={{ background: getAvatarColor(toMember?.id || ''), width: 44, height: 44, fontSize: '1.1rem' }}>
                                                 {getInitials(toMember?.name || '?')}
                                             </div>
-                                            <div>
-                                                <div className="text-sm font-semibold">{toMember?.name?.split(' ')[0]}</div>
-                                                <div className="text-xs text-muted">alacaklı</div>
-                                            </div>
+                                            <div className="text-sm font-semibold truncate w-full text-center" title={toMember?.name}>{toMember?.name?.split(' ')[0]}</div>
+                                            <div className="text-xs text-muted">Alacaklı</div>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between" style={{ marginTop: 'var(--space-sm)' }}>
-                                        <span className="text-xs text-muted">{tx.groupName}</span>
-                                        <div className="flex items-center gap-sm">
+                                    {/* Action Buttons (Stacked) */}
+                                    <div className="flex flex-col gap-sm w-full mt-sm" style={{ borderTop: '1px solid var(--border-primary)', paddingTop: 'var(--space-md)' }}>
+                                        <button
+                                            className="btn btn-success flex justify-center items-center gap-xs w-full"
+                                            onClick={() => handleMarkPaid(tx)}
+                                            style={{ padding: '12px', fontSize: '0.9rem', fontWeight: 600, borderRadius: 'var(--radius-md)' }}
+                                            title="Bu ödemenin yapıldığını onayla"
+                                        >
+                                            <CheckCircle2 size={18} /> Ödemeyi Tamamla
+                                        </button>
+                                        <div style={{ position: 'relative', width: '100%' }}>
                                             <NudgeButton
                                                 memberId={tx.from}
                                                 amount={tx.amount}
                                                 groupName={tx.groupName}
                                                 currency={tx.currency}
                                             />
-                                            <button className="btn btn-success btn-sm" onClick={() => handleMarkPaid(tx)}>
-                                                <CheckCircle2 size={14} /> Ödendi
-                                            </button>
                                         </div>
                                     </div>
                                 </div>

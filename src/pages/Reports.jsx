@@ -3,19 +3,25 @@ import { useApp } from '../context/AppContext';
 import { SpendingByCategory, MemberBalanceChart } from '../components/BalanceChart';
 import { formatCurrency } from '../utils/currencyUtils';
 import { CATEGORIES, formatDate } from '../utils/helpers';
-import { FileText, Download, Mail, Copy, Lock } from 'lucide-react';
+import { FileText, Download, Mail, Copy, Lock, MessageCircle, X, CheckCircle2, ArrowRight } from 'lucide-react';
 import ProUpgradeModal from '../components/ProUpgradeModal';
+import { generateGroupPDF } from '../utils/pdfGenerator';
+import { sharePDF } from '../utils/fileService';
+import { calculateBalances, simplifyDebts } from '../utils/debtSimplification';
 
 export default function Reports() {
     const { state } = useApp();
     const [selectedGroup, setSelectedGroup] = useState(state.groups[0]?.id || '');
     const [showExport, setShowExport] = useState(false);
     const [showProModal, setShowProModal] = useState(false);
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const isPro = state.members[state.currentUser]?.isPro;
 
     const group = state.groups.find(g => g.id === selectedGroup);
     const expenses = state.expenses.filter(e => e.groupId === selectedGroup);
+    const groupSettlements = state.settlements.filter(s => s.groupId === selectedGroup && s.status === 'paid');
     const totalSpent = expenses.reduce((s, e) => s + e.amount, 0);
 
     // Category breakdown
@@ -32,35 +38,62 @@ export default function Reports() {
         monthlyData[month] = (monthlyData[month] || 0) + e.amount;
     });
 
-    // Generate report text
+    // Generate report text (Professional Bank-Grade Layout)
     const generateReport = () => {
         if (!group) return '';
+        const divider = '━'.repeat(45);
+        const subDivider = '─'.repeat(45);
+
         const lines = [
-            `📊 CoBill Raporu — ${group.name}`,
-            `${'═'.repeat(40)}`,
-            `Tarih: ${formatDate(new Date().toISOString())}`,
-            `Toplam Harcama: ${formatCurrency(totalSpent, group.currency)}`,
-            `Masraf Sayısı: ${expenses.length}`,
-            `Üye Sayısı: ${group.members.length}`,
+            `📊 COBILL FİNANSAL RAPORU`,
+            `Grup: ${group.name.toUpperCase()}`,
+            `Oluşturma: ${formatDate(new Date().toISOString())}`,
+            divider,
             '',
-            '📋 Kategori Dağılımı:',
-            ...Object.entries(categoryBreakdown).map(([cat, amount]) => {
-                const c = CATEGORIES[cat] || CATEGORIES.other;
-                return `  ${c.icon} ${c.label}: ${formatCurrency(amount, group.currency)}`;
+            `💰 ÖZET BİLGİLER`,
+            `• Toplam Harcama    : ${formatCurrency(totalSpent, group.currency)}`,
+            `• Kayıtlı Masraf   : ${expenses.length} adet`,
+            `• Grup Üye Sayısı  : ${group.members.length} kişi`,
+            `• Üye Başı Ort.    : ${formatCurrency(totalSpent / Math.max(group.members.length, 1), group.currency)}`,
+            '',
+            `📋 KATEGORİ DAĞILIMI`,
+            subDivider,
+            ...Object.entries(categoryBreakdown)
+                .sort(([, a], [, b]) => b - a)
+                .map(([cat, amount]) => {
+                    const c = CATEGORIES[cat] || CATEGORIES.other;
+                    const label = c.label.padEnd(15, '.');
+                    return `${c.icon} ${label}: ${formatCurrency(amount, group.currency)}`;
+                }),
+            '',
+            `📅 AYLIK HARCAMA DEĞİŞİMİ`,
+            subDivider,
+            ...Object.entries(monthlyData).map(([month, amount]) => {
+                const label = month.padEnd(20, '.');
+                return `• ${label}: ${formatCurrency(amount, group.currency)}`;
             }),
             '',
-            '📅 Aylık Dağılım:',
-            ...Object.entries(monthlyData).map(([month, amount]) =>
-                `  ${month}: ${formatCurrency(amount, group.currency)}`
-            ),
-            '',
-            '📝 Harcama Detayları:',
+            `📝 HARCAMA DETAYLARI`,
+            subDivider,
             ...expenses.map((e, i) => {
                 const payer = state.members[e.paidBy];
-                return `  ${i + 1}. ${e.description} — ${formatCurrency(e.amount, e.currency)} (${payer?.name || '?'})`;
+                const date = formatDate(e.date).split(' ')[0];
+                return `[${date}] ${e.description}\n     └─ ${formatCurrency(e.amount, e.currency)} (${payer?.name || '?'})`;
             }),
             '',
-            '— CoBill ile oluşturuldu',
+            `🤝 TAMAMLANAN ÖDEMELER`,
+            subDivider,
+            ...groupSettlements.map((s, i) => {
+                const fromMember = state.members[s.from];
+                const toMember = state.members[s.to];
+                const date = formatDate(s.date || s.paidAt).split(' ')[0];
+                return `[${date}] ${fromMember?.name?.split(' ')[0]} ➔ ${toMember?.name?.split(' ')[0]}\n     └─ ${formatCurrency(s.amount, s.currency)} (Tamamlandı)`;
+            }),
+            groupSettlements.length === 0 ? '  (Henüz tamamlanmış ödeme kaydı yok)' : '',
+            '',
+            divider,
+            'Bu rapor CoBill tarafından otomatik oluşturulmuştur.',
+            'Finansal özgürlüğünüz için: CoBill 🚀',
         ];
         return lines.join('\n');
     };
@@ -79,6 +112,30 @@ export default function Reports() {
         window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(generateReport())}`);
     };
 
+    const handleWhatsApp = () => {
+        window.open(`https://wa.me/?text=${encodeURIComponent(generateReport())}`);
+        setShowExportModal(false);
+    };
+
+    const handleExportPDF = async () => {
+        if (!group) return;
+        try {
+            setIsGenerating(true);
+            const groupMembers = group.members.map(id => state.members[id]).filter(Boolean);
+            const balances = calculateBalances(expenses, groupMembers);
+            const simplifiedDebts = simplifyDebts(balances);
+
+            const base64PDF = await generateGroupPDF(group, groupMembers, expenses, balances, simplifiedDebts, groupSettlements);
+            await sharePDF(base64PDF, `CoBill_${group.name.replace(/\s+/g, '_')}_Rapor.pdf`);
+        } catch (error) {
+            console.error('PDF Export Error:', error);
+            alert('PDF oluşturulurken bir hata oluştu.');
+        } finally {
+            setIsGenerating(false);
+            setShowExportModal(false);
+        }
+    };
+
     return (
         <div className="animate-fade-in relative">
             <div className="page-header">
@@ -87,11 +144,9 @@ export default function Reports() {
                     <p className="page-subtitle">Harcama analizi ve dışa aktarma</p>
                 </div>
                 <div className="flex gap-sm">
-                    <button className="btn btn-secondary" onClick={handleCopy} disabled={!isPro}>
-                        <Copy size={14} /> Kopyala
-                    </button>
-                    <button className="btn btn-primary" onClick={handleEmail} disabled={!isPro}>
-                        <Mail size={14} /> E-posta Gönder
+                    <button className={`btn ${isPro ? 'btn-pro-active' : 'btn-pro-gold'}`} onClick={() => setShowExportModal(true)} disabled={!isPro || !group}>
+                        <Download size={14} /> Dışarı Aktar
+                        {!isPro && <span className="badge badge-pro-gold" style={{ marginLeft: 6, padding: '2px 6px', fontSize: '10px' }}>PRO</span>}
                     </button>
                 </div>
             </div>
@@ -101,13 +156,13 @@ export default function Reports() {
                     position: 'absolute', top: 80, left: 0, right: 0, bottom: 0,
                     backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', zIndex: 10,
                     display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '10vh',
-                    backgroundColor: 'rgba(26, 32, 53, 0.4)', borderRadius: 12, minHeight: 400
+                    backgroundColor: 'rgba(255, 255, 255, 0.4)', borderRadius: 12, minHeight: 400
                 }}>
                     <div style={{ background: 'var(--bg-card)', padding: 'var(--space-2xl)', borderRadius: 'var(--radius-lg)', textAlign: 'center', border: '1px solid var(--border-primary)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', maxWidth: 360 }}>
-                        <Lock size={48} style={{ color: 'var(--accent-purple)', margin: '0 auto', marginBottom: 'var(--space-md)' }} />
-                        <h3 className="mb-sm">Pro Özelliği</h3>
+                        <Lock size={48} style={{ color: '#d97706', margin: '0 auto', marginBottom: 'var(--space-md)' }} />
+                        <h3 className="mb-sm" style={{ color: '#b45309' }}>Pro Özelliği</h3>
                         <p className="text-muted text-sm mb-lg">Detaylı harcama analizleri, kategori bazlı dağılımlar ve rapor çıktıları sadece CoBill Pro üyelerine özeldir.</p>
-                        <button className="btn btn-primary w-full" style={{ background: 'var(--gradient-primary)', border: 'none' }} onClick={() => setShowProModal(true)}>
+                        <button className="btn w-full btn-pro-gold" onClick={() => setShowProModal(true)}>
                             Pro'ya Geçiş Yap
                         </button>
                     </div>
@@ -207,6 +262,46 @@ export default function Reports() {
                 </table>
             </div>
 
+            {/* Payment History section */}
+            <div className="glass-card mt-xl">
+                <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>🤝 Grup Ödemeleri</h4>
+                {groupSettlements.length > 0 ? (
+                    <div className="flex flex-col gap-sm">
+                        {groupSettlements.map((s, i) => {
+                            const fromMember = state.members[s.from];
+                            const toMember = state.members[s.to];
+
+                            return (
+                                <div key={s.id} className="flex items-center gap-md" style={{
+                                    padding: 'var(--space-md)',
+                                    background: 'var(--bg-glass)',
+                                    borderRadius: 'var(--radius-md)',
+                                    border: '1px solid var(--border-primary)',
+                                    animation: `fadeInUp 0.3s ease-out ${i * 0.05}s both`
+                                }}>
+                                    <CheckCircle2 size={18} style={{ color: 'var(--accent-emerald)', flexShrink: 0 }} />
+                                    <div style={{ flex: 1 }}>
+                                        <div className="text-sm font-medium">
+                                            <strong>{fromMember?.name?.split(' ')[0]}</strong>
+                                            <ArrowRight size={12} style={{ margin: '0 8px', color: 'var(--text-tertiary)' }} />
+                                            <strong>{toMember?.name?.split(' ')[0]}</strong>
+                                        </div>
+                                        <div className="text-xs text-muted">{formatDate(s.date || s.paidAt)}</div>
+                                    </div>
+                                    <div className="text-sm font-bold" style={{ color: 'var(--accent-emerald-light)' }}>
+                                        {formatCurrency(s.amount, s.currency)}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="text-center p-xl">
+                        <p className="text-muted text-sm">Bu grupta henüz kaydedilmiş ödeme bulunmuyor.</p>
+                    </div>
+                )}
+            </div>
+
             <style>{`
         @media (max-width: 767px) {
           .reports-grid { grid-template-columns: 1fr !important; }
@@ -215,6 +310,48 @@ export default function Reports() {
 
             {showProModal && (
                 <ProUpgradeModal onClose={() => setShowProModal(false)} />
+            )}
+
+            {showExportModal && (
+                <div className="modal-overlay" onClick={() => setShowExportModal(false)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 400 }}>
+                        <div className="modal-header mb-md">
+                            <h3 className="flex items-center gap-xs"><Download size={18} /> Raporu Dışarı Aktar</h3>
+                            <button className="btn btn-ghost btn-icon" onClick={() => setShowExportModal(false)}><X size={18} /></button>
+                        </div>
+                        <div className="flex flex-col gap-sm">
+                            <button
+                                className="btn btn-secondary w-full flex justify-start items-center gap-md"
+                                onClick={handleExportPDF}
+                                disabled={isGenerating}
+                            >
+                                <FileText size={18} style={{ color: 'var(--accent-cyan)' }} />
+                                {isGenerating ? 'PDF Hazırlanıyor...' : 'PDF İndir / Paylaş'}
+                            </button>
+                            <button
+                                className="btn btn-secondary w-full flex justify-start items-center gap-md"
+                                onClick={() => { handleWhatsApp(); setShowExportModal(false); }}
+                            >
+                                <MessageCircle size={18} style={{ color: 'var(--accent-emerald)' }} />
+                                WhatsApp ile Gönder
+                            </button>
+                            <button
+                                className="btn btn-secondary w-full flex justify-start items-center gap-md"
+                                onClick={() => { handleEmail(); setShowExportModal(false); }}
+                            >
+                                <Mail size={18} style={{ color: 'var(--accent-purple)' }} />
+                                E-Posta ile Gönder
+                            </button>
+                            <button
+                                className="btn btn-secondary w-full flex justify-start items-center gap-md"
+                                onClick={() => { handleCopy(); setShowExportModal(false); }}
+                            >
+                                <Copy size={18} style={{ color: 'var(--text-secondary)' }} />
+                                Metin Olarak Kopyala
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
