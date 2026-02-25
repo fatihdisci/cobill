@@ -174,138 +174,81 @@ export default function Reports() {
     );
 }
 
-// --- NON-PRO VIEW COMPONENT ---
 function NonProReportsView({ groups, selectedGroup, setSelectedGroup, setShowProModal }) {
+    const features = [
+        { icon: <PieChart size={18} />, color: 'var(--accent-purple)', title: 'Kategori Analizi', desc: 'Harcamalarını kategorilere göre görselleştir' },
+        { icon: <Users size={18} />, color: 'var(--accent-cyan)', title: 'Kişi Bazlı Rapor', desc: 'Kim ne kadar harcadı, borç-alacak özeti' },
+        { icon: <Download size={18} />, color: 'var(--accent-emerald)', title: 'PDF Dışa Aktarma', desc: 'Profesyonel raporları anında indir ve paylaş' },
+        { icon: <TrendingUp size={18} />, color: 'var(--accent-amber)', title: 'Trend Takibi', desc: 'Aylık harcama trendlerini karşılaştır' },
+    ];
+
     return (
         <div className="animate-fade-in" style={{ paddingBottom: 'var(--space-3xl)' }}>
             <div className="page-header">
                 <div>
-                    <h2 className="flex items-center gap-sm">
-                        Raporlar
-                        <span className="badge badge-pro-gold" style={{ fontSize: '10px' }}>PRO</span>
-                    </h2>
-                    <p className="page-subtitle">Finansal analizlerinizi profesyonelleştirin</p>
+                    <h2>Raporlar</h2>
+                    <p className="page-subtitle">Detaylı harcama analizi ve dışa aktarma</p>
                 </div>
             </div>
 
-            {/* Premium Selector */}
-            <div className="glass-card mb-xl" style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-xl)', border: 'none', boxShadow: 'none' }}>
-                <div className="flex items-center gap-md">
-                    <div style={{ width: 40, height: 40, borderRadius: '12px', background: 'var(--gradient-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
-                        <PieChart size={20} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>Grup Raporu</div>
-                        <div
-                            style={{ border: 'none', padding: 0, height: 'auto', background: 'none', fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}
-                        >
-                            {groups.find(g => g.id === selectedGroup)?.name || 'Grup Seçilmedi'}
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {/* Hero Section */}
+            <div className="glass-card" style={{
+                position: 'relative', overflow: 'hidden', textAlign: 'center',
+                padding: 'var(--space-2xl) var(--space-xl)', marginBottom: 'var(--space-xl)'
+            }}>
+                {/* Gradient glow blobs */}
+                <div style={{ position: 'absolute', top: -60, left: -60, width: 160, height: 160, borderRadius: '50%', background: 'rgba(139, 92, 246, 0.15)', filter: 'blur(60px)', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', bottom: -40, right: -40, width: 120, height: 120, borderRadius: '50%', background: 'rgba(6, 182, 212, 0.12)', filter: 'blur(50px)', pointerEvents: 'none' }} />
 
-            {/* Main Paywall Content */}
-            <div className="flex flex-col gap-lg">
-                {/* Visual Teaser Cards (Skeleton / Stylized) */}
                 <div style={{
-                    position: 'relative',
-                    borderRadius: 'var(--radius-2xl)',
-                    overflow: 'hidden',
-                    background: 'rgba(255, 255, 255, 0.02)',
-                    border: 'none',
-                    padding: 'var(--space-xl)'
+                    width: 56, height: 56, borderRadius: '16px', background: 'var(--gradient-primary)',
+                    margin: '0 auto var(--space-lg)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                    {/* Background Skeleton Decor */}
-                    <div style={{ opacity: 0.1, pointerEvents: 'none' }}>
-                        <div className="flex justify-between items-end mb-xl" style={{ height: 120, gap: '8px' }}>
-                            {[40, 70, 45, 90, 60, 80, 50].map((h, i) => (
-                                <div key={i} style={{ flex: 1, height: `${h}%`, background: 'white', borderRadius: '4px 4px 0 0' }} />
-                            ))}
-                        </div>
-                        <div className="flex flex-col gap-sm">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} style={{ height: 40, background: 'white', borderRadius: '8px', width: '100%' }} />
-                            ))}
-                        </div>
-                    </div>
+                    <FileText size={26} color="white" />
+                </div>
 
-                    {/* Centered Pro Card */}
-                    <div style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: 'calc(100% - 40px)',
-                        maxWidth: '340px',
-                        background: 'rgba(10, 15, 28, 0.98)',
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
-                        borderRadius: '32px',
-                        border: 'none',
-                        padding: 'var(--space-xl)',
-                        textAlign: 'center',
-                        boxShadow: 'none',
-                        zIndex: 10
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: 'var(--space-xs)', color: 'var(--text-primary)' }}>
+                    Pro Raporlarını Keşfet
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: 1.6, maxWidth: 320, margin: '0 auto var(--space-xl)' }}>
+                    Harcamalarını analiz et, gruplarını yönet ve profesyonel raporlar oluştur.
+                </p>
+
+                <button
+                    className="btn btn-primary"
+                    style={{
+                        background: 'var(--gradient-primary)', border: 'none', fontWeight: 700,
+                        padding: '12px 32px', fontSize: '0.95rem', borderRadius: 'var(--radius-lg)',
+                        boxShadow: '0 4px 20px rgba(139, 92, 246, 0.35)', transition: 'transform 0.2s, box-shadow 0.2s',
+                    }}
+                    onClick={() => setShowProModal(true)}
+                >
+                    <Star size={16} fill="currentColor" style={{ marginRight: 6 }} /> Pro'ya Yükselt
+                </button>
+            </div>
+
+            {/* Feature List */}
+            <div className="flex flex-col gap-md">
+                {features.map((f, i) => (
+                    <div key={i} className="glass-card flex items-center gap-lg animate-fade-in-up" style={{
+                        padding: 'var(--space-md) var(--space-lg)',
+                        animationDelay: `${i * 80}ms`,
                     }}>
                         <div style={{
-                            width: 56, height: 56, borderRadius: '16px', background: 'var(--gradient-primary)',
-                            margin: '0 auto var(--space-lg)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: 'none'
+                            width: 40, height: 40, borderRadius: '12px',
+                            background: `${f.color}15`, color: f.color,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                         }}>
-                            <Lock size={28} color="white" />
+                            {f.icon}
                         </div>
-                        <h3 style={{ color: 'white', fontSize: '1.25rem', fontWeight: 800, marginBottom: '8px' }}>CoBill Pro ile Keşfedin</h3>
-                        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', lineHeight: 1.5, marginBottom: 'var(--space-xl)' }}>
-                            Harcama grafiklerini, üye bazlı borç analizlerini ve profesyonel PDF raporlarını anında açın.
-                        </p>
-
-                        <div className="flex flex-col gap-sm">
-                            <button
-                                className="btn btn-primary btn-lg w-full"
-                                style={{ background: 'var(--gradient-primary)', border: 'none', fontWeight: 700 }}
-                                onClick={() => setShowProModal(true)}
-                            >
-                                Hemen Yükselt
-                            </button>
-                            <div className="flex items-center justify-center gap-xs mt-sm" style={{ color: 'var(--accent-amber)', fontSize: '0.75rem', fontWeight: 600 }}>
-                                <Star size={14} fill="currentColor" /> Beta Testine Katıl
-                            </div>
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 700, fontSize: '0.88rem', marginBottom: 2 }}>{f.title}</div>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', lineHeight: 1.4 }}>{f.desc}</div>
                         </div>
+                        <Lock size={14} style={{ color: 'var(--text-muted)', flexShrink: 0, opacity: 0.4 }} />
                     </div>
-                </div>
-
-                {/* Feature List (Bank-Grade style) */}
-                <div className="grid grid-2" style={{ gap: 'var(--space-md)', marginTop: 'var(--space-sm)' }}>
-                    <div className="glass-card" style={{ padding: 'var(--space-lg)', textAlign: 'center', boxShadow: 'none', border: 'none', background: 'rgba(255,255,255,0.03)' }}>
-                        <div style={{ color: 'var(--accent-purple)', marginBottom: '8px' }}><Download size={20} /></div>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>Sınırsız PDF</div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>Profesyonel Dışa Aktar</div>
-                    </div>
-                    <div className="glass-card" style={{ padding: 'var(--space-lg)', textAlign: 'center', boxShadow: 'none', border: 'none', background: 'rgba(255,255,255,0.03)' }}>
-                        <div style={{ color: 'var(--accent-emerald)', marginBottom: '8px' }}><Bell size={20} /></div>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>Hatırlatıcılar</div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>WhatsApp & E-posta</div>
-                    </div>
-                    <div className="glass-card" style={{ padding: 'var(--space-lg)', textAlign: 'center', boxShadow: 'none', border: 'none', background: 'rgba(255,255,255,0.03)' }}>
-                        <div style={{ color: 'var(--accent-cyan)', marginBottom: '8px' }}><TrendingUp size={20} /></div>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>Trend Takibi</div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>Gelişmiş Grafikler</div>
-                    </div>
-                    <div className="glass-card" style={{ padding: 'var(--space-lg)', textAlign: 'center', boxShadow: 'none', border: 'none', background: 'rgba(255,255,255,0.03)' }}>
-                        <div style={{ color: 'var(--accent-rose)', marginBottom: '8px' }}><Zap size={20} /></div>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>Reklamsız</div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>Kesintisiz Deneyim</div>
-                    </div>
-                </div>
+                ))}
             </div>
-
-
-            <style>{`
-                @media (max-width: 480px) {
-                    .grid-2 { grid-template-columns: 1fr 1fr !important; }
-                }
-            `}</style>
         </div>
     );
 }
