@@ -15,6 +15,10 @@
 - **Görsel Analitikler:** Kişi başı ne kadar düştüğünü veya üyelerin mevcut bakiyesini görsel grafiklerle sade bir şekilde izleme.
 - **Mobil Odaklı PWA/Native Deneyimi:** PWA, Web veya Capacitor ile paketlenmiş tam teşekküllü Native Android/iOS deneyimi.
 - **Modern UI/UX:** Glassmorphism ve Dark Modelu premium mobil arayüz tasarımı, akıcı geçişler ve animasyonlar.
+- **🛡️ Masraf Silme Yetkilendirmesi:** Bir masrafı yalnızca ekleyen kişi veya grubun yöneticisi (admin) silebilir. Diğer üyeler silme butonunu göremez.
+- **🔄 Gerçek Zamanlı Senkronizasyon (Real-Time Sync):** Firebase Firestore `onSnapshot` dinleyicileri sayesinde, bir üye masraf eklediğinde veya gruba katıldığında tüm aktif kullanıcıların ekranı sayfa yenilemeden anlık güncellenir.
+- **✉️ Güvenli Davet Mekanizması (Invite System):** E-posta ile eklenen kullanıcılar artık doğrudan gruba sokulmaz. Onlara bir "Davet" gönderilir; kabul veya reddetme hakkı onlardadır. Dashboard ekranında "Bekleyen Davetler" bölümü ile yönetilir.
+- **🔔 Anlık Bildirimler (Push Notifications):** Capacitor Local Notifications entegrasyonu sayesinde, birine grup daveti gönderildiğinde telefonuna anlık bildirim düşer.
 
 ---
 
@@ -102,7 +106,10 @@ Proje önceden Capacitor ile yapılandırılmıştır. Android Studio ile projey
 | ----------- | ----------- |
 | **Bölüşüm Matematiksel Modeli** | Karmaşık O(n!) borçların bir ağ gibi örülmesini engellemek için "Debt Simplification Algorithm" kullanıldı. Tüm alacaklar ve verecekler tek bir havuza toplanıp en az işlem hamlesine (Greedy Approach) çevrildi. |
 | **Premium Tema Özelliği** | Uygulamanın içerisinde kullanıcıyı yormayan ama görsel zenginlik katan Altın/Amber ve Glass (Buzlu Cam) efektif komponentler (ör: Pro Modals, Highlight Cards) eklendi. |
-| **AdMob Yapılandırması** | Kullanıcı deneyimini tamamen ele geçirmemek üzerine Interstitial (geçiş ekranı) reklamları her 3 safya dolaşımında bir çıkacak şekilde optimize edildi, native bannerlar sadece gerekli state/animasyon bloklarında görünür kılındı. Ayrıca, Gradle optimize proGuard configrationları yapılandırıldı. |
+| **AdMob Yapılandırması** | Kullanıcı deneyimini tamamen ele geçirmemek üzerine Interstitial (geçiş ekranı) reklamları her 3 safya dolaşımında bir çıkacak şekilde optimize edildi. |
+| **Gerçek Zamanlı Senkronizasyon** | Firebase Firestore `onSnapshot` dinleyicileri ile tüm koleksiyonlar (groups, expenses, settlements, invitations) canlı olarak izlenir. Cleanup fonksiyonları ile bellek sızıntısı önlenir. |
+| **Yetkilendirme Mimarisi** | Masraf silme işlemlerinde `expense.paidBy === currentUser \|\| group.createdBy === currentUser` kuralı uygulanır. Yetkisiz kullanıcılar silme butonunu göremez. |
+| **Davet Sistemi** | Firestore `invitations` koleksiyonu ile `pending/accepted/rejected` durum makinesi. Kullanıcı rızası olmadan gruba eklenemez. |
 
 ---
 

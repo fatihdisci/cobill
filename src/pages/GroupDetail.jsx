@@ -66,7 +66,12 @@ export default function GroupDetail() {
         }
     };
 
+    const canDeleteExpense = (expense) => {
+        return expense.paidBy === state.currentUser || isAdmin;
+    };
+
     const handleDeleteExpense = (expense) => {
+        if (!canDeleteExpense(expense)) return;
         if (window.confirm(`"${expense.description}" tutarındaki bu masrafı silmek istediğinize emin misiniz?`)) {
             dispatch({ type: 'DELETE_EXPENSE', payload: expense.id });
         }
@@ -303,13 +308,15 @@ export default function GroupDetail() {
                                                 <span className="font-bold">{formatCurrency(expense.amount, expense.currency)}</span>
                                             </td>
                                             <td>
-                                                <button
-                                                    className="btn btn-ghost btn-sm"
-                                                    onClick={() => handleDeleteExpense(expense)}
-                                                    style={{ color: 'var(--accent-rose)' }}
-                                                >
-                                                    <Trash2 size={14} />
-                                                </button>
+                                                {canDeleteExpense(expense) && (
+                                                    <button
+                                                        className="btn btn-ghost btn-sm"
+                                                        onClick={() => handleDeleteExpense(expense)}
+                                                        style={{ color: 'var(--accent-rose)' }}
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     );

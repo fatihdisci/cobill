@@ -1,7 +1,7 @@
 import { db } from '../config/firebase';
 import {
     collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc,
-    query, where
+    query, where, onSnapshot, orderBy, addDoc
 } from 'firebase/firestore';
 
 export const dbService = {
@@ -122,5 +122,106 @@ export const dbService = {
     saveSettlement: async (settlementObj) => {
         if (!settlementObj || !settlementObj.id) return;
         await setDoc(doc(db, 'settlements', settlementObj.id), settlementObj, { merge: true });
+    },
+
+    // ═══════════════ Real-Time Subscriptions (onSnapshot) ═══════════════
+
+    subscribeToGroups: (userId, callback) => {
+        if (!userId) return () => { };
+        const q = query(collection(db, 'groups'), where('members', 'array-contains', userId));
+        return onSnapshot(q, (snapshot) => {
+            const groups = [];
+            snapshot.forEach((doc) => { groups.push({ id: doc.id, ...doc.data() }); });
+            callback(groups);
+        }, (error) => console.error('Groups listener error:', error));
+    },
+
+    subscribeToExpenses: (groupIds, callback) => {
+        if (!groupIds || groupIds.length === 0) { callback([]); return () => { }; }
+        // Firestore 'in' queries limited to 30, chunk if needed
+        const unsubscribers = [];
+        const chunks = [];
+        for (let i = 0; i < groupIds.length; i += 10) {
+            chunks.push(groupIds.slice(i, i + 10));
+        }
+
+        const resultsMap = {};
+        chunks.forEach((chunk, idx) => {
+            const q = query(collection(db, 'expenses'), where('groupId', 'in', chunk));
+            const unsub = onSnapshot(q, (snapshot) => {
+                const expenses = [];
+                snapshot.forEach((doc) => { expenses.push({ id: doc.id, ...doc.data() }); });
+                resultsMap[idx] = expenses;
+                // Merge all chunks and callback
+                const all = Object.values(resultsMap).flat().sort((a, b) => new Date(b.date) - new Date(a.date));
+                callback(all);
+            }, (error) => console.error('Expenses listener error:', error));
+            unsubscribers.push(unsub);
+        });
+
+        return () => unsubscribers.forEach(u => u());
+    },
+
+    subscribeToSettlements: (groupIds, callback) => {
+        if (!groupIds || groupIds.length === 0) { callback([]); return () => { }; }
+        const unsubscribers = [];
+        const chunks = [];
+        for (let i = 0; i < groupIds.length; i += 10) {
+            chunks.push(groupIds.slice(i, i + 10));
+        }
+
+        const resultsMap = {};
+        chunks.forEach((chunk, idx) => {
+            const q = query(collection(db, 'settlements'), where('groupId', 'in', chunk));
+            const unsub = onSnapshot(q, (snapshot) => {
+                const settlements = [];
+                snapshot.forEach((doc) => { settlements.push({ id: doc.id, ...doc.data() }); });
+                resultsMap[idx] = settlements;
+                callback(Object.values(resultsMap).flat());
+            }, (error) => console.error('Settlements listener error:', error));
+            unsubscribers.push(unsub);
+        });
+
+        return () => unsubscribers.forEach(u => u());
+    },
+
+    subscribeToInvitations: (userId, callback) => {
+        if (!userId) return () => { };
+        const q = query(
+            collection(db, 'invitations'),
+            where('invitedUserId', '==', userId),
+            where('status', '==', 'pending')
+        );
+        return onSnapshot(q, (snapshot) => {
+            const invitations = [];
+            snapshot.forEach((doc) => { invitations.push({ id: doc.id, ...doc.data() }); });
+            callback(invitations);
+        }, (error) => console.error('Invitations listener error:', error));
+    },
+
+    // ═══════════════ Invitation CRUD ═══════════════
+
+    createInvitation: async (invitationObj) => {
+        if (!invitationObj) return;
+        const docRef = await addDoc(collection(db, 'invitations'), invitationObj);
+        return docRef.id;
+    },
+
+    updateInvitationStatus: async (invitationId, status) => {
+        if (!invitationId) return;
+        await updateDoc(doc(db, 'invitations', invitationId), { status });
+    },
+
+    getInvitationsForUser: async (userId) => {
+        if (!userId) return [];
+        const q = query(
+            collection(db, 'invitations'),
+            where('invitedUserId', '==', userId),
+            where('status', '==', 'pending')
+        );
+        const snapshot = await getDocs(q);
+        const invitations = [];
+        snapshot.forEach((doc) => { invitations.push({ id: doc.id, ...doc.data() }); });
+        return invitations;
     }
 };

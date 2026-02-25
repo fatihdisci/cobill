@@ -4,6 +4,7 @@ import { dbService } from '../utils/dbService';
 import { SEED_DATA } from '../utils/seedData';
 import { encryptIBAN, decryptIBAN } from '../utils/cryptoUtils';
 import { updateDebtReminder } from '../utils/notificationService';
+import { sendInviteNotification } from '../utils/notificationService';
 import { getTotalUserDebt } from '../utils/debtSimplification';
 
 const AppContext = createContext(null);
@@ -14,6 +15,7 @@ const INITIAL_STATE = {
     groups: [],
     expenses: [],
     settlements: [],
+    invitations: [],
     settings: { reminderFrequency: 'never' }
 };
 
@@ -105,6 +107,30 @@ function appReducer(state, action) {
         case 'UPDATE_SETTINGS':
             return { ...state, settings: { ...state.settings, ...action.payload } };
 
+        // Real-time Sync actions
+        case 'SYNC_GROUPS':
+            return { ...state, groups: action.payload };
+        case 'SYNC_EXPENSES':
+            return { ...state, expenses: action.payload };
+        case 'SYNC_SETTLEMENTS':
+            return { ...state, settlements: action.payload };
+        case 'SYNC_INVITATIONS':
+            return { ...state, invitations: action.payload };
+
+        // Invitations
+        case 'ACCEPT_INVITATION': {
+            return {
+                ...state,
+                invitations: state.invitations.filter(inv => inv.id !== action.payload.invitationId),
+            };
+        }
+        case 'REJECT_INVITATION': {
+            return {
+                ...state,
+                invitations: state.invitations.filter(inv => inv.id !== action.payload),
+            };
+        }
+
         // Reset
         case 'RESET_DATA':
             return INITIAL_STATE;
@@ -121,6 +147,10 @@ export function AppProvider({ children, user }) {
     // Initial Data Fetching from Firebase when fully authenticated
     useEffect(() => {
         let isMounted = true;
+        let unsubGroups = null;
+        let unsubExpenses = null;
+        let unsubSettlements = null;
+        let unsubInvitations = null;
 
         const loadFirebaseData = async () => {
             if (!user) {
@@ -174,7 +204,8 @@ export function AppProvider({ children, user }) {
                                 members: mockMembers,
                                 groups: mockGroups,
                                 expenses: mockExpenses,
-                                settlements: mockSettlements
+                                settlements: mockSettlements,
+                                invitations: []
                             }
                         });
                         setIsDataLoaded(true);
@@ -198,7 +229,7 @@ export function AppProvider({ children, user }) {
                     currentUserData.iban = decryptIBAN(currentUserData.iban);
                 }
 
-                // 2. Fetch all groups for this user
+                // 2. Fetch all groups for this user (one-shot for fast initial load)
                 const groups = await dbService.getGroupsForUser(user.uid);
                 const groupIds = groups.map(g => g.id);
 
@@ -220,13 +251,14 @@ export function AppProvider({ children, user }) {
                     membersObj = { [user.uid]: currentUserData };
                 }
 
-                // 5. Fetch expenses and settlements for these groups
+                // 5. Fetch expenses, settlements, and invitations for these groups (one-shot)
                 let expenses = [];
                 let settlements = [];
                 if (groupIds.length > 0) {
                     expenses = await dbService.getExpensesForGroups(groupIds);
                     settlements = await dbService.getSettlementsForGroups(groupIds);
                 }
+                const invitations = await dbService.getInvitationsForUser(user.uid);
 
                 // Initialize State
                 if (isMounted) {
@@ -238,10 +270,58 @@ export function AppProvider({ children, user }) {
                             groups,
                             expenses,
                             settlements,
+                            invitations,
                             settings: currentUserData.settings || { reminderFrequency: 'never', language: 'TR' }
                         }
                     });
                     setIsDataLoaded(true);
+
+                    // ═══ Set up real-time listeners after initial load ═══
+                    unsubGroups = dbService.subscribeToGroups(user.uid, (liveGroups) => {
+                        if (isMounted) {
+                            defaultDispatch({ type: 'SYNC_GROUPS', payload: liveGroups });
+                            // Also re-fetch members for any new group members
+                            const newMemberIds = new Set();
+                            liveGroups.forEach(g => g.members?.forEach(mId => newMemberIds.add(mId)));
+                            dbService.getUsersByIds(Array.from(newMemberIds)).then(newMembers => {
+                                if (isMounted) {
+                                    Object.values(newMembers).forEach(m => {
+                                        if (m.iban) m.iban = decryptIBAN(m.iban);
+                                    });
+                                    // Merge with existing members
+                                    Object.entries(newMembers).forEach(([id, member]) => {
+                                        defaultDispatch({ type: 'ADD_MEMBER', payload: { id, ...member } });
+                                    });
+                                }
+                            });
+
+                            // Re-subscribe expenses/settlements with updated groupIds
+                            const liveGroupIds = liveGroups.map(g => g.id);
+                            if (unsubExpenses) unsubExpenses();
+                            unsubExpenses = dbService.subscribeToExpenses(liveGroupIds, (liveExpenses) => {
+                                if (isMounted) defaultDispatch({ type: 'SYNC_EXPENSES', payload: liveExpenses });
+                            });
+                            if (unsubSettlements) unsubSettlements();
+                            unsubSettlements = dbService.subscribeToSettlements(liveGroupIds, (liveSettlements) => {
+                                if (isMounted) defaultDispatch({ type: 'SYNC_SETTLEMENTS', payload: liveSettlements });
+                            });
+                        }
+                    });
+
+                    // Subscribe to invitations
+                    let knownInvitationIds = new Set(invitations.map(inv => inv.id));
+                    unsubInvitations = dbService.subscribeToInvitations(user.uid, (liveInvitations) => {
+                        if (isMounted) {
+                            defaultDispatch({ type: 'SYNC_INVITATIONS', payload: liveInvitations });
+                            // Fire local notification for truly NEW invitations
+                            liveInvitations.forEach(inv => {
+                                if (!knownInvitationIds.has(inv.id)) {
+                                    sendInviteNotification(inv.groupName, inv.invitedByName);
+                                }
+                            });
+                            knownInvitationIds = new Set(liveInvitations.map(inv => inv.id));
+                        }
+                    });
                 }
             } catch (error) {
                 console.error("Error loading data from Firebase:", error);
@@ -253,7 +333,13 @@ export function AppProvider({ children, user }) {
         setIsDataLoaded(false);
         loadFirebaseData();
 
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+            if (unsubGroups) unsubGroups();
+            if (unsubExpenses) unsubExpenses();
+            if (unsubSettlements) unsubSettlements();
+            if (unsubInvitations) unsubInvitations();
+        };
     }, [user]);
 
     // Wrapper dispatch to intercept actions and route them to Firestore asynchronously
@@ -321,8 +407,26 @@ export function AppProvider({ children, user }) {
                     }
                     break;
                 }
+
+                // Invitations
+                case 'ACCEPT_INVITATION': {
+                    const { invitationId, invitation } = action.payload;
+                    await dbService.updateInvitationStatus(invitationId, 'accepted');
+                    // Also add the user to the group
+                    if (invitation && invitation.groupId) {
+                        const grp = state.groups.find(g => g.id === invitation.groupId);
+                        if (grp && !grp.members.includes(state.currentUser)) {
+                            await dbService.saveGroup({ ...grp, members: [...grp.members, state.currentUser] });
+                        }
+                    }
+                    break;
+                }
+                case 'REJECT_INVITATION':
+                    await dbService.updateInvitationStatus(action.payload, 'rejected');
+                    break;
+
                 default:
-                    // No firebase action needed for others like UPDATE_SETTINGS or INIT_DATA
+                    // No firebase action needed for others like UPDATE_SETTINGS, INIT_DATA, SYNC_*
                     break;
             }
         } catch (error) {

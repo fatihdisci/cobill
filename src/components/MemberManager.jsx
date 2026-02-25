@@ -59,14 +59,25 @@ export default function MemberManager({ groupId, onClose }) {
                 const userDoc = await dbService.getUserByEmail(email.trim());
                 if (!userDoc) {
                     setError('Bu e-posta adresine kayıtlı kullanıcı bulunamadı.');
+                } else if (userDoc.id === state.currentUser) {
+                    setError('Kendinizi tekrar ekleyemezsiniz.');
                 } else if (group.members.includes(userDoc.id)) {
                     setError('Kullanıcı zaten bu grupta.');
                 } else {
-                    // Kullanıcı eklendiğinde IBAN'ını gizle (getirme)
-                    delete userDoc.iban;
-                    dispatch({ type: 'ADD_MEMBER', payload: userDoc });
-                    dispatch({ type: 'ADD_MEMBER_TO_GROUP', payload: { groupId, memberId: userDoc.id } });
+                    // Create a pending invitation instead of directly adding
+                    await dbService.createInvitation({
+                        groupId: group.id,
+                        groupName: group.name,
+                        invitedBy: state.currentUser,
+                        invitedByName: state.members[state.currentUser]?.name || 'Bilinmeyen',
+                        invitedUserId: userDoc.id,
+                        invitedUserName: userDoc.name,
+                        status: 'pending',
+                        createdAt: new Date().toISOString()
+                    });
                     setEmail('');
+                    setError('');
+                    alert(`${userDoc.name} adlı kullanıcıya davet gönderildi! ✓`);
                 }
             } catch (err) {
                 console.error(err);

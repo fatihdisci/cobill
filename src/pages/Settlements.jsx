@@ -10,6 +10,7 @@ import NudgeButton from '../components/NudgeButton';
 export default function Settlements() {
     const { state, dispatch } = useApp();
     const [filter, setFilter] = useState('pending'); // pending | all | paid
+    const [pendingPayment, setPendingPayment] = useState(null);
 
     // Calculate all simplified debts across all groups
     const allTransactions = [];
@@ -41,6 +42,12 @@ export default function Settlements() {
     const history = state.settlements.filter(s => s.status === 'paid');
 
     const handleMarkPaid = (tx) => {
+        setPendingPayment(tx);
+    };
+
+    const confirmPayment = () => {
+        if (!pendingPayment) return;
+        const tx = pendingPayment;
         const settlement = {
             id: generateId(),
             groupId: tx.groupId,
@@ -53,9 +60,15 @@ export default function Settlements() {
             paidAt: new Date().toISOString(),
         };
         dispatch({ type: 'ADD_SETTLEMENT', payload: settlement });
+
+        setPendingPayment(null);
+
+        // Brief visual feedback for the user (can rely on React state updates visually too)
+
         const isPro = state.members[state.currentUser]?.isPro;
         if (!isPro) {
-            showInterstitialAd();
+            // Trigger interstitial AD after user finishes core confirmation action
+            setTimeout(() => showInterstitialAd(), 300);
         }
     };
 
@@ -254,6 +267,29 @@ export default function Settlements() {
                     <div className="empty-icon">🎉</div>
                     <h3>Tüm borçlar ödendi!</h3>
                     <p className="text-sm">Bekleyen ödeme bulunmuyor</p>
+                </div>
+            )}
+
+            {/* Payment Confirmation Modal */}
+            {pendingPayment && (
+                <div className="modal-overlay" onClick={() => setPendingPayment(null)} style={{ zIndex: 3000 }}>
+                    <div className="modal-content animate-fade-in-up" onClick={e => e.stopPropagation()} style={{ maxWidth: 400, textAlign: 'center', padding: 'var(--space-2xl) var(--space-xl)' }}>
+                        <div className="flex items-center justify-center mx-auto mb-lg" style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-emerald)', width: 64, height: 64, borderRadius: '50%' }}>
+                            <CheckCircle2 size={32} />
+                        </div>
+                        <h3 className="mb-sm text-lg font-bold">Ödemeyi Onayla</h3>
+                        <p className="text-muted mb-xl text-sm" style={{ lineHeight: 1.5 }}>
+                            <strong>{state.members[pendingPayment.from]?.name?.split(' ')[0]}</strong> adlı kullanıcının <strong>{formatCurrency(pendingPayment.amount, pendingPayment.currency)}</strong> tutarındaki borcunu ödendi olarak işaretlemek istediğinize emin misiniz?
+                        </p>
+                        <div className="flex gap-md w-full">
+                            <button className="btn btn-secondary flex-1" onClick={() => setPendingPayment(null)}>
+                                Vazgeç
+                            </button>
+                            <button className="btn btn-success flex-1" onClick={confirmPayment}>
+                                Evet, Tamamla
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

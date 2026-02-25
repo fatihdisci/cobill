@@ -47,3 +47,29 @@ export async function updateDebtReminder(frequency, totalDebtAmount) {
         console.error('[NotificationService] Error scheduling notification:', e);
     }
 }
+
+export async function sendInviteNotification(groupName, inviterName) {
+    if (!Capacitor.isNativePlatform()) {
+        console.log('[NotificationService] Skipping invite notification on web.');
+        return;
+    }
+
+    try {
+        const permissions = await LocalNotifications.requestPermissions();
+        if (permissions.display !== 'granted') return;
+
+        await LocalNotifications.schedule({
+            notifications: [
+                {
+                    title: '🔔 Yeni Grup Daveti!',
+                    body: `${inviterName || 'Birisi'} seni "${groupName}" grubuna davet etti. Kabul etmek için uygulamayı aç.`,
+                    id: Date.now() % 100000, // Unique ID per notification
+                    schedule: { at: new Date(Date.now() + 1000) } // 1 second from now
+                }
+            ]
+        });
+        console.log(`[NotificationService] Invite notification sent for group: ${groupName}`);
+    } catch (e) {
+        console.error('[NotificationService] Error sending invite notification:', e);
+    }
+}
