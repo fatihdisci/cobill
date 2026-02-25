@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from 'firebase/auth';
 import { auth, db } from '../config/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { UserPlus } from 'lucide-react';
@@ -35,8 +35,14 @@ export default function Register() {
                 createdAt: new Date().toISOString()
             });
 
-            // 3. Navigate to Dashboard
-            navigate('/');
+            // 3. Send email verification
+            await sendEmailVerification(user);
+
+            // 4. Sign out the user immediately so they must verify and log in
+            await signOut(auth);
+
+            alert('Kayıt başarılı! Lütfen gönderilen e-postadaki linke tıklayarak hesabınızı doğrulayın.');
+            navigate('/login');
         } catch (err) {
             console.error('Registration error:', err);
             let message = 'Kayıt işlemi başarısız oldu.';

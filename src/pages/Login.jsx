@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { dbService } from '../utils/dbService';
 import { LogIn } from 'lucide-react';
@@ -37,11 +37,24 @@ export default function Login() {
         }
 
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            if (!user.emailVerified) {
+                await signOut(auth);
+                const error = new Error('E-posta doğrulanmadı.');
+                error.code = 'custom/email-not-verified';
+                throw error;
+            }
+
             navigate('/');
         } catch (err) {
             console.error('Login error:', err);
-            setError('Giriş başarısız. Lütfen bilgilerinizi kontrol edin veya "test" ile giriniz.');
+            if (err.code === 'custom/email-not-verified') {
+                setError('Lütfen e-posta adresinize gönderilen doğrulama linkine tıklayın.');
+            } else {
+                setError('Giriş başarısız. Lütfen bilgilerinizi kontrol edin veya "test" ile giriniz.');
+            }
         } finally {
             setLoading(false);
         }
