@@ -188,59 +188,73 @@ export default function Dashboard() {
                         <h3>Grupların</h3>
                         <span className="badge badge-purple">{state.groups.length} grup</span>
                     </div>
-                    <div className="grid grid-2 mobile-scroller" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', paddingBottom: 'var(--space-lg)' }}>
-                        {state.groups.map((group, i) => (
-                            <GroupCard key={group.id} group={group} index={i} />
-                        ))}
 
-                        {/* Inline Promo Ad instead of Floating Banner */}
-                        {!isPro && (
-                            <div className="glass-card animate-fade-in-up flex flex-col justify-center items-center text-center relative overflow-hidden" style={{ minHeight: 180, padding: 'var(--space-lg)', border: '1px solid var(--accent-purple)' }}>
-                                <div style={{ position: 'absolute', top: -40, right: -40, width: 90, height: 90, borderRadius: '50%', background: 'var(--gradient-primary)', filter: 'blur(35px)', opacity: 0.5 }}></div>
-                                <Zap size={28} style={{ color: 'var(--accent-purple)', marginBottom: 'var(--space-sm)' }} />
-                                <h4 style={{ marginBottom: 4, fontSize: '0.95rem' }}>Reklamsız Deneyim</h4>
-                                <p className="text-xs text-muted mb-md">Kesintisiz ve premium özellikler için Pro'ya geçin.</p>
-                                <button className="btn btn-pro-active" style={{ fontSize: '0.8rem', padding: '6px 12px', minHeight: '36px' }} onClick={() => setShowProModal(true)}>
-                                    Hemen İncele
-                                </button>
-                                <span style={{ position: 'absolute', top: 6, right: 10, fontSize: '9px', background: 'var(--bg-glass)', border: '1px solid var(--border-primary)', padding: '2px 6px', borderRadius: 4, color: 'var(--text-tertiary)', letterSpacing: 0.5 }}>AD</span>
-                            </div>
-                        )}
-
-                        {/* Add Group Card */}
-                        <div
-                            className="glass-card animate-fade-in-up flex items-center justify-center flex-col"
-                            style={{
-                                cursor: 'pointer',
-                                minHeight: 180,
-                                border: '2px dashed var(--border-secondary)',
-                                background: 'transparent',
-                            }}
-                            onClick={() => setShowNewGroup(true)}
-                        >
-                            <PlusCircle size={32} style={{ color: 'var(--text-muted)', marginBottom: 8 }} />
-                            <p className="text-sm text-muted">Yeni Grup Oluştur</p>
+                    {state.groups.length === 0 ? (
+                        /* Empty state for no groups */
+                        <div className="glass-card animate-fade-in-up flex flex-col items-center text-center" style={{ padding: 'var(--space-2xl) var(--space-xl)' }}>
+                            <Users size={40} style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-md)', opacity: 0.5 }} />
+                            <h4 style={{ marginBottom: 'var(--space-xs)', color: 'var(--text-primary)' }}>Henüz grubun yok</h4>
+                            <p className="text-sm text-muted" style={{ marginBottom: 'var(--space-lg)', maxWidth: 260 }}>
+                                Arkadaşlarınla ortak masrafları takip etmek için ilk grubunu oluştur.
+                            </p>
+                            <button className="btn btn-primary flex items-center gap-sm" onClick={() => setShowNewGroup(true)}>
+                                <PlusCircle size={16} /> Yeni Grup Oluştur
+                            </button>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="grid grid-2 mobile-scroller" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', paddingBottom: 'var(--space-lg)' }}>
+                            {state.groups.map((group, i) => (
+                                <GroupCard key={group.id} group={group} index={i} />
+                            ))}
+
+                            {/* Add Group Card */}
+                            <div
+                                className="glass-card animate-fade-in-up flex items-center justify-center flex-col"
+                                style={{
+                                    cursor: 'pointer',
+                                    minHeight: 180,
+                                    border: '2px dashed var(--border-secondary)',
+                                    background: 'transparent',
+                                }}
+                                onClick={() => setShowNewGroup(true)}
+                            >
+                                <PlusCircle size={32} style={{ color: 'var(--text-muted)', marginBottom: 8 }} />
+                                <p className="text-sm text-muted">Yeni Grup Oluştur</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Inline Promo Ad - SEPARATE from groups grid */}
+                    {!isPro && (
+                        <div className="glass-card animate-fade-in-up flex flex-col justify-center items-center text-center relative overflow-hidden mt-lg" style={{ padding: 'var(--space-lg)', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                            <div style={{ position: 'absolute', top: -40, right: -40, width: 90, height: 90, borderRadius: '50%', background: 'var(--gradient-primary)', filter: 'blur(35px)', opacity: 0.5 }}></div>
+                            <Zap size={24} style={{ color: 'var(--accent-purple)', marginBottom: 'var(--space-xs)' }} />
+                            <h4 style={{ marginBottom: 4, fontSize: '0.9rem' }}>Reklamsız Deneyim</h4>
+                            <p className="text-xs text-muted mb-md">Kesintisiz ve premium özellikler için Pro'ya geçin.</p>
+                            <button className="btn btn-pro-active" style={{ fontSize: '0.8rem', padding: '6px 12px', minHeight: '36px' }} onClick={() => setShowProModal(true)}>
+                                Hemen İncele
+                            </button>
+                            <span style={{ position: 'absolute', top: 6, right: 10, fontSize: '9px', background: 'var(--bg-glass)', border: '1px solid var(--border-primary)', padding: '2px 6px', borderRadius: 4, color: 'var(--text-tertiary)', letterSpacing: 0.5 }}>AD</span>
+                        </div>
+                    )}
                 </div>
 
-                {/* Right: Activity + Chart - EKLENDİ: minWidth: 0 */}
+                {/* Right: Activity + Chart */}
                 <div className="flex flex-col gap-xl sidebar-panel" style={{ minWidth: 0 }}>
-                    {/* Activity Feed - PRO değilse üstte, PRO ise altta (veya sabit yerinde, kullanıcı talebi üzerine PRO değilse grafik altta) */}
-                    {!isPro ? (
-                        <>
-                            {/* Activity Feed */}
-                            <div className="glass-card" style={{ minWidth: 0 }}>
-                                <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Son Aktiviteler</h4>
-                                <div style={{ width: '100%', overflowX: 'auto' }}>
-                                    <ActivityFeed limit={8} />
-                                </div>
-                            </div>
+                    {/* Activity Feed */}
+                    <div className="glass-card" style={{ minWidth: 0 }}>
+                        <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Son Aktiviteler</h4>
+                        <div style={{ width: '100%', overflowX: 'auto' }}>
+                            <ActivityFeed limit={8} />
+                        </div>
+                    </div>
 
-                            {/* Spending Chart (Blurred for non-pro) */}
-                            <div className="glass-card" style={{ minWidth: 0 }}>
-                                <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Harcama Dağılımı</h4>
-                                <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '4px', position: 'relative' }}>
+                    {/* Spending Chart — only show when there is data */}
+                    {totalExpenses > 0 && (
+                        <div className="glass-card" style={{ minWidth: 0 }}>
+                            <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Harcama Dağılımı</h4>
+                            <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '4px', position: 'relative' }}>
+                                {!isPro && (
                                     <div style={{
                                         position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
                                         backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 10,
@@ -248,31 +262,13 @@ export default function Dashboard() {
                                         backgroundColor: 'rgba(26, 32, 53, 0.3)', borderRadius: 12
                                     }}>
                                         <button className="btn btn-primary" style={{ background: 'var(--gradient-primary)', border: 'none', boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)' }} onClick={() => setShowProModal(true)}>
-                                            Bu özelliği görmek için Pro'ya geçin
+                                            Pro'ya geçerek aç
                                         </button>
                                     </div>
-                                    <SpendingByCategory />
-                                </div>
+                                )}
+                                <SpendingByCategory />
                             </div>
-                        </>
-                    ) : (
-                        <>
-                            {/* Spending Chart (Default for PRO) */}
-                            <div className="glass-card" style={{ minWidth: 0 }}>
-                                <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Harcama Dağılımı</h4>
-                                <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '4px' }}>
-                                    <SpendingByCategory />
-                                </div>
-                            </div>
-
-                            {/* Activity Feed */}
-                            <div className="glass-card" style={{ minWidth: 0 }}>
-                                <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Son Aktiviteler</h4>
-                                <div style={{ width: '100%', overflowX: 'auto' }}>
-                                    <ActivityFeed limit={8} />
-                                </div>
-                            </div>
-                        </>
+                        </div>
                     )}
                 </div>
             </div>
