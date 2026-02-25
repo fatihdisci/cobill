@@ -3,13 +3,14 @@ import { useNavigate, Link } from 'react-router-dom';
 import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from 'firebase/auth';
 import { auth, db } from '../config/firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, MailCheck } from 'lucide-react';
 
 export default function Register() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -41,8 +42,7 @@ export default function Register() {
             // 4. Sign out the user immediately so they must verify and log in
             await signOut(auth);
 
-            alert('Kayıt başarılı! Lütfen gönderilen e-postadaki linke tıklayarak hesabınızı doğrulayın.');
-            navigate('/login');
+            setSuccess(true);
         } catch (err) {
             console.error('Registration error:', err);
             let message = 'Kayıt işlemi başarısız oldu.';
@@ -66,78 +66,99 @@ export default function Register() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-lg">
             <div className="glass-card w-full" style={{ maxWidth: 420, padding: 'var(--space-2xl)' }}>
-                <div className="flex flex-col items-center mb-xl">
-                    <img
-                        src="/icon.png"
-                        alt="CoBill Logo"
-                        style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 'var(--space-md)' }}
-                    />
-                    <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>Yeni Hesap Oluştur</h2>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textAlign: 'center' }}>
-                        CoBill'in avantajlarından yararlanmaya başlayın
-                    </p>
-                </div>
-
-                {error && (
-                    <div className="mb-lg p-md" style={{ background: 'rgba(244, 63, 94, 0.1)', color: 'var(--accent-rose)', borderRadius: 'var(--radius-md)', fontSize: '13px' }}>
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleRegister} className="flex flex-col gap-md">
-                    <div className="form-group">
-                        <label>Ad Soyad</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            value={name}
-                            onChange={e => setName(e.target.value)}
-                            placeholder="Örn: Ayşe Yılmaz"
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>E-posta Adresi</label>
-                        <input
-                            type="email"
-                            className="form-input"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            placeholder="ornek@mail.com"
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Şifre</label>
-                        <input
-                            type="password"
-                            className="form-input"
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            placeholder="En az 6 karakter"
-                            required
-                            minLength={6}
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        className="btn btn-primary w-full mt-lg flex items-center justify-center gap-sm"
-                        style={{ background: 'var(--gradient-primary)', padding: '14px', fontSize: '1rem', fontWeight: 600 }}
-                        disabled={loading}
-                    >
-                        {loading ? 'Kayıt Olunuyor...' : <><UserPlus size={20} /> Hesap Oluştur</>}
-                    </button>
-                </form>
-
-                <div className="text-center mt-xl pt-lg" style={{ borderTop: '1px solid var(--border-primary)' }}>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                        Zaten hesabınız var mı?{' '}
-                        <Link to="/login" style={{ color: 'var(--accent-purple)', fontWeight: 700, textDecoration: 'none' }}>
-                            Giriş Yap
+                {success ? (
+                    <div className="flex flex-col items-center text-center">
+                        <div style={{
+                            width: 64, height: 64, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 'var(--space-lg)',
+                            color: 'var(--accent-emerald)'
+                        }}>
+                            <MailCheck size={32} />
+                        </div>
+                        <h2 style={{ fontSize: 'var(--font-xl)', fontWeight: 800, marginBottom: 'var(--space-sm)' }}>E-posta Gönderildi</h2>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: 'var(--space-xl)', lineHeight: 1.5 }}>
+                            <strong>{email}</strong> adresine bir doğrulama bağlantısı gönderdik. Lütfen gelen kutunuzu (ve gerekiyorsa spam klasörünü) kontrol edin.
+                        </p>
+                        <Link to="/login" className="btn btn-primary w-full flex justify-center" style={{ padding: '12px' }}>
+                            Giriş Ekranına Dön
                         </Link>
-                    </p>
-                </div>
+                    </div>
+                ) : (
+                    <>
+                        <div className="flex flex-col items-center mb-xl">
+                            <img
+                                src="/icon.png"
+                                alt="CoBill Logo"
+                                style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 'var(--space-md)' }}
+                            />
+                            <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>Yeni Hesap Oluştur</h2>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textAlign: 'center' }}>
+                                CoBill'in avantajlarından yararlanmaya başlayın
+                            </p>
+                        </div>
+
+                        {error && (
+                            <div className="mb-lg p-md" style={{ background: 'rgba(244, 63, 94, 0.1)', color: 'var(--accent-rose)', borderRadius: 'var(--radius-md)', fontSize: '13px' }}>
+                                {error}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleRegister} className="flex flex-col gap-md">
+                            <div className="form-group">
+                                <label>Ad Soyad</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={name}
+                                    onChange={e => setName(e.target.value)}
+                                    placeholder="Örn: Ayşe Yılmaz"
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>E-posta Adresi</label>
+                                <input
+                                    type="email"
+                                    className="form-input"
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
+                                    placeholder="ornek@mail.com"
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Şifre</label>
+                                <input
+                                    type="password"
+                                    className="form-input"
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    placeholder="En az 6 karakter"
+                                    required
+                                    minLength={6}
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="btn btn-primary w-full mt-lg flex items-center justify-center gap-sm"
+                                style={{ background: 'var(--gradient-primary)', padding: '14px', fontSize: '1rem', fontWeight: 600 }}
+                                disabled={loading}
+                            >
+                                {loading ? 'Kayıt Olunuyor...' : <><UserPlus size={20} /> Hesap Oluştur</>}
+                            </button>
+                        </form>
+
+                        <div className="text-center mt-xl pt-lg" style={{ borderTop: '1px solid var(--border-primary)' }}>
+                            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                                Zaten hesabınız var mı?{' '}
+                                <Link to="/login" style={{ color: 'var(--accent-purple)', fontWeight: 700, textDecoration: 'none' }}>
+                                    Giriş Yap
+                                </Link>
+                            </p>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );
