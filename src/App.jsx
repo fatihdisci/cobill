@@ -87,10 +87,18 @@ function App() {
     <AppProvider user={user}>
       <HashRouter>
         <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
-          <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} />
-          <Route path="/forgot-password" element={user ? <Navigate to="/" replace /> : <ForgotPassword />} />
+          {/* Public Routes — only redirect verified or mock users to dashboard */}
+          {(() => {
+            const isMock = user && (user.uid === 'test-user-id' || user.uid === 'demo-user-id');
+            const isVerified = user && (user.emailVerified || isMock);
+            return (
+              <>
+                <Route path="/login" element={isVerified ? <Navigate to="/" replace /> : <Login />} />
+                <Route path="/register" element={isVerified ? <Navigate to="/" replace /> : <Register />} />
+                <Route path="/forgot-password" element={isVerified ? <Navigate to="/" replace /> : <ForgotPassword />} />
+              </>
+            );
+          })()}
 
           {/* Protected Routes mapped inside a persistent Layout to prevent UI stutter/flashes */}
           <Route element={<ProtectedLayout user={user} />}>
