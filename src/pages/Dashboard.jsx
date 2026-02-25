@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     TrendingUp, TrendingDown, Wallet, Users, PlusCircle,
-    ArrowLeftRight, Receipt, AlertCircle
+    ArrowLeftRight, Receipt, AlertCircle, Zap
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import GroupCard from '../components/GroupCard';
@@ -11,7 +11,7 @@ import { SpendingByCategory } from '../components/BalanceChart';
 import { calculateBalances, simplifyDebts, getTotalUserDebt } from '../utils/debtSimplification';
 import { formatCurrency } from '../utils/currencyUtils';
 import ProUpgradeModal from '../components/ProUpgradeModal';
-import { showBannerAd, hideBannerAd } from '../utils/adService';
+import { showInterstitialAd } from '../utils/adService';
 
 export default function Dashboard() {
     const { state } = useApp();
@@ -21,15 +21,6 @@ export default function Dashboard() {
     const [newGroup, setNewGroup] = useState({ name: '', description: '', currency: 'TRY', color: '#8b5cf6' });
 
     const isPro = state.members[state.currentUser]?.isPro;
-
-    useEffect(() => {
-        if (!isPro) {
-            showBannerAd();
-        }
-        return () => {
-            hideBannerAd();
-        };
-    }, [isPro]);
 
     // Calculate global stats
     let totalOwedToYou = 0;
@@ -155,6 +146,20 @@ export default function Dashboard() {
                             <GroupCard key={group.id} group={group} index={i} />
                         ))}
 
+                        {/* Inline Promo Ad instead of Floating Banner */}
+                        {!isPro && (
+                            <div className="glass-card animate-fade-in-up flex flex-col justify-center items-center text-center relative overflow-hidden" style={{ minHeight: 180, padding: 'var(--space-lg)', border: '1px solid var(--accent-purple)' }}>
+                                <div style={{ position: 'absolute', top: -40, right: -40, width: 90, height: 90, borderRadius: '50%', background: 'var(--gradient-primary)', filter: 'blur(35px)', opacity: 0.5 }}></div>
+                                <Zap size={28} style={{ color: 'var(--accent-purple)', marginBottom: 'var(--space-sm)' }} />
+                                <h4 style={{ marginBottom: 4, fontSize: '0.95rem' }}>Reklamsız Deneyim</h4>
+                                <p className="text-xs text-muted mb-md">Kesintisiz ve premium özellikler için Pro'ya geçin.</p>
+                                <button className="btn btn-pro-active" style={{ fontSize: '0.8rem', padding: '6px 12px', minHeight: '36px' }} onClick={() => setShowProModal(true)}>
+                                    Hemen İncele
+                                </button>
+                                <span style={{ position: 'absolute', top: 6, right: 10, fontSize: '9px', background: 'var(--bg-glass)', border: '1px solid var(--border-primary)', padding: '2px 6px', borderRadius: 4, color: 'var(--text-tertiary)', letterSpacing: 0.5 }}>AD</span>
+                            </div>
+                        )}
+
                         {/* Add Group Card */}
                         <div
                             className="glass-card animate-fade-in-up flex items-center justify-center flex-col"
@@ -231,7 +236,11 @@ export default function Dashboard() {
                     onClose={() => setShowNewGroup(false)}
                     onSubmit={(group) => {
                         setShowNewGroup(false);
-                        navigate(`/group/${group.id}`);
+                        if (!isPro) {
+                            showInterstitialAd().then(() => navigate(`/group/${group.id}`));
+                        } else {
+                            navigate(`/group/${group.id}`);
+                        }
                     }}
                 />
             )}

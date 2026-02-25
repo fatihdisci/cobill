@@ -25,40 +25,20 @@ export async function initializeAdMob() {
         });
         isAdmobInitialized = true;
         console.log('[AdMob] Initialized successfully.');
+
+        // Force remove any leftover banners from previous app sessions just in case
+        try {
+            await AdMob.removeBanner();
+            console.log('[AdMob] Banner removed explicitly.');
+        } catch (e) {
+            // Ignore errors if banner wasn't showing
+        }
     } catch (e) {
         console.error('[AdMob] Failed to initialize:', e);
     }
 }
 
-export async function showBannerAd() {
-    if (!Capacitor.isNativePlatform() || !isAdmobInitialized) return;
-
-    try {
-        await AdMob.showBanner({
-            adId: ADMOB_TEST_BANNER_ID,
-            adSize: BannerAdSize.BANNER,
-            position: BannerAdPosition.BOTTOM,
-            margin: 0,
-            isTesting: true,
-        });
-        console.log('[AdMob] Banner ad shown.');
-    } catch (e) {
-        console.error('[AdMob] Failed to show banner:', e);
-    }
-}
-
-export async function hideBannerAd() {
-    if (!Capacitor.isNativePlatform() || !isAdmobInitialized) return;
-
-    try {
-        await AdMob.hideBanner();
-        console.log('[AdMob] Banner ad hidden.');
-    } catch (e) {
-        console.error('[AdMob] Failed to hide banner:', e);
-    }
-}
-
-export async function showExpenseInterstitialAd() {
+export async function showInterstitialAd() {
     if (!Capacitor.isNativePlatform() || !isAdmobInitialized) {
         return Promise.resolve(); // Resolves immediately if not on mobile/not initialized
     }

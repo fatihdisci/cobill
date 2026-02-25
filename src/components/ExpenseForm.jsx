@@ -4,7 +4,7 @@ import { Receipt, CalendarClock, Check } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { generateId, CATEGORIES } from '../utils/helpers';
 import { getSupportedCurrencies } from '../utils/currencyUtils';
-import { showExpenseInterstitialAd } from '../utils/adService';
+import { showInterstitialAd } from '../utils/adService';
 
 export default function ExpenseForm({ groupId, onClose }) {
     const { state, dispatch } = useApp();
@@ -63,8 +63,7 @@ export default function ExpenseForm({ groupId, onClose }) {
         };
 
         if (!isPro) {
-            // Show ad, then navigate
-            showExpenseInterstitialAd().then(finishNavigation);
+            showInterstitialAd().then(finishNavigation);
         } else {
             finishNavigation();
         }

@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { calculateBalances, simplifyDebts } from '../utils/debtSimplification';
 import { formatCurrency } from '../utils/currencyUtils';
 import { getInitials, getAvatarColor, generateId } from '../utils/helpers';
+import { showInterstitialAd } from '../utils/adService';
 import NudgeButton from '../components/NudgeButton';
 
 export default function Settlements() {
@@ -52,6 +53,10 @@ export default function Settlements() {
             paidAt: new Date().toISOString(),
         };
         dispatch({ type: 'ADD_SETTLEMENT', payload: settlement });
+        const isPro = state.members[state.currentUser]?.isPro;
+        if (!isPro) {
+            showInterstitialAd();
+        }
     };
 
     const pendingTx = allTransactions.filter(t => !t.isSettled);

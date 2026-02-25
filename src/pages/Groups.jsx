@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PlusCircle, Users } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import GroupCard from '../components/GroupCard';
-import { showBannerAd, hideBannerAd } from '../utils/adService';
+import { showInterstitialAd } from '../utils/adService';
 
 export default function Groups() {
     const { state, dispatch } = useApp();
@@ -16,15 +16,6 @@ export default function Groups() {
 
     const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#f43f5e', '#3b82f6', '#ec4899'];
     const [color, setColor] = useState(colors[0]);
-
-    useEffect(() => {
-        if (!isPro) {
-            showBannerAd();
-        }
-        return () => {
-            hideBannerAd();
-        };
-    }, [isPro]);
 
     const handleCreate = (e) => {
         e.preventDefault();
@@ -47,7 +38,11 @@ export default function Groups() {
         setShowNew(false);
         setName('');
         setDesc('');
-        navigate(`/group/${id}`);
+        if (!isPro) {
+            showInterstitialAd().then(() => navigate(`/group/${id}`));
+        } else {
+            navigate(`/group/${id}`);
+        }
     };
 
     return (

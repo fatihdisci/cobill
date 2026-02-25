@@ -11,6 +11,7 @@ import ProBenefitsMenu from './ProBenefitsMenu';
 import ProUpgradeModal from './ProUpgradeModal';
 import UpgradeBanner from './UpgradeBanner';
 import { Star } from 'lucide-react';
+import { showInterstitialAd } from '../utils/adService';
 
 export default function Layout() {
     const location = useLocation();
@@ -22,6 +23,23 @@ export default function Layout() {
     const [showUpgradeBanner, setShowUpgradeBanner] = useState(false);
 
     const isPro = state.members[state.currentUser]?.isPro;
+
+    // Track route changes and show ad on the 2nd change
+    useEffect(() => {
+        // Skip ad check entirely for Pro users
+        if (isPro) return;
+
+        // Retrieve the current counter from sessionStorage to handle hard reloads
+        const currentCount = parseInt(sessionStorage.getItem('routeChangeCount') || '0', 10);
+        const newCount = currentCount + 1;
+
+        sessionStorage.setItem('routeChangeCount', newCount.toString());
+
+        // Show interstitial ad every 3 page transitions (3, 6, 9...)
+        if (newCount > 1 && newCount % 3 === 0) {
+            showInterstitialAd();
+        }
+    }, [location.pathname, isPro]);
 
     useEffect(() => {
         const handler = () => {
@@ -124,7 +142,7 @@ export default function Layout() {
             </aside>
 
             {/* Main Content */}
-            <main className="main-content" style={{ paddingBottom: !isPro ? '60px' : '0' }}>
+            <main className="main-content" style={{ paddingBottom: '0' }}>
                 {/* DÜZELTME: Mobile Header buraya, main-content içine taşındı! 
                   Böylece Flexbox onu sayfanın soluna itip boşluk yaratmayacak.
                 */}

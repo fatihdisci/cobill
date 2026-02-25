@@ -39,3 +39,4 @@ yarn-error.log*
 
 # Secrets
 android/app/google-services.json
+src/config/firebase.js

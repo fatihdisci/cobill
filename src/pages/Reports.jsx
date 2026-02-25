@@ -94,7 +94,7 @@ export default function Reports() {
                         </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-xl)' }} className="reports-grid">
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--space-xl)' }} className="reports-grid">
                         <div className="glass-card">
                             <h4 className="mb-lg">📊 Kategori Dağılımı</h4>
                             <SpendingByCategory groupId={selectedGroup} />
