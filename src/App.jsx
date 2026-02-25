@@ -23,6 +23,13 @@ const ProtectedLayout = ({ user }) => {
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+
+  // If the user isn't a mock user and hasn't verified their email, kick them out to login.
+  // We use user.isAnonymous or email as heuristic for mock users since they might not have emailVerified.
+  const isMockUser = user.uid === 'test-user-id' || user.uid === 'demo-user-id';
+  if (!isMockUser && user.emailVerified === false) {
+    return <Navigate to="/login" replace />;
+  }
   return (
     <Layout>
       <Outlet />
@@ -54,13 +61,8 @@ function App() {
     }
 
     // Listen to Firebase Auth state
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser && !currentUser.emailVerified) {
-        await signOut(auth);
-        setUser(null);
-      } else {
-        setUser(currentUser);
-      }
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
       setLoading(false);
     });
 
