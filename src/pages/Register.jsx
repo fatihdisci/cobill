@@ -39,7 +39,19 @@ export default function Register() {
             navigate('/');
         } catch (err) {
             console.error('Registration error:', err);
-            setError('Kayıt işlemi başarısız. Şifrenizin en az 6 karakter olduğuna emin olun.');
+            let message = 'Kayıt işlemi başarısız oldu.';
+
+            if (err.code === 'auth/email-already-in-use') {
+                message = 'Bu e-posta adresi zaten kullanımda.';
+            } else if (err.code === 'auth/invalid-email') {
+                message = 'Geçersiz bir e-posta adresi girdiniz.';
+            } else if (err.code === 'auth/weak-password') {
+                message = 'Şifreniz çok zayıf. En az 6 karakter olmalıdır.';
+            } else if (err.code === 'auth/network-request-failed') {
+                message = 'İnternet bağlantınızı kontrol edin.';
+            }
+
+            setError(message);
         } finally {
             setLoading(false);
         }
