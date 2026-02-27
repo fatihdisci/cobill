@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { Star, Check, Zap, Download, Bell, LayoutDashboard, X } from 'lucide-react';
 
-export default function ProBenefitsMenu({ onClose, onUpgrade }) {
+export default function ProBenefitsMenu({ onClose, onUpgrade, isMobile }) {
     const menuRef = useRef();
 
     useEffect(() => {
@@ -17,26 +17,26 @@ export default function ProBenefitsMenu({ onClose, onUpgrade }) {
     const benefits = [
         {
             icon: Download,
-            title: 'Profesyonel Raporlar',
-            desc: 'Bankacılık standartlarında PDF ve metin raporları.',
-            color: 'var(--accent-purple)'
+            title: 'Detaylı PDF Raporları',
+            desc: 'Grup harcamalarını ve borç durumunu PDF formatında görüntüleyin.',
+            color: 'var(--accent-cyan)'
         },
         {
             icon: Bell,
-            title: 'Akıllı Hatırlatıcılar',
-            desc: 'WhatsApp ve E-posta ile borç bildirimleri.',
+            title: 'Kolay Paylaşım & Hatırlatma',
+            desc: 'Tahsilat raporlarını WhatsApp ile tek dokunuşta paylaşın.',
             color: 'var(--accent-emerald)'
         },
         {
             icon: LayoutDashboard,
-            title: 'Detaylı Analizler',
-            desc: 'Kategori bazlı gelişmiş harcama grafikleri.',
-            color: 'var(--accent-cyan)'
+            title: 'Görsel Harcama Analizleri',
+            desc: 'Harcama kategorilerini gösteren grafiklere anında erişin.',
+            color: 'var(--accent-purple)'
         },
         {
             icon: Zap,
             title: 'Reklamsız Deneyim',
-            desc: 'Hızlı, reklamsız ve kesintisiz kontrol.',
+            desc: 'Araya giren hiçbir reklam olmadan temiz bir deneyim yaşayın.',
             color: 'var(--accent-rose)'
         }
     ];
@@ -44,8 +44,8 @@ export default function ProBenefitsMenu({ onClose, onUpgrade }) {
     return (
         <div ref={menuRef} style={{
             position: 'absolute',
-            bottom: '72px',
-            left: '0',
+            top: isMobile ? '56px' : '40px',
+            left: isMobile ? '0' : '-80px',
             width: '290px',
             backgroundColor: 'rgba(255, 255, 255, 0.98)',
             backdropFilter: 'blur(16px)',

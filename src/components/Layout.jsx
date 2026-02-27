@@ -147,6 +147,54 @@ export default function Layout() {
                   Böylece Flexbox onu sayfanın soluna itip boşluk yaratmayacak.
                 */}
                 <header className="mobile-header" style={{ display: 'flex', alignItems: 'center', position: 'relative', justifyContent: 'center', zIndex: 101 }}>
+                    {/* Left CTA: PRO */}
+                    {!isPro && (
+                        <div style={{ position: 'absolute', left: 'var(--space-md)' }} className="hide-desktop">
+                            <div style={{ position: 'relative' }}>
+                                <button
+                                    className="btn-pro-gold flex items-center justify-center animate-pulse-subtle"
+                                    style={{
+                                        width: 38,
+                                        height: 38,
+                                        borderRadius: '50%',
+                                        padding: 0,
+                                        boxShadow: '0 4px 15px rgba(217, 119, 6, 0.4)',
+                                        border: '2px solid rgba(251, 191, 36, 0.5)'
+                                    }}
+                                    onClick={() => setShowProBenefits(!showProBenefits)}
+                                >
+                                    <Star size={20} fill="currentColor" />
+                                </button>
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '-4px',
+                                    right: '-4px', // Moved badge to right so it doesn't clip off-screen left
+                                    background: 'var(--gradient-primary)',
+                                    color: 'white',
+                                    fontSize: '8px',
+                                    fontWeight: 900,
+                                    padding: '2px 4px',
+                                    borderRadius: '4px',
+                                    boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    zIndex: 10
+                                }}>
+                                    PRO
+                                </div>
+                            </div>
+                            {showProBenefits && (
+                                <ProBenefitsMenu
+                                    onClose={() => setShowProBenefits(false)}
+                                    onUpgrade={() => {
+                                        setShowProBenefits(false);
+                                        setShowProModal(true);
+                                    }}
+                                    isMobile={true}
+                                />
+                            )}
+                        </div>
+                    )}
+
                     <div className="sidebar-logo">
                         <img src={appIconImg} alt="CoBill" style={{ width: 72, height: 72, borderRadius: '12px', objectFit: 'contain', background: 'white' }} />
                     </div>
@@ -190,60 +238,7 @@ export default function Layout() {
                     ))}
                 </nav>
             </div>
-            {/* Mobile Pro Upgrade FAB */}
-            {!isPro && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        bottom: '92px',
-                        left: '16px',
-                        zIndex: 99
-                    }}
-                    className="hide-desktop"
-                >
-                    <div style={{ position: 'relative' }}>
-                        <button
-                            className="btn-pro-gold flex items-center justify-center animate-pulse-subtle"
-                            style={{
-                                width: 52,
-                                height: 52,
-                                borderRadius: '50%',
-                                padding: 0,
-                                boxShadow: '0 8px 30px rgba(217, 119, 6, 0.4)',
-                                border: '2px solid rgba(251, 191, 36, 0.5)'
-                            }}
-                            onClick={() => setShowProBenefits(!showProBenefits)}
-                        >
-                            <Star size={24} fill="currentColor" />
-                        </button>
-                        <div style={{
-                            position: 'absolute',
-                            top: '-4px',
-                            left: '-4px',
-                            background: 'var(--gradient-primary)',
-                            color: 'white',
-                            fontSize: '9px',
-                            fontWeight: 900,
-                            padding: '2px 5px',
-                            borderRadius: '6px',
-                            boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            zIndex: 10
-                        }}>
-                            PRO
-                        </div>
-                    </div>
-                    {showProBenefits && (
-                        <ProBenefitsMenu
-                            onClose={() => setShowProBenefits(false)}
-                            onUpgrade={() => {
-                                setShowProBenefits(false);
-                                setShowProModal(true);
-                            }}
-                        />
-                    )}
-                </div>
-            )}
+
 
             {/* Upgrade Banner for Pro Features */}
             {!isPro && (

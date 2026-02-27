@@ -176,10 +176,10 @@ export default function Reports() {
 
 function NonProReportsView({ groups, selectedGroup, setSelectedGroup, setShowProModal }) {
     const features = [
-        { icon: <PieChart size={18} />, color: 'var(--accent-purple)', title: 'Kategori Analizi', desc: 'Harcamalarını kategorilere göre görselleştir' },
-        { icon: <Users size={18} />, color: 'var(--accent-cyan)', title: 'Kişi Bazlı Rapor', desc: 'Kim ne kadar harcadı, borç-alacak özeti' },
-        { icon: <Download size={18} />, color: 'var(--accent-emerald)', title: 'PDF Dışa Aktarma', desc: 'Profesyonel raporları anında indir ve paylaş' },
-        { icon: <TrendingUp size={18} />, color: 'var(--accent-amber)', title: 'Trend Takibi', desc: 'Aylık harcama trendlerini karşılaştır' },
+        { icon: <PieChart size={18} />, color: 'var(--accent-purple)', title: 'Kategori Analizi', desc: 'Harcamaları kategorilere göre görselleştir' },
+        { icon: <Users size={18} />, color: 'var(--accent-cyan)', title: 'Kişi Bazlı Rapor', desc: 'Kim ne kadar harcadı, grafiklerle incele' },
+        { icon: <Download size={18} />, color: 'var(--accent-emerald)', title: 'PDF Dışa Aktarma', desc: 'Tüm grup işlemlerini PDF formatında dışarı aktar' },
+        { icon: <Bell size={18} />, color: 'var(--accent-amber)', title: 'Hızlı Paylaşım', desc: 'Tahsilat raporlarını WhatsApp veya e-posta ile paylaş' },
     ];
 
     return (

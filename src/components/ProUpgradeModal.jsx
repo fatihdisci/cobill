@@ -13,26 +13,26 @@ export default function ProUpgradeModal({ onClose }) {
     const features = [
         {
             icon: Download,
-            title: 'Profesyonel Dışa Aktarım',
-            desc: 'Bankacılık standartlarında, PDF ve metin bazlı detaylı rapor çıktıları.',
+            title: 'Detaylı PDF Raporları',
+            desc: 'Tüm grup harcamalarını ve kimin kime borcu olduğunu PDF formatında görüntüleyin.',
             color: 'var(--accent-cyan)'
         },
         {
             icon: Bell,
-            title: 'Akıllı Borç Hatırlatıcı',
-            desc: 'Tek tıkla WhatsApp veya E-posta üzerinden otomatik borç hatırlatmaları.',
+            title: 'Kolay Paylaşım & Hatırlatma',
+            desc: 'Tahsilat raporlarını doğrudan WhatsApp ile tek dokunuşta paylaşın.',
             color: 'var(--accent-emerald)'
         },
         {
             icon: LayoutDashboard,
-            title: 'Gelişmiş Harcama Analizi',
-            desc: 'Kategori ve üye bazlı interaktif grafiklerle finansal durum takibi.',
+            title: 'Görsel Harcama Analizleri',
+            desc: 'Hangi kategoriye ne kadar harcandığını gösteren grafiklere anında erişin.',
             color: 'var(--accent-purple)'
         },
         {
             icon: Zap,
-            title: 'Sınırsız & Reklamsız',
-            desc: 'Tüm reklamlar kaldırılır, sınırsız grup ve masraf ekleme imkanı sağlanır.',
+            title: 'Reklamsız Deneyim',
+            desc: 'Araya giren veya ekranı kaplayan hiçbir reklam olmadan temiz bir deneyim yaşayın.',
             color: 'var(--accent-rose)'
         }
     ];
@@ -154,20 +154,20 @@ export default function ProUpgradeModal({ onClose }) {
                             marginBottom: 'var(--space-md)'
                         }}
                         onClick={() => {
-                            alert("Bize olan güvenin için teşekkürler! Şu anda Beta aşamasındayız, Pro hesabın testlerin bitince otomatik aktif olacak.");
+                            alert("Bize olan güvenin için teşekkürler! \nŞu anda geliştirme aşamasındayız, Pro özelliklerini hesabında ücretsiz test etmen için hemen aktif ediyoruz.");
                             onClose();
                         }}
                     >
-                        Pro'yu Hemen Dene
+                        Ücretsiz Beta'yı Dene
                     </button>
 
                     <p style={{
                         textAlign: 'center',
                         color: 'var(--text-muted)',
-                        fontSize: '0.7rem',
+                        fontSize: '0.75rem',
                         margin: 0
                     }}>
-                        Beta test sürecinde tüm özellikler ücretsizdir.
+                        Geliştirme sürecinde limitler tamamen kaldırılmıştır.
                     </p>
                 </div>
             </div>
