@@ -1,8 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Users } from 'lucide-react';
+import {
+    PlusCircle, Users, TrendingUp, TrendingDown, Wallet,
+    ArrowLeftRight, MailCheck, UserCheck, X, Zap
+} from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import GroupCard from '../components/GroupCard';
+import ActivityFeed from '../components/ActivityFeed';
+import { SpendingByCategory } from '../components/BalanceChart';
+import { calculateBalances, getTotalUserDebt } from '../utils/debtSimplification';
+import { formatCurrency } from '../utils/currencyUtils';
+import ProUpgradeModal from '../components/ProUpgradeModal';
 import { showInterstitialAd } from '../utils/adService';
 
 export default function Groups() {
@@ -12,10 +20,64 @@ export default function Groups() {
     const [name, setName] = useState('');
     const [desc, setDesc] = useState('');
     const [currency, setCurrency] = useState('TRY');
+    const [showProModal, setShowProModal] = useState(false);
     const isPro = state.members[state.currentUser]?.isPro;
 
     const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#f43f5e', '#3b82f6', '#ec4899'];
     const [color, setColor] = useState(colors[0]);
+
+    // Calculate global stats (from Dashboard)
+    let totalOwedToYou = 0;
+    let totalYouOwe = getTotalUserDebt(state);
+    let totalExpenses = 0;
+    let pendingSettlements = 0;
+
+    state.groups.forEach(group => {
+        const groupMembers = group.members.map(id => state.members[id]).filter(Boolean);
+        const groupExpenses = state.expenses.filter(e => e.groupId === group.id);
+        const balances = calculateBalances(groupExpenses, groupMembers);
+        const myBalance = balances[state.currentUser] || 0;
+
+        if (myBalance > 0) totalOwedToYou += myBalance;
+        totalExpenses += groupExpenses.reduce((s, e) => s + e.amount, 0);
+    });
+
+    pendingSettlements = state.settlements.filter(s => s.status !== 'paid').length;
+
+    const stats = [
+        {
+            icon: <TrendingUp size={22} />,
+            iconBg: 'rgba(16, 185, 129, 0.15)',
+            iconColor: 'var(--accent-emerald)',
+            value: formatCurrency(totalOwedToYou, 'TRY'),
+            label: 'Sana Borçlu',
+            gradient: 'var(--gradient-success)',
+        },
+        {
+            icon: <TrendingDown size={22} />,
+            iconBg: 'rgba(244, 63, 94, 0.15)',
+            iconColor: 'var(--accent-rose)',
+            value: formatCurrency(totalYouOwe, 'TRY'),
+            label: 'Senin Borcun',
+            gradient: 'var(--gradient-danger)',
+        },
+        {
+            icon: <Wallet size={22} />,
+            iconBg: 'rgba(139, 92, 246, 0.15)',
+            iconColor: 'var(--accent-purple)',
+            value: formatCurrency(totalExpenses, 'TRY'),
+            label: 'Toplam Harcama',
+            gradient: 'var(--gradient-primary)',
+        },
+        {
+            icon: <ArrowLeftRight size={22} />,
+            iconBg: 'rgba(245, 158, 11, 0.15)',
+            iconColor: 'var(--accent-amber)',
+            value: pendingSettlements.toString(),
+            label: 'Bekleyen Ödeme',
+            gradient: 'var(--gradient-danger)',
+        },
+    ];
 
     const handleCreate = (e) => {
         e.preventDefault();
@@ -49,33 +111,177 @@ export default function Groups() {
         <div className="animate-fade-in">
             <div className="page-header">
                 <div>
-                    <h2>Gruplar</h2>
-                    <p className="page-subtitle">{state.groups.length} aktif grup</p>
+                    <h2>
+                        Merhaba, <span className="text-gradient">
+                            {state.members[state.currentUser]?.name?.split(' ')[0] || 'Kullanıcı'}
+                        </span> 👋
+                    </h2>
+                    <p className="page-subtitle">Grup masraflarının özeti</p>
                 </div>
-                <div className="flex gap-md">
-                    <button className="btn btn-primary" onClick={() => setShowNew(true)}>
-                        <PlusCircle size={16} /> Yeni Grup
-                    </button>
-                </div>
+                <button className="btn btn-primary" onClick={() => setShowNew(true)}>
+                    <PlusCircle size={16} /> Yeni Grup
+                </button>
             </div>
 
-            <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
-                {state.groups.map((group, i) => (
-                    <GroupCard key={group.id} group={group} index={i} />
-                ))}
-            </div>
-
-            {state.groups.length === 0 && (
-                <div className="empty-state glass-card">
-                    <div className="empty-icon">👥</div>
-                    <h3>Henüz grup yok</h3>
-                    <p className="text-sm mb-lg">İlk grubunuzu oluşturarak başlayın</p>
-                    <button className="btn btn-primary" onClick={() => setShowNew(true)}>
-                        <PlusCircle size={16} /> Grup Oluştur
-                    </button>
+            {/* Bekleyen Davetler */}
+            {state.invitations && state.invitations.length > 0 && (
+                <div className="glass-card mb-xl animate-fade-in-up" style={{ border: '1px solid rgba(245, 158, 11, 0.3)', background: 'var(--bg-card)' }}>
+                    <h4 className="flex items-center gap-sm mb-lg" style={{ color: 'var(--accent-amber-light)' }}>
+                        <MailCheck size={18} /> Bekleyen Davetler
+                        <span className="badge badge-amber" style={{ marginLeft: 'auto' }}>{state.invitations.length}</span>
+                    </h4>
+                    <div className="flex flex-col gap-md">
+                        {state.invitations.map(inv => (
+                            <div key={inv.id} className="flex items-center gap-md" style={{
+                                padding: 'var(--space-md) var(--space-lg)',
+                                background: 'var(--bg-glass)',
+                                borderRadius: 'var(--radius-md)',
+                                border: '1px solid var(--border-primary)'
+                            }}>
+                                <div style={{ flex: 1 }}>
+                                    <div className="text-sm font-semibold">
+                                        <strong>{inv.invitedByName || 'Birisi'}</strong> seni <strong>"{inv.groupName}"</strong> grubuna davet etti.
+                                    </div>
+                                    <div className="text-xs text-muted mt-xs">
+                                        {inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('tr-TR') : ''}
+                                    </div>
+                                </div>
+                                <div className="flex gap-sm">
+                                    <button
+                                        className="btn btn-success btn-sm"
+                                        onClick={() => dispatch({
+                                            type: 'ACCEPT_INVITATION',
+                                            payload: { invitationId: inv.id, invitation: inv }
+                                        })}
+                                    >
+                                        <UserCheck size={14} /> Kabul Et
+                                    </button>
+                                    <button
+                                        className="btn btn-ghost btn-sm"
+                                        onClick={() => dispatch({ type: 'REJECT_INVITATION', payload: inv.id })}
+                                        style={{ color: 'var(--accent-rose)' }}
+                                    >
+                                        <X size={14} /> Reddet
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
 
+            {/* Stat Cards */}
+            <div className="grid grid-4 mb-xl mobile-scroller">
+                {stats.map((stat, i) => (
+                    <div key={i} className={`stat-card animate-fade-in-up stagger-${i + 1}`}>
+                        <div className="stat-icon" style={{ background: stat.iconBg, color: stat.iconColor }}>
+                            {stat.icon}
+                        </div>
+                        <div className="stat-value" style={{
+                            background: stat.gradient,
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text',
+                        }}>
+                            {stat.value}
+                        </div>
+                        <div className="stat-label">{stat.label}</div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Main Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 'var(--space-xl)', minWidth: 0 }} className="dashboard-grid">
+
+                {/* Left: Groups */}
+                <div style={{ minWidth: 0 }}>
+                    <div className="flex items-center justify-between mb-lg">
+                        <h3>Grupların</h3>
+                        <span className="badge badge-purple">{state.groups.length} grup</span>
+                    </div>
+
+                    {state.groups.length === 0 ? (
+                        <div className="glass-card animate-fade-in-up flex flex-col items-center text-center" style={{ padding: 'var(--space-2xl) var(--space-xl)' }}>
+                            <Users size={40} style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-md)', opacity: 0.5 }} />
+                            <h4 style={{ marginBottom: 'var(--space-xs)', color: 'var(--text-primary)' }}>Henüz grubun yok</h4>
+                            <p className="text-sm text-muted" style={{ marginBottom: 'var(--space-lg)', maxWidth: 260 }}>
+                                Arkadaşlarınla ortak masrafları takip etmek için ilk grubunu oluştur.
+                            </p>
+                            <button className="btn btn-primary flex items-center gap-sm" onClick={() => setShowNew(true)}>
+                                <PlusCircle size={16} /> Yeni Grup Oluştur
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-2 mobile-scroller" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', paddingBottom: 'var(--space-lg)' }}>
+                            {state.groups.map((group, i) => (
+                                <GroupCard key={group.id} group={group} index={i} />
+                            ))}
+
+                            {/* Add Group Card */}
+                            <div
+                                className="glass-card animate-fade-in-up flex items-center justify-center flex-col"
+                                style={{
+                                    cursor: 'pointer',
+                                    minHeight: 180,
+                                    border: '2px dashed var(--border-secondary)',
+                                    background: 'transparent',
+                                }}
+                                onClick={() => setShowNew(true)}
+                            >
+                                <PlusCircle size={32} style={{ color: 'var(--text-muted)', marginBottom: 8 }} />
+                                <p className="text-sm text-muted">Yeni Grup Oluştur</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Inline Promo Ad */}
+                    {!isPro && (
+                        <div className="glass-card animate-fade-in-up flex flex-col justify-center items-center text-center relative overflow-hidden mt-lg" style={{ padding: 'var(--space-lg)', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                            <div style={{ position: 'absolute', top: -40, right: -40, width: 90, height: 90, borderRadius: '50%', background: 'var(--gradient-primary)', filter: 'blur(35px)', opacity: 0.5 }}></div>
+                            <Zap size={24} style={{ color: 'var(--accent-purple)', marginBottom: 'var(--space-xs)' }} />
+                            <h4 style={{ marginBottom: 4, fontSize: '0.9rem' }}>Reklamsız Deneyim</h4>
+                            <p className="text-xs text-muted mb-md">Kesintisiz ve premium özellikler için Pro'ya geçin.</p>
+                            <button className="btn btn-pro-active" style={{ fontSize: '0.8rem', padding: '6px 12px', minHeight: '36px' }} onClick={() => setShowProModal(true)}>
+                                Hemen İncele
+                            </button>
+                            <span style={{ position: 'absolute', top: 6, right: 10, fontSize: '9px', background: 'var(--bg-glass)', border: '1px solid var(--border-primary)', padding: '2px 6px', borderRadius: 4, color: 'var(--text-tertiary)', letterSpacing: 0.5 }}>AD</span>
+                        </div>
+                    )}
+                </div>
+
+                {/* Right: Activity + Chart */}
+                <div className="flex flex-col gap-xl sidebar-panel" style={{ minWidth: 0 }}>
+                    <div className="glass-card" style={{ minWidth: 0 }}>
+                        <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Son Aktiviteler</h4>
+                        <div style={{ width: '100%', overflowX: 'auto' }}>
+                            <ActivityFeed limit={8} />
+                        </div>
+                    </div>
+
+                    {totalExpenses > 0 && (
+                        <div className="glass-card" style={{ minWidth: 0 }}>
+                            <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Harcama Dağılımı</h4>
+                            <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '4px', position: 'relative' }}>
+                                {!isPro && (
+                                    <div style={{
+                                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                                        backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 10,
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                        backgroundColor: 'rgba(26, 32, 53, 0.3)', borderRadius: 12
+                                    }}>
+                                        <button className="btn btn-primary" style={{ background: 'var(--gradient-primary)', border: 'none', boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)' }} onClick={() => setShowProModal(true)}>
+                                            Pro'ya geçerek aç
+                                        </button>
+                                    </div>
+                                )}
+                                <SpendingByCategory />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* New Group Modal */}
             {showNew && (
                 <div className="modal-overlay" onClick={() => setShowNew(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -122,6 +328,32 @@ export default function Groups() {
                     </div>
                 </div>
             )}
+
+            {showProModal && (
+                <ProUpgradeModal onClose={() => setShowProModal(false)} />
+            )}
+
+            {/* Responsive grid override */}
+            <style>{`
+        @media (max-width: 767px) {
+          .dashboard-grid {
+            grid-template-columns: 1fr !important;
+            width: 100%;
+          }
+          .dashboard-grid > div {
+            min-width: 0;
+            width: 100%;
+          }
+          .sidebar-panel {
+            order: -1;
+          }
+        }
+        @media (min-width: 768px) and (max-width: 1100px) {
+          .dashboard-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
         </div>
     );
 }
