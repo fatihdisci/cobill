@@ -16,6 +16,8 @@ import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
+import PersonalWallet from './pages/PersonalWallet';
+import AddPersonalExpense from './pages/AddPersonalExpense';
 import splashScreenImg from '../assets/splash.png';
 
 // Protect routes that require authentication and wrap them in the persistent Layout
@@ -110,6 +112,8 @@ function App() {
             <Route path="/settlements" element={<Settlements />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/wallet" element={<PersonalWallet />} />
+            <Route path="/add-personal" element={<AddPersonalExpense />} />
           </Route>
         </Routes>
       </HashRouter>

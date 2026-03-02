@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import {
     LayoutDashboard, Users, PlusCircle, ArrowLeftRight,
-    BarChart3, Settings, Receipt, Bell, LogOut, CircleUser
+    BarChart3, Settings, Receipt, Bell, LogOut, CircleUser,
+    Wallet, Plus, User, X
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import appIconImg from '../../assets/icon.png';
@@ -21,6 +22,7 @@ export default function Layout() {
     const [showProBenefits, setShowProBenefits] = useState(false);
     const [showProModal, setShowProModal] = useState(false);
     const [showUpgradeBanner, setShowUpgradeBanner] = useState(false);
+    const [showFabMenu, setShowFabMenu] = useState(false);
 
     const isPro = state.members[state.currentUser]?.isPro;
 
@@ -55,6 +57,7 @@ export default function Layout() {
 
     const navItems = [
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+        { to: '/wallet', icon: Wallet, label: 'Cüzdan' },
         { to: '/groups', icon: Users, label: 'Gruplar' },
         { to: '/add-expense', icon: PlusCircle, label: 'Masraf Ekle' },
         { to: '/settlements', icon: ArrowLeftRight, label: 'Ödemeler', badge: pendingCount || null },
@@ -62,10 +65,11 @@ export default function Layout() {
         { to: '/profile', icon: CircleUser, label: 'Profil' },
     ];
 
-    const mobileNavItems = [
-        { to: '/', icon: LayoutDashboard, label: 'Ana Sayfa' },
+    const mobileNavLeftItems = [
+        { to: '/wallet', icon: Wallet, label: 'Cüzdan' },
         { to: '/groups', icon: Users, label: 'Gruplar' },
-        { to: '/settlements', icon: ArrowLeftRight, label: 'Ödemeler' },
+    ];
+    const mobileNavRightItems = [
         { to: '/reports', icon: BarChart3, label: 'Raporlar' },
         { to: '/profile', icon: CircleUser, label: 'Profil' },
     ];
@@ -215,22 +219,35 @@ export default function Layout() {
                 </div>
             </main>
 
-            {/* Mobile FAB */}
-            {location.pathname !== '/add-expense' && (
-                <NavLink to="/add-expense" className="mobile-fab">
-                    <PlusCircle size={26} />
-                </NavLink>
-            )}
-
-            {/* Mobile Bottom Tab Bar */}
+            {/* Mobile Bottom Tab Bar with Central FAB */}
             <div className="mobile-tab-bar">
                 <nav>
-                    {mobileNavItems.map(item => (
+                    {mobileNavLeftItems.map(item => (
                         <NavLink
                             key={item.to}
                             to={item.to}
                             className={({ isActive }) => `tab-item ${isActive ? 'active' : ''}`}
-                            end={item.to === '/'}
+                        >
+                            <item.icon size={22} />
+                            <span>{item.label}</span>
+                        </NavLink>
+                    ))}
+
+                    {/* Central FAB */}
+                    <div className="tab-item-fab-wrapper">
+                        <button
+                            className={`central-fab ${showFabMenu ? 'active' : ''}`}
+                            onClick={() => setShowFabMenu(!showFabMenu)}
+                        >
+                            {showFabMenu ? <X size={26} /> : <Plus size={26} />}
+                        </button>
+                    </div>
+
+                    {mobileNavRightItems.map(item => (
+                        <NavLink
+                            key={item.to}
+                            to={item.to}
+                            className={({ isActive }) => `tab-item ${isActive ? 'active' : ''}`}
                         >
                             <item.icon size={22} />
                             <span>{item.label}</span>
@@ -238,6 +255,42 @@ export default function Layout() {
                     ))}
                 </nav>
             </div>
+
+            {/* FAB Bottom Sheet */}
+            {showFabMenu && (
+                <div className="fab-sheet-overlay" onClick={() => setShowFabMenu(false)}>
+                    <div className="fab-sheet-content animate-slide-up" onClick={e => e.stopPropagation()}>
+                        <div style={{ width: 40, height: 4, borderRadius: 'var(--radius-full)', background: 'var(--border-secondary)', margin: '0 auto var(--space-lg)' }} />
+                        <h4 style={{ marginBottom: 'var(--space-lg)', fontWeight: 700 }}>Ne eklemek istiyorsun?</h4>
+                        <div className="flex flex-col gap-sm">
+                            <button
+                                className="fab-sheet-option"
+                                onClick={() => { setShowFabMenu(false); navigate('/add-personal'); }}
+                            >
+                                <div className="fab-sheet-icon" style={{ background: 'rgba(139, 92, 246, 0.12)', color: 'var(--accent-purple)' }}>
+                                    <User size={22} />
+                                </div>
+                                <div>
+                                    <div className="font-semibold">Bireysel Harcama</div>
+                                    <div className="text-xs text-muted">Kişisel masrafını kaydet</div>
+                                </div>
+                            </button>
+                            <button
+                                className="fab-sheet-option"
+                                onClick={() => { setShowFabMenu(false); navigate('/add-expense'); }}
+                            >
+                                <div className="fab-sheet-icon" style={{ background: 'rgba(6, 182, 212, 0.12)', color: 'var(--accent-cyan)' }}>
+                                    <Users size={22} />
+                                </div>
+                                <div>
+                                    <div className="font-semibold">Grup Masrafı</div>
+                                    <div className="text-xs text-muted">Gruba ortak masraf ekle</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
 
             {/* Upgrade Banner for Pro Features */}

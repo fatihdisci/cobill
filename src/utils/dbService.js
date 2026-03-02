@@ -223,5 +223,32 @@ export const dbService = {
         const invitations = [];
         snapshot.forEach((doc) => { invitations.push({ id: doc.id, ...doc.data() }); });
         return invitations;
-    }
+    },
+
+    // ═══════════════ Personal Expenses CRUD ═══════════════
+
+    addPersonalExpense: async (expenseData) => {
+        if (!expenseData) return null;
+        const docRef = await addDoc(collection(db, 'personal_expenses'), expenseData);
+        return docRef.id;
+    },
+
+    deletePersonalExpense: async (id) => {
+        if (!id) return;
+        await deleteDoc(doc(db, 'personal_expenses', id));
+    },
+
+    subscribeToPersonalExpenses: (userId, callback) => {
+        if (!userId) return () => { };
+        const q = query(
+            collection(db, 'personal_expenses'),
+            where('userId', '==', userId),
+            orderBy('date', 'desc')
+        );
+        return onSnapshot(q, (snapshot) => {
+            const expenses = [];
+            snapshot.forEach((d) => { expenses.push({ id: d.id, ...d.data() }); });
+            callback(expenses);
+        }, (error) => console.error('Personal expenses listener error:', error));
+    },
 };

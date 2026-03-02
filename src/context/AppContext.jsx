@@ -16,6 +16,7 @@ const INITIAL_STATE = {
     expenses: [],
     settlements: [],
     invitations: [],
+    personalExpenses: [],
     settings: { reminderFrequency: 'never' }
 };
 
@@ -117,6 +118,14 @@ function appReducer(state, action) {
         case 'SYNC_INVITATIONS':
             return { ...state, invitations: action.payload };
 
+        // Personal Expenses
+        case 'ADD_PERSONAL_EXPENSE':
+            return { ...state, personalExpenses: [action.payload, ...state.personalExpenses] };
+        case 'DELETE_PERSONAL_EXPENSE':
+            return { ...state, personalExpenses: state.personalExpenses.filter(e => e.id !== action.payload) };
+        case 'SYNC_PERSONAL_EXPENSES':
+            return { ...state, personalExpenses: action.payload };
+
         // Invitations
         case 'ACCEPT_INVITATION': {
             return {
@@ -151,6 +160,7 @@ export function AppProvider({ children, user }) {
         let unsubExpenses = null;
         let unsubSettlements = null;
         let unsubInvitations = null;
+        let unsubPersonalExpenses = null;
 
         const loadFirebaseData = async () => {
             if (!user) {
@@ -205,7 +215,15 @@ export function AppProvider({ children, user }) {
                                 groups: mockGroups,
                                 expenses: mockExpenses,
                                 settlements: mockSettlements,
-                                invitations: []
+                                invitations: [],
+                                personalExpenses: [
+                                    { id: 'pe1', title: 'Market alışverişi', amount: 450, category: 'Market', date: new Date().toISOString(), userId: user.uid },
+                                    { id: 'pe2', title: 'Elektrik faturası', amount: 280, category: 'Fatura', date: new Date(Date.now() - 86400000).toISOString(), userId: user.uid },
+                                    { id: 'pe3', title: 'Udemy kursu', amount: 150, category: 'Eğitim', date: new Date(Date.now() - 172800000).toISOString(), userId: user.uid },
+                                    { id: 'pe4', title: 'Sinema bileti', amount: 120, category: 'Eğlence', date: new Date(Date.now() - 259200000).toISOString(), userId: user.uid },
+                                    { id: 'pe5', title: 'İstanbulkart', amount: 200, category: 'Ulaşım', date: new Date(Date.now() - 345600000).toISOString(), userId: user.uid },
+                                    { id: 'pe6', title: 'Kitap', amount: 85, category: 'Diğer', date: new Date(Date.now() - 432000000).toISOString(), userId: user.uid },
+                                ]
                             }
                         });
                         setIsDataLoaded(true);
@@ -322,6 +340,13 @@ export function AppProvider({ children, user }) {
                             knownInvitationIds = new Set(liveInvitations.map(inv => inv.id));
                         }
                     });
+
+                    // Subscribe to personal expenses
+                    unsubPersonalExpenses = dbService.subscribeToPersonalExpenses(user.uid, (livePersonalExpenses) => {
+                        if (isMounted) {
+                            defaultDispatch({ type: 'SYNC_PERSONAL_EXPENSES', payload: livePersonalExpenses });
+                        }
+                    });
                 }
             } catch (error) {
                 console.error("Error loading data from Firebase:", error);
@@ -339,6 +364,7 @@ export function AppProvider({ children, user }) {
             if (unsubExpenses) unsubExpenses();
             if (unsubSettlements) unsubSettlements();
             if (unsubInvitations) unsubInvitations();
+            if (unsubPersonalExpenses) unsubPersonalExpenses();
         };
     }, [user]);
 
@@ -423,6 +449,20 @@ export function AppProvider({ children, user }) {
                 }
                 case 'REJECT_INVITATION':
                     await dbService.updateInvitationStatus(action.payload, 'rejected');
+                    break;
+
+                // Personal Expenses
+                case 'ADD_PERSONAL_EXPENSE': {
+                    const firestoreId = await dbService.addPersonalExpense(action.payload);
+                    // Update local state with the Firestore-generated ID
+                    if (firestoreId) {
+                        defaultDispatch({ type: 'DELETE_PERSONAL_EXPENSE', payload: action.payload.id });
+                        defaultDispatch({ type: 'ADD_PERSONAL_EXPENSE', payload: { ...action.payload, id: firestoreId } });
+                    }
+                    break;
+                }
+                case 'DELETE_PERSONAL_EXPENSE':
+                    await dbService.deletePersonalExpense(action.payload);
                     break;
 
                 default:

@@ -15,9 +15,19 @@ export default function Reports() {
     const [showProModal, setShowProModal] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [reportTab, setReportTab] = useState('group'); // 'group' | 'personal'
 
     const isPro = state.members[state.currentUser]?.isPro;
     const group = state.groups.find(g => g.id === selectedGroup);
+
+    const PERSONAL_CATS = {
+        Market: { icon: '🛒', color: '#10b981' },
+        Fatura: { icon: '📋', color: '#06b6d4' },
+        'Eğitim': { icon: '📚', color: '#3b82f6' },
+        'Eğlence': { icon: '🎬', color: '#8b5cf6' },
+        'Ulaşım': { icon: '🚕', color: '#f59e0b' },
+        'Diğer': { icon: '📦', color: '#6b7280' },
+    };
 
     if (!isPro) {
         return (
@@ -44,6 +54,13 @@ export default function Reports() {
         categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + e.amount;
     });
 
+    // Personal expenses breakdown
+    const personalTotal = state.personalExpenses.reduce((s, e) => s + e.amount, 0);
+    const personalCategoryBreakdown = {};
+    state.personalExpenses.forEach(e => {
+        personalCategoryBreakdown[e.category] = (personalCategoryBreakdown[e.category] || 0) + e.amount;
+    });
+
     return (
         <div className="animate-fade-in relative">
             <div className="page-header">
@@ -51,111 +68,198 @@ export default function Reports() {
                     <h2>Raporlar <span className="badge badge-pro-gold" style={{ marginLeft: 8, verticalAlign: 'middle' }}>PRO</span></h2>
                     <p className="page-subtitle">Harcama analizi ve dışa aktarma</p>
                 </div>
-                <div className="flex gap-sm">
-                    <button
-                        className="btn btn-pro-active"
-                        onClick={() => setShowExportModal(true)}
-                        disabled={!group}
-                    >
-                        <Download size={14} /> Dışarı Aktar
-                    </button>
-                </div>
+                {reportTab === 'group' && (
+                    <div className="flex gap-sm">
+                        <button
+                            className="btn btn-pro-active"
+                            onClick={() => setShowExportModal(true)}
+                            disabled={!group}
+                        >
+                            <Download size={14} /> Dışarı Aktar
+                        </button>
+                    </div>
+                )}
             </div>
 
-            <div className="form-group mb-xl" style={{ maxWidth: 300 }}>
-                <label className="form-label">Grup Seçin</label>
-                <select
-                    className="form-select"
-                    value={selectedGroup}
-                    onChange={e => setSelectedGroup(e.target.value)}
+            {/* Segmented Control */}
+            <div className="flex gap-xs mb-xl" style={{
+                background: 'var(--bg-glass)', borderRadius: 'var(--radius-lg)',
+                padding: 4, border: '1px solid var(--border-primary)', maxWidth: 400,
+            }}>
+                <button
+                    className={`btn btn-sm ${reportTab === 'group' ? 'btn-primary' : 'btn-ghost'}`}
+                    onClick={() => setReportTab('group')}
+                    style={{ flex: 1, borderRadius: 'var(--radius-md)', fontWeight: 600 }}
                 >
-                    {state.groups.map(g => (
-                        <option key={g.id} value={g.id}>{g.name}</option>
-                    ))}
-                </select>
+                    👥 Grup Raporları
+                </button>
+                <button
+                    className={`btn btn-sm ${reportTab === 'personal' ? 'btn-primary' : 'btn-ghost'}`}
+                    onClick={() => setReportTab('personal')}
+                    style={{ flex: 1, borderRadius: 'var(--radius-md)', fontWeight: 600 }}
+                >
+                    👤 Bireysel Raporlar
+                </button>
             </div>
 
-            {group ? (
+            {reportTab === 'group' ? (
+                <>
+                    <div className="form-group mb-xl" style={{ maxWidth: 300 }}>
+                        <label className="form-label">Grup Seçin</label>
+                        <select
+                            className="form-select"
+                            value={selectedGroup}
+                            onChange={e => setSelectedGroup(e.target.value)}
+                        >
+                            {state.groups.map(g => (
+                                <option key={g.id} value={g.id}>{g.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {group ? (
+                        <div className="flex flex-col gap-xl">
+                            <div className="grid grid-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+                                <div className="stat-card">
+                                    <div className="stat-label">Toplam Harcama</div>
+                                    <div className="stat-value text-gradient">{formatCurrency(totalSpent, group.currency)}</div>
+                                </div>
+                                <div className="stat-card">
+                                    <div className="stat-label">Masraf Sayısı</div>
+                                    <div className="stat-value" style={{ color: 'var(--accent-cyan-light)' }}>{expenses.length}</div>
+                                </div>
+                                <div className="stat-card">
+                                    <div className="stat-label">Kişi Başı Ortalama</div>
+                                    <div className="stat-value" style={{ color: 'var(--accent-amber-light)' }}>
+                                        {formatCurrency(totalSpent / Math.max(group.members.length, 1), group.currency)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--space-xl)' }} className="reports-grid">
+                                <div className="glass-card">
+                                    <h4 className="mb-lg">📊 Kategori Dağılımı</h4>
+                                    <SpendingByCategory groupId={selectedGroup} />
+                                </div>
+                                <div className="glass-card">
+                                    <h4 className="mb-lg">👥 Kişi Başı Harcama</h4>
+                                    <MemberBalanceChart groupId={selectedGroup} />
+                                </div>
+                            </div>
+
+                            <div className="glass-card hide-mobile">
+                                <h4 className="mb-lg">Kategori Detayları</h4>
+                                <table className="data-table">
+                                    <thead>
+                                        <tr><th>Kategori</th><th style={{ textAlign: 'right' }}>Tutar</th><th style={{ textAlign: 'right' }}>Yüzde</th><th>Dağılım</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        {Object.entries(categoryBreakdown).map(([cat, amount]) => {
+                                            const c = CATEGORIES[cat] || CATEGORIES.other;
+                                            const pct = totalSpent > 0 ? (amount / totalSpent * 100) : 0;
+                                            return (
+                                                <tr key={cat}>
+                                                    <td><span className="flex items-center gap-sm"><span>{c.icon}</span>{c.label}</span></td>
+                                                    <td style={{ textAlign: 'right' }}>{formatCurrency(amount, group.currency)}</td>
+                                                    <td style={{ textAlign: 'right' }}>{pct.toFixed(1)}%</td>
+                                                    <td><div className="progress-bar" style={{ width: 120 }}><div className="progress-fill" style={{ width: `${pct}%` }} /></div></td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="glass-card">
+                                <h4 className="mb-lg">🤝 Grup Ödemeleri</h4>
+                                {groupSettlements.length > 0 ? (
+                                    <div className="flex flex-col gap-sm">
+                                        {groupSettlements.map((s, i) => (
+                                            <div key={s.id} className="flex items-center gap-md" style={{
+                                                padding: 'var(--space-md)', background: 'var(--bg-glass)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-primary)'
+                                            }}>
+                                                <CheckCircle2 size={18} style={{ color: 'var(--accent-emerald)', flexShrink: 0 }} />
+                                                <div style={{ flex: 1 }}>
+                                                    <div className="text-sm font-medium">
+                                                        <strong>{state.members[s.from]?.name?.split(' ')[0]}</strong>
+                                                        <ArrowRight size={12} style={{ margin: '0 8px', color: 'var(--text-tertiary)' }} />
+                                                        <strong>{state.members[s.to]?.name?.split(' ')[0]}</strong>
+                                                    </div>
+                                                    <div className="text-xs text-muted">{formatDate(s.date || s.paidAt)}</div>
+                                                </div>
+                                                <div className="text-sm font-bold" style={{ color: 'var(--accent-emerald-light)' }}>{formatCurrency(s.amount, s.currency)}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center p-xl"><p className="text-muted text-sm">Henüz kaydedilmiş ödeme bulunmuyor.</p></div>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="text-center p-2xl"><p className="text-muted">Grup seçin.</p></div>
+                    )}
+                </>
+            ) : (
+                /* ═══ PERSONAL REPORTS TAB ═══ */
                 <div className="flex flex-col gap-xl">
                     <div className="grid grid-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
                         <div className="stat-card">
-                            <div className="stat-label">Toplam Harcama</div>
-                            <div className="stat-value text-gradient">{formatCurrency(totalSpent, group.currency)}</div>
+                            <div className="stat-label">Toplam Bireysel Harcama</div>
+                            <div className="stat-value text-gradient">{formatCurrency(personalTotal, 'TRY')}</div>
                         </div>
                         <div className="stat-card">
-                            <div className="stat-label">Masraf Sayısı</div>
-                            <div className="stat-value" style={{ color: 'var(--accent-cyan-light)' }}>{expenses.length}</div>
+                            <div className="stat-label">Harcama Sayısı</div>
+                            <div className="stat-value" style={{ color: 'var(--accent-cyan-light)' }}>{state.personalExpenses.length}</div>
                         </div>
                         <div className="stat-card">
-                            <div className="stat-label">Kişi Başı Ortalama</div>
-                            <div className="stat-value" style={{ color: 'var(--accent-amber-light)' }}>
-                                {formatCurrency(totalSpent / Math.max(group.members.length, 1), group.currency)}
-                            </div>
+                            <div className="stat-label">Kategori Sayısı</div>
+                            <div className="stat-value" style={{ color: 'var(--accent-amber-light)' }}>{Object.keys(personalCategoryBreakdown).length}</div>
                         </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--space-xl)' }} className="reports-grid">
-                        <div className="glass-card">
-                            <h4 className="mb-lg">📊 Kategori Dağılımı</h4>
-                            <SpendingByCategory groupId={selectedGroup} />
-                        </div>
-                        <div className="glass-card">
-                            <h4 className="mb-lg">👥 Kişi Başı Harcama</h4>
-                            <MemberBalanceChart groupId={selectedGroup} />
-                        </div>
-                    </div>
-
-                    <div className="glass-card hide-mobile">
-                        <h4 className="mb-lg">Kategori Detayları</h4>
-                        <table className="data-table">
-                            <thead>
-                                <tr><th>Kategori</th><th style={{ textAlign: 'right' }}>Tutar</th><th style={{ textAlign: 'right' }}>Yüzde</th><th>Dağılım</th></tr>
-                            </thead>
-                            <tbody>
-                                {Object.entries(categoryBreakdown).map(([cat, amount]) => {
-                                    const c = CATEGORIES[cat] || CATEGORIES.other;
-                                    const pct = totalSpent > 0 ? (amount / totalSpent * 100) : 0;
-                                    return (
-                                        <tr key={cat}>
-                                            <td><span className="flex items-center gap-sm"><span>{c.icon}</span>{c.label}</span></td>
-                                            <td style={{ textAlign: 'right' }}>{formatCurrency(amount, group.currency)}</td>
-                                            <td style={{ textAlign: 'right' }}>{pct.toFixed(1)}%</td>
-                                            <td><div className="progress-bar" style={{ width: 120 }}><div className="progress-fill" style={{ width: `${pct}%` }} /></div></td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
                     </div>
 
                     <div className="glass-card">
-                        <h4 className="mb-lg">🤝 Grup Ödemeleri</h4>
-                        {groupSettlements.length > 0 ? (
-                            <div className="flex flex-col gap-sm">
-                                {groupSettlements.map((s, i) => (
-                                    <div key={s.id} className="flex items-center gap-md" style={{
-                                        padding: 'var(--space-md)', background: 'var(--bg-glass)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-primary)'
-                                    }}>
-                                        <CheckCircle2 size={18} style={{ color: 'var(--accent-emerald)', flexShrink: 0 }} />
-                                        <div style={{ flex: 1 }}>
-                                            <div className="text-sm font-medium">
-                                                <strong>{state.members[s.from]?.name?.split(' ')[0]}</strong>
-                                                <ArrowRight size={12} style={{ margin: '0 8px', color: 'var(--text-tertiary)' }} />
-                                                <strong>{state.members[s.to]?.name?.split(' ')[0]}</strong>
+                        <h4 className="mb-lg">📊 Kategori Dağılımı</h4>
+                        {Object.keys(personalCategoryBreakdown).length > 0 ? (
+                            <div className="flex flex-col gap-md">
+                                {Object.entries(personalCategoryBreakdown)
+                                    .sort((a, b) => b[1] - a[1])
+                                    .map(([cat, amount]) => {
+                                        const catInfo = PERSONAL_CATS[cat] || PERSONAL_CATS['Diğer'];
+                                        const pct = personalTotal > 0 ? (amount / personalTotal * 100) : 0;
+                                        return (
+                                            <div key={cat} className="flex items-center gap-md">
+                                                <div style={{
+                                                    width: 40, height: 40, borderRadius: '12px',
+                                                    background: `${catInfo.color}18`, color: catInfo.color,
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    fontSize: '1.1rem', flexShrink: 0,
+                                                }}>
+                                                    {catInfo.icon}
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <div className="flex justify-between mb-xs">
+                                                        <span className="text-sm font-semibold">{cat}</span>
+                                                        <span className="text-sm font-bold">{pct.toFixed(1)}%</span>
+                                                    </div>
+                                                    <div className="progress-bar" style={{ height: 8, borderRadius: 'var(--radius-full)', background: 'var(--bg-glass)' }}>
+                                                        <div className="progress-fill" style={{
+                                                            width: `${pct}%`, background: catInfo.color,
+                                                            borderRadius: 'var(--radius-full)',
+                                                            transition: 'width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                                        }} />
+                                                    </div>
+                                                    <div className="text-xs text-muted mt-xs">{formatCurrency(amount, 'TRY')}</div>
+                                                </div>
                                             </div>
-                                            <div className="text-xs text-muted">{formatDate(s.date || s.paidAt)}</div>
-                                        </div>
-                                        <div className="text-sm font-bold" style={{ color: 'var(--accent-emerald-light)' }}>{formatCurrency(s.amount, s.currency)}</div>
-                                    </div>
-                                ))}
+                                        );
+                                    })}
                             </div>
                         ) : (
-                            <div className="text-center p-xl"><p className="text-muted text-sm">Henüz kaydedilmiş ödeme bulunmuyor.</p></div>
+                            <div className="text-center p-xl"><p className="text-muted text-sm">Henüz bireysel harcama bulunmuyor.</p></div>
                         )}
                     </div>
                 </div>
-            ) : (
-                <div className="text-center p-2xl"><p className="text-muted">Grup seçin.</p></div>
             )}
 
             {showExportModal && (

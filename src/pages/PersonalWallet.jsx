@@ -1,0 +1,189 @@
+import { useState } from 'react';
+import { useApp } from '../context/AppContext';
+import { formatCurrency } from '../utils/currencyUtils';
+import { formatDate } from '../utils/helpers';
+import { Wallet, Trash2, Download, TrendingDown, Calendar, Filter } from 'lucide-react';
+import ProUpgradeModal from '../components/ProUpgradeModal';
+
+const PERSONAL_CATEGORIES = {
+    Market: { icon: '🛒', color: 'var(--accent-emerald)' },
+    Fatura: { icon: '📋', color: 'var(--accent-cyan)' },
+    'Eğitim': { icon: '📚', color: 'var(--accent-blue)' },
+    'Eğlence': { icon: '🎬', color: 'var(--accent-purple)' },
+    'Ulaşım': { icon: '🚕', color: 'var(--accent-amber)' },
+    'Diğer': { icon: '📦', color: 'var(--text-tertiary)' },
+};
+
+export default function PersonalWallet() {
+    const { state, dispatch } = useApp();
+    const [showProModal, setShowProModal] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    const isPro = state.members[state.currentUser]?.isPro;
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Filter this month's expenses
+    const thisMonthExpenses = state.personalExpenses.filter(e => {
+        const d = new Date(e.date);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    });
+
+    const totalThisMonth = thisMonthExpenses.reduce((sum, e) => sum + e.amount, 0);
+
+    // Category filter
+    const filteredExpenses = selectedCategory === 'all'
+        ? state.personalExpenses
+        : state.personalExpenses.filter(e => e.category === selectedCategory);
+
+    // Category breakdown for summary
+    const categoryBreakdown = {};
+    thisMonthExpenses.forEach(e => {
+        categoryBreakdown[e.category] = (categoryBreakdown[e.category] || 0) + e.amount;
+    });
+
+    const handleDelete = (id) => {
+        if (window.confirm('Bu harcamayı silmek istediğinize emin misiniz?')) {
+            dispatch({ type: 'DELETE_PERSONAL_EXPENSE', payload: id });
+        }
+    };
+
+    const handlePdfExport = () => {
+        if (!isPro) {
+            setShowProModal(true);
+            return;
+        }
+        alert('PDF dışa aktarma yakında aktif olacak!');
+    };
+
+    return (
+        <div className="animate-fade-in" style={{ maxWidth: 700, margin: '0 auto' }}>
+            <div className="page-header">
+                <div>
+                    <h2>💳 Cüzdan</h2>
+                    <p className="page-subtitle">Bireysel harcamalarınız</p>
+                </div>
+                <button className="btn btn-secondary" onClick={handlePdfExport}>
+                    <Download size={14} /> Ekstre İndir {!isPro && '🔒'}
+                </button>
+            </div>
+
+            {/* Monthly Summary Card */}
+            <div className="glass-card" style={{
+                padding: 'var(--space-xl) var(--space-2xl)',
+                marginBottom: 'var(--space-xl)',
+                position: 'relative', overflow: 'hidden',
+                background: 'var(--bg-card)',
+            }}>
+                <div style={{ position: 'absolute', top: -40, right: -40, width: 120, height: 120, borderRadius: '50%', background: 'rgba(139, 92, 246, 0.08)', filter: 'blur(40px)', pointerEvents: 'none' }} />
+                <div className="flex items-center gap-md mb-md" style={{ color: 'var(--text-tertiary)' }}>
+                    <Calendar size={16} />
+                    <span className="text-sm font-semibold">
+                        {now.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}
+                    </span>
+                </div>
+                <div style={{ fontSize: 'var(--font-3xl)', fontWeight: 900, marginBottom: 'var(--space-xs)' }} className="text-gradient">
+                    {formatCurrency(totalThisMonth, 'TRY')}
+                </div>
+                <div className="text-sm text-muted">Bu ay toplam {thisMonthExpenses.length} harcama</div>
+
+                {/* Mini category bars */}
+                {Object.keys(categoryBreakdown).length > 0 && (
+                    <div className="flex gap-xs mt-lg" style={{ height: 6, borderRadius: 'var(--radius-full)', overflow: 'hidden', background: 'var(--bg-glass)' }}>
+                        {Object.entries(categoryBreakdown).map(([cat, amount]) => {
+                            const pct = totalThisMonth > 0 ? (amount / totalThisMonth * 100) : 0;
+                            const catInfo = PERSONAL_CATEGORIES[cat] || PERSONAL_CATEGORIES['Diğer'];
+                            return (
+                                <div
+                                    key={cat}
+                                    style={{
+                                        width: `${pct}%`,
+                                        background: catInfo.color,
+                                        borderRadius: 'var(--radius-full)',
+                                        transition: 'width 0.5s ease',
+                                    }}
+                                    title={`${cat}: ${pct.toFixed(0)}%`}
+                                />
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+
+            {/* Category Filter */}
+            <div className="flex gap-sm mb-lg" style={{ overflowX: 'auto', paddingBottom: 'var(--space-xs)' }}>
+                <button
+                    className={`btn btn-sm ${selectedCategory === 'all' ? 'btn-primary' : 'btn-ghost'}`}
+                    onClick={() => setSelectedCategory('all')}
+                    style={{ whiteSpace: 'nowrap', fontSize: '0.8rem' }}
+                >
+                    <Filter size={12} /> Tümü
+                </button>
+                {Object.entries(PERSONAL_CATEGORIES).map(([key, cat]) => (
+                    <button
+                        key={key}
+                        className={`btn btn-sm ${selectedCategory === key ? 'btn-primary' : 'btn-ghost'}`}
+                        onClick={() => setSelectedCategory(key)}
+                        style={{ whiteSpace: 'nowrap', fontSize: '0.8rem' }}
+                    >
+                        {cat.icon} {key}
+                    </button>
+                ))}
+            </div>
+
+            {/* Expense List */}
+            {filteredExpenses.length > 0 ? (
+                <div className="flex flex-col gap-sm">
+                    {filteredExpenses.map((expense, i) => {
+                        const catInfo = PERSONAL_CATEGORIES[expense.category] || PERSONAL_CATEGORIES['Diğer'];
+                        return (
+                            <div
+                                key={expense.id}
+                                className={`glass-card flex items-center gap-lg animate-fade-in-up stagger-${Math.min(i + 1, 6)}`}
+                                style={{ padding: 'var(--space-md) var(--space-lg)' }}
+                            >
+                                <div style={{
+                                    width: 44, height: 44, borderRadius: '14px',
+                                    background: `${catInfo.color}15`, color: catInfo.color,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '1.2rem', flexShrink: 0,
+                                }}>
+                                    {catInfo.icon}
+                                </div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div className="font-semibold text-sm truncate">{expense.title}</div>
+                                    <div className="text-xs text-muted flex items-center gap-xs">
+                                        <span>{expense.category}</span>
+                                        <span>·</span>
+                                        <span>{formatDate(expense.date)}</span>
+                                    </div>
+                                </div>
+                                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                    <div className="font-bold text-sm" style={{ color: 'var(--accent-rose)' }}>
+                                        -{formatCurrency(expense.amount, 'TRY')}
+                                    </div>
+                                </div>
+                                <button
+                                    className="btn btn-ghost btn-icon"
+                                    onClick={() => handleDelete(expense.id)}
+                                    style={{ flexShrink: 0, opacity: 0.5 }}
+                                >
+                                    <Trash2 size={14} />
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
+            ) : (
+                <div className="empty-state glass-card">
+                    <div className="empty-icon">💳</div>
+                    <h3>Henüz harcama yok</h3>
+                    <p className="text-sm mb-lg">Alt menüdeki + butonuna basarak bireysel harcama ekleyin.</p>
+                </div>
+            )}
+
+            {showProModal && <ProUpgradeModal onClose={() => setShowProModal(false)} />}
+        </div>
+    );
+}
