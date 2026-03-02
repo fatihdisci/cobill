@@ -1148,16 +1148,17 @@ a:hover {
   top: 0;
   left: 0;
   right: 0;
-  height: calc(84px + env(safe-area-inset-top, 0));
+  height: calc(108px + env(safe-area-inset-top, 0));
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid var(--border-primary);
-  z-index: 100;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  z-index: 101;
   padding: 0 var(--space-lg);
   padding-top: env(safe-area-inset-top, 0);
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 /* ===== Responsive — Mobile ===== */

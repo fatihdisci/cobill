@@ -146,7 +146,7 @@ export default function Layout() {
                 {/* DÜZELTME: Mobile Header buraya, main-content içine taşındı! 
                   Böylece Flexbox onu sayfanın soluna itip boşluk yaratmayacak.
                 */}
-                <header className="mobile-header" style={{ display: 'flex', alignItems: 'center', position: 'relative', justifyContent: 'center', zIndex: 101 }}>
+                <header className="mobile-header">
                     {/* Left CTA: PRO */}
                     {!isPro && (
                         <div style={{ position: 'absolute', left: 'var(--space-md)' }} className="hide-desktop">
@@ -196,7 +196,7 @@ export default function Layout() {
                     )}
 
                     <div className="sidebar-logo">
-                        <img src={appIconImg} alt="CoBill" style={{ width: 72, height: 72, borderRadius: '12px', objectFit: 'contain', background: 'white' }} />
+                        <img src={appIconImg} alt="CoBill" style={{ width: 96, height: 96, borderRadius: '14px', objectFit: 'contain', background: 'white' }} />
                     </div>
 
                     <div style={{ position: 'absolute', right: 'var(--space-md)' }}>
