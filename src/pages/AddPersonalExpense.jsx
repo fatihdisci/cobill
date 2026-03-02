@@ -1,33 +1,51 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { ArrowLeft, Wallet, Save } from 'lucide-react';
+import { ArrowLeft, Save, CalendarClock } from 'lucide-react';
 import { generateId } from '../utils/helpers';
+import { getSupportedCurrencies } from '../utils/currencyUtils';
 
-const PERSONAL_CATEGORIES = ['Market', 'Fatura', 'Eğitim', 'Eğlence', 'Ulaşım', 'Diğer'];
+const PERSONAL_CATEGORIES = {
+    Market: { icon: '🛒', label: 'Market' },
+    Fatura: { icon: '📋', label: 'Fatura' },
+    'Eğitim': { icon: '📚', label: 'Eğitim' },
+    'Eğlence': { icon: '🎬', label: 'Eğlence' },
+    'Ulaşım': { icon: '🚕', label: 'Ulaşım' },
+    'Diğer': { icon: '📦', label: 'Diğer' },
+};
 
 export default function AddPersonalExpense() {
     const { state, dispatch } = useApp();
     const navigate = useNavigate();
-    const [amount, setAmount] = useState('');
-    const [title, setTitle] = useState('');
-    const [category, setCategory] = useState('Market');
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const currencies = getSupportedCurrencies();
+
+    const [form, setForm] = useState({
+        amount: '',
+        currency: state.settings?.defaultCurrency || 'TRY',
+        title: '',
+        category: 'Market',
+        date: new Date().toISOString().split('T')[0],
+        isRecurring: false,
+        recurringDay: 1,
+    });
     const [saving, setSaving] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!amount || !title.trim()) return;
+        if (!form.amount || !form.title.trim()) return;
 
         setSaving(true);
 
         const expense = {
             id: generateId(),
-            amount: parseFloat(amount),
-            title: title.trim(),
-            category,
-            date: new Date(date).toISOString(),
+            amount: parseFloat(form.amount),
+            currency: form.currency,
+            title: form.title.trim(),
+            category: form.category,
+            date: new Date(form.date).toISOString(),
             userId: state.currentUser,
+            isRecurring: form.isRecurring,
+            recurringDay: form.isRecurring ? form.recurringDay : null,
         };
 
         await dispatch({ type: 'ADD_PERSONAL_EXPENSE', payload: expense });
@@ -36,11 +54,11 @@ export default function AddPersonalExpense() {
     };
 
     return (
-        <div className="animate-fade-in" style={{ maxWidth: 520, margin: '0 auto' }}>
+        <div className="animate-fade-in" style={{ maxWidth: 600, margin: '0 auto' }}>
             <div className="page-header">
-                <div className="flex items-center gap-md">
+                <div className="flex items-center gap-lg">
                     <button className="btn btn-ghost btn-icon" onClick={() => navigate(-1)}>
-                        <ArrowLeft size={20} />
+                        <ArrowLeft size={18} />
                     </button>
                     <div>
                         <h2>Bireysel Harcama Ekle</h2>
@@ -49,50 +67,78 @@ export default function AddPersonalExpense() {
                 </div>
             </div>
 
-            <div className="glass-card" style={{ padding: 'var(--space-xl) var(--space-2xl)' }}>
-                <form onSubmit={handleSubmit} className="flex flex-col gap-lg">
-                    {/* Amount */}
-                    <div className="form-group">
-                        <label className="form-label">Tutar (₺)</label>
-                        <input
-                            className="form-input"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            placeholder="0.00"
-                            value={amount}
-                            onChange={e => setAmount(e.target.value)}
-                            required
-                            autoFocus
-                            style={{ fontSize: 'var(--font-xl)', fontWeight: 700, textAlign: 'center' }}
-                        />
+            <div className="glass-card">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-xl">
+                    {/* Amount Input - Big style (matches ExpenseForm) */}
+                    <div style={{ textAlign: 'center', padding: 'var(--space-xl) 0' }}>
+                        <label className="form-label" style={{ marginBottom: 'var(--space-md)', display: 'block' }}>
+                            Tutar
+                        </label>
+                        <div className="flex items-center justify-center gap-md">
+                            <select
+                                className="form-select"
+                                value={form.currency}
+                                onChange={e => setForm(prev => ({ ...prev, currency: e.target.value }))}
+                                style={{ width: '90px', textAlign: 'center' }}
+                            >
+                                {currencies.map(c => (
+                                    <option key={c.code} value={c.code}>{c.symbol} {c.code}</option>
+                                ))}
+                            </select>
+                            <input
+                                type="number"
+                                className="form-input"
+                                placeholder="0.00"
+                                value={form.amount}
+                                onChange={e => setForm(prev => ({ ...prev, amount: e.target.value }))}
+                                min="0"
+                                step="0.01"
+                                required
+                                autoFocus
+                                style={{
+                                    fontSize: 'var(--font-2xl)',
+                                    fontWeight: 800,
+                                    textAlign: 'center',
+                                    maxWidth: '200px',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    borderBottom: '2px solid var(--border-secondary)',
+                                    borderRadius: 0,
+                                    padding: 'var(--space-sm)',
+                                }}
+                            />
+                        </div>
                     </div>
 
-                    {/* Title */}
+                    {/* Description */}
                     <div className="form-group">
                         <label className="form-label">Başlık</label>
                         <input
                             className="form-input"
                             type="text"
-                            placeholder="Örn: Market alışverişi"
-                            value={title}
-                            onChange={e => setTitle(e.target.value)}
+                            placeholder="Örn: Market alışverişi, Elektrik faturası..."
+                            value={form.title}
+                            onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))}
                             required
                         />
                     </div>
 
-                    {/* Category */}
+                    {/* Category - Chip style (matches ExpenseForm) */}
                     <div className="form-group">
                         <label className="form-label">Kategori</label>
-                        <select
-                            className="form-select"
-                            value={category}
-                            onChange={e => setCategory(e.target.value)}
-                        >
-                            {PERSONAL_CATEGORIES.map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
+                        <div className="flex flex-wrap gap-sm">
+                            {Object.entries(PERSONAL_CATEGORIES).map(([key, cat]) => (
+                                <button
+                                    key={key}
+                                    type="button"
+                                    className={`btn btn-sm ${form.category === key ? 'btn-primary' : 'btn-secondary'}`}
+                                    onClick={() => setForm(prev => ({ ...prev, category: key }))}
+                                    style={{ fontSize: 'var(--font-sm)' }}
+                                >
+                                    {cat.icon} {cat.label}
+                                </button>
                             ))}
-                        </select>
+                        </div>
                     </div>
 
                     {/* Date */}
@@ -101,24 +147,56 @@ export default function AddPersonalExpense() {
                         <input
                             className="form-input"
                             type="date"
-                            value={date}
-                            onChange={e => setDate(e.target.value)}
+                            value={form.date}
+                            onChange={e => setForm(prev => ({ ...prev, date: e.target.value }))}
                         />
                     </div>
 
+                    {/* Recurring Toggle (matches ExpenseForm) */}
+                    <div className="flex items-center justify-between" style={{
+                        padding: 'var(--space-lg)',
+                        background: 'var(--bg-glass)',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--border-primary)',
+                    }}>
+                        <div className="flex items-center gap-sm">
+                            <CalendarClock size={18} style={{ color: 'var(--accent-amber)' }} />
+                            <div>
+                                <div className="text-sm font-medium">Tekrarlayan Masraf</div>
+                                <div className="text-xs text-muted">Her ay otomatik ekle</div>
+                            </div>
+                        </div>
+                        <div
+                            className={`toggle ${form.isRecurring ? 'active' : ''}`}
+                            onClick={() => setForm(prev => ({ ...prev, isRecurring: !prev.isRecurring }))}
+                        />
+                    </div>
+
+                    {form.isRecurring && (
+                        <div className="form-group animate-fade-in">
+                            <label className="form-label">Her Ayın Kaçında?</label>
+                            <select
+                                className="form-select"
+                                value={form.recurringDay}
+                                onChange={e => setForm(prev => ({ ...prev, recurringDay: parseInt(e.target.value) }))}
+                            >
+                                {Array.from({ length: 28 }, (_, i) => i + 1).map(d => (
+                                    <option key={d} value={d}>{d}. gün</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
+                    {/* Submit */}
                     <button
                         type="submit"
-                        className="btn btn-primary w-full btn-lg"
-                        disabled={saving || !amount || !title.trim()}
+                        className="btn btn-primary btn-lg w-full"
+                        disabled={saving || !form.amount || !form.title.trim()}
                     >
                         {saving ? (
-                            <span className="flex items-center gap-sm">
-                                <span className="animate-pulse">Kaydediliyor...</span>
-                            </span>
+                            <span className="animate-pulse">Kaydediliyor...</span>
                         ) : (
-                            <>
-                                <Save size={18} /> Harcamayı Kaydet
-                            </>
+                            <><Save size={18} /> Harcamayı Kaydet</>
                         )}
                     </button>
                 </form>

@@ -259,7 +259,7 @@ export default function Layout() {
             {/* FAB Bottom Sheet */}
             {showFabMenu && (
                 <div className="fab-sheet-overlay" onClick={() => setShowFabMenu(false)}>
-                    <div className="fab-sheet-content animate-slide-up" onClick={e => e.stopPropagation()}>
+                    <div className="fab-sheet-content" onClick={e => e.stopPropagation()}>
                         <div style={{ width: 40, height: 4, borderRadius: 'var(--radius-full)', background: 'var(--border-secondary)', margin: '0 auto var(--space-lg)' }} />
                         <h4 style={{ marginBottom: 'var(--space-lg)', fontWeight: 700 }}>Ne eklemek istiyorsun?</h4>
                         <div className="flex flex-col gap-sm">
