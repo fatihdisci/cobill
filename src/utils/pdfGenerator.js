@@ -147,3 +147,115 @@ export const generateGroupPDF = async (group, members, expenses, balances, settl
 
     return await html2pdf().set(opt).from(container).output('datauristring');
 };
+
+/**
+ * Kişisel Harcama Ekstresi PDF Üretici
+ * Tasarım generateGroupPDF ile birebir uyumludur.
+ */
+export const generatePersonalStatementPDF = async (expenses, user, monthName, categories = {}) => {
+    const total = expenses.reduce((s, e) => s + e.amount, 0);
+
+    // Category breakdown
+    const catTotals = {};
+    expenses.forEach(e => {
+        catTotals[e.category] = (catTotals[e.category] || 0) + e.amount;
+    });
+
+    // Sort by date descending
+    const sorted = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const container = document.createElement('div');
+    container.style.padding = '40px';
+    container.style.fontFamily = 'Inter, system-ui, sans-serif';
+    container.style.color = '#334155';
+    container.style.background = '#ffffff';
+
+    let html = `
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #8b5cf6; margin: 0 0 10px 0; font-size: 26px; font-weight: 800;">CoBill Kişisel Ekstre</h1>
+            <h2 style="color: #0f172a; margin: 0 0 5px 0; font-size: 20px;">${user?.name || 'Kullanıcı'}</h2>
+            <p style="color: #64748b; margin: 0; font-size: 14px;">
+                ${user?.email ? `${user.email} • ` : ''}${monthName} • Oluşturulma: ${formatDate(new Date().toISOString())}
+            </p>
+            <div style="margin-top: 15px; padding: 10px; background: #f8fafc; border-radius: 8px; display: inline-block;">
+                <p style="color: #475569; margin: 0; font-size: 15px;">Toplam Harcama: <strong style="color: #0f172a; font-size: 18px;">${formatCurrency(total, 'TRY')}</strong></p>
+            </div>
+        </div>
+
+        <h3 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 30px; font-size: 18px;">Kategori Dağılımı</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px;">
+            <thead>
+                <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+                    <th style="padding: 12px; text-align: left; color: #475569;">Kategori</th>
+                    <th style="padding: 12px; text-align: right; color: #475569;">Tutar</th>
+                    <th style="padding: 12px; text-align: right; color: #475569;">Oran</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    Object.entries(catTotals)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([cat, amount]) => {
+            const pct = total > 0 ? ((amount / total) * 100).toFixed(1) : '0';
+            const catInfo = categories[cat];
+            html += `
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 12px; font-weight: 600;">${catInfo?.icon || '📦'} ${catInfo?.label || cat}</td>
+                    <td style="padding: 12px; text-align: right; color: #475569;">${formatCurrency(amount, 'TRY')}</td>
+                    <td style="padding: 12px; text-align: right; color: #8b5cf6; font-weight: 700;">${pct}%</td>
+                </tr>
+            `;
+        });
+
+    html += `
+            </tbody>
+        </table>
+
+        <h3 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 40px; font-size: 18px;">Harcama Detayları</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px;">
+            <thead>
+                <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+                    <th style="padding: 12px; text-align: left; color: #475569;">Tarih</th>
+                    <th style="padding: 12px; text-align: left; color: #475569;">Başlık</th>
+                    <th style="padding: 12px; text-align: left; color: #475569;">Kategori</th>
+                    <th style="padding: 12px; text-align: right; color: #475569;">Tutar</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    sorted.forEach(e => {
+        const catInfo = categories[e.category];
+        html += `
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 12px; color: #64748b;">${formatDate(e.date)}</td>
+                <td style="padding: 12px; font-weight: 600;">${e.title}</td>
+                <td style="padding: 12px;">${catInfo?.icon || '📦'} ${catInfo?.label || e.category}</td>
+                <td style="padding: 12px; text-align: right; color: #f43f5e; font-weight: 700;">-${formatCurrency(e.amount, 'TRY')}</td>
+            </tr>
+        `;
+    });
+
+    html += `
+            </tbody>
+        </table>
+
+        <div style="margin-top: 60px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px dashed #e2e8f0; padding-top: 20px;">
+            <p style="margin: 0; font-weight: 600; color: #8b5cf6;">CoBill Hesaplayıcı</p>
+            <p style="margin: 4px 0 0 0;">Bu rapor CoBill uygulaması üzerinden otomatik üretilmiştir.</p>
+        </div>
+    `;
+
+    container.innerHTML = html;
+
+    const opt = {
+        margin: 10,
+        filename: `CoBill_Ekstre_${monthName.replace(/\s+/g, '_')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    return await html2pdf().set(opt).from(container).output('datauristring');
+};

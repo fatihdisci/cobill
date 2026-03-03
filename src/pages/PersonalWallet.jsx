@@ -2,29 +2,32 @@ import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { formatCurrency } from '../utils/currencyUtils';
 import { formatDate } from '../utils/helpers';
-import { Wallet, Trash2, Download, TrendingDown, Calendar, Filter } from 'lucide-react';
+import { Wallet, Trash2, Download, Calendar, Loader2 } from 'lucide-react';
 import ProUpgradeModal from '../components/ProUpgradeModal';
+import ExpenseFilterSort from '../components/ExpenseFilterSort';
+import { generatePersonalStatementPDF } from '../utils/pdfGenerator';
+import { sharePDF } from '../utils/fileService';
 
 const PERSONAL_CATEGORIES = {
-    Market: { icon: '🛒', color: 'var(--accent-emerald)' },
-    Fatura: { icon: '📋', color: 'var(--accent-cyan)' },
-    'Eğitim': { icon: '📚', color: 'var(--accent-blue)' },
-    'Eğlence': { icon: '🎬', color: 'var(--accent-purple)' },
-    'Ulaşım': { icon: '🚕', color: 'var(--accent-amber)' },
-    'Diğer': { icon: '📦', color: 'var(--text-tertiary)' },
+    Market: { icon: '🛒', label: 'Market', color: 'var(--accent-emerald)' },
+    Fatura: { icon: '📋', label: 'Fatura', color: 'var(--accent-cyan)' },
+    'Eğitim': { icon: '📚', label: 'Eğitim', color: 'var(--accent-blue)' },
+    'Eğlence': { icon: '🎬', label: 'Eğlence', color: 'var(--accent-purple)' },
+    'Ulaşım': { icon: '🚕', label: 'Ulaşım', color: 'var(--accent-amber)' },
+    'Diğer': { icon: '📦', label: 'Diğer', color: 'var(--text-tertiary)' },
 };
 
 export default function PersonalWallet() {
     const { state, dispatch } = useApp();
     const [showProModal, setShowProModal] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [pdfLoading, setPdfLoading] = useState(false);
     const isPro = state.members[state.currentUser]?.isPro;
 
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
-    // Filter this month's expenses
+    // Filter this month's expenses (for the summary card — never changes with filter)
     const thisMonthExpenses = state.personalExpenses.filter(e => {
         const d = new Date(e.date);
         return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
@@ -32,12 +35,7 @@ export default function PersonalWallet() {
 
     const totalThisMonth = thisMonthExpenses.reduce((sum, e) => sum + e.amount, 0);
 
-    // Category filter
-    const filteredExpenses = selectedCategory === 'all'
-        ? state.personalExpenses
-        : state.personalExpenses.filter(e => e.category === selectedCategory);
-
-    // Category breakdown for summary
+    // Category breakdown for summary bar
     const categoryBreakdown = {};
     thisMonthExpenses.forEach(e => {
         categoryBreakdown[e.category] = (categoryBreakdown[e.category] || 0) + e.amount;
@@ -49,13 +47,40 @@ export default function PersonalWallet() {
         }
     };
 
-    const handlePdfExport = () => {
+    const handlePdfExport = async () => {
         if (!isPro) {
             setShowProModal(true);
             return;
         }
-        alert('PDF dışa aktarma yakında aktif olacak!');
+        if (thisMonthExpenses.length === 0) {
+            alert('Bu ay için henüz harcama bulunmuyor.');
+            return;
+        }
+        setPdfLoading(true);
+        try {
+            const monthName = now.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+            const user = state.members[state.currentUser];
+            const base64 = await generatePersonalStatementPDF(
+                thisMonthExpenses,
+                user,
+                monthName,
+                PERSONAL_CATEGORIES
+            );
+            await sharePDF(base64, `CoBill_Ekstre_${monthName.replace(/\s+/g, '_')}.pdf`);
+        } catch (err) {
+            console.error('[PersonalWallet] PDF export error:', err);
+            alert('PDF oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
+        } finally {
+            setPdfLoading(false);
+        }
     };
+
+    // Use ExpenseFilterSort hook
+    const { filteredExpenses, filterUI, emptyState } = ExpenseFilterSort({
+        expenses: state.personalExpenses,
+        categories: PERSONAL_CATEGORIES,
+        categoryKey: 'category',
+    });
 
     return (
         <div className="animate-fade-in" style={{ maxWidth: 700, margin: '0 auto' }}>
@@ -64,13 +89,15 @@ export default function PersonalWallet() {
                     <h2>💳 Cüzdan</h2>
                     <p className="page-subtitle">Bireysel harcamalarınız</p>
                 </div>
-                <button className="btn btn-secondary" onClick={handlePdfExport}>
-                    <Download size={14} /> Ekstre İndir {!isPro && '🔒'}
+                <button className={`btn btn-sm ${isPro ? 'btn-pro-active' : 'btn-pro-gold'}`} onClick={handlePdfExport} disabled={pdfLoading} style={{ whiteSpace: 'nowrap' }}>
+                    {pdfLoading ? <Loader2 size={14} className="spin" /> : <Download size={14} />}
+                    {pdfLoading ? 'Hazırlanıyor...' : 'Ekstre İndir'}
+                    <span className={`badge ${isPro ? 'badge-pro-active' : 'badge-pro-gold'}`} style={{ marginLeft: 4, padding: '1px 5px', fontSize: '8px' }}>PRO</span>
                 </button>
             </div>
 
-            {/* Monthly Summary Card */}
-            <div className="glass-card" style={{
+            {/* Monthly Summary Card — always shows real total */}
+            <div className="glass-card static-card" style={{
                 padding: 'var(--space-xl) var(--space-2xl)',
                 marginBottom: 'var(--space-xl)',
                 position: 'relative', overflow: 'hidden',
@@ -111,29 +138,13 @@ export default function PersonalWallet() {
                 )}
             </div>
 
-            {/* Category Filter */}
-            <div className="flex gap-sm mb-lg" style={{ overflowX: 'auto', paddingBottom: 'var(--space-xs)' }}>
-                <button
-                    className={`btn btn-sm ${selectedCategory === 'all' ? 'btn-primary' : 'btn-ghost'}`}
-                    onClick={() => setSelectedCategory('all')}
-                    style={{ whiteSpace: 'nowrap', fontSize: '0.8rem' }}
-                >
-                    <Filter size={12} /> Tümü
-                </button>
-                {Object.entries(PERSONAL_CATEGORIES).map(([key, cat]) => (
-                    <button
-                        key={key}
-                        className={`btn btn-sm ${selectedCategory === key ? 'btn-primary' : 'btn-ghost'}`}
-                        onClick={() => setSelectedCategory(key)}
-                        style={{ whiteSpace: 'nowrap', fontSize: '0.8rem' }}
-                    >
-                        {cat.icon} {key}
-                    </button>
-                ))}
+            {/* Filter Button */}
+            <div style={{ marginBottom: 'var(--space-lg)' }}>
+                {filterUI}
             </div>
 
             {/* Expense List */}
-            {filteredExpenses.length > 0 ? (
+            {emptyState ? emptyState : filteredExpenses.length > 0 ? (
                 <div className="flex flex-col gap-sm">
                     {filteredExpenses.map((expense, i) => {
                         const catInfo = PERSONAL_CATEGORIES[expense.category] || PERSONAL_CATEGORIES['Diğer'];
@@ -176,7 +187,7 @@ export default function PersonalWallet() {
                     })}
                 </div>
             ) : (
-                <div className="empty-state glass-card">
+                <div className="empty-state glass-card static-card">
                     <div className="empty-icon">💳</div>
                     <h3>Henüz harcama yok</h3>
                     <p className="text-sm mb-lg">Alt menüdeki + butonuna basarak bireysel harcama ekleyin.</p>

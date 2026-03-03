@@ -95,16 +95,17 @@ function App() {
             const isVerified = user && (user.emailVerified || isMock);
             return (
               <>
-                <Route path="/login" element={isVerified ? <Navigate to="/" replace /> : <Login />} />
-                <Route path="/register" element={isVerified ? <Navigate to="/" replace /> : <Register />} />
-                <Route path="/forgot-password" element={isVerified ? <Navigate to="/" replace /> : <ForgotPassword />} />
+                <Route path="/login" element={isVerified ? <Navigate to="/wallet" replace /> : <Login />} />
+                <Route path="/register" element={isVerified ? <Navigate to="/wallet" replace /> : <Register />} />
+                <Route path="/forgot-password" element={isVerified ? <Navigate to="/wallet" replace /> : <ForgotPassword />} />
               </>
             );
           })()}
 
           {/* Protected Routes mapped inside a persistent Layout to prevent UI stutter/flashes */}
           <Route element={<ProtectedLayout user={user} />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Navigate to="/wallet" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/groups" element={<Groups />} />
             <Route path="/group/:groupId" element={<GroupDetail />} />
             <Route path="/add-expense" element={<AddExpense />} />

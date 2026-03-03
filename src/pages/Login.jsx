@@ -47,7 +47,7 @@ export default function Login() {
                 throw error;
             }
 
-            navigate('/');
+            navigate('/wallet');
         } catch (err) {
             console.error('Login error:', err);
             if (err.code === 'custom/email-not-verified') {

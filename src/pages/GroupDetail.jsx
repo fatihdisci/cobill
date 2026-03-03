@@ -18,6 +18,7 @@ import { getInitials, getAvatarColor, CATEGORIES, formatShortDate } from '../uti
 import ProUpgradeModal from '../components/ProUpgradeModal';
 import { generateGroupPDF } from '../utils/pdfGenerator';
 import { sharePDF } from '../utils/fileService';
+import ExpenseFilterSort from '../components/ExpenseFilterSort';
 
 export default function GroupDetail() {
     const { groupId } = useParams();
@@ -51,6 +52,14 @@ export default function GroupDetail() {
     const balances = calculateBalances(groupExpenses, groupMembers);
     const totalSpent = groupExpenses.reduce((s, e) => s + e.amount, 0);
     const recurringExpenses = groupExpenses.filter(e => e.isRecurring);
+
+    // ExpenseFilterSort hook for the expense history section
+    const { filteredExpenses: filteredGroupExpenses, filterUI: groupFilterUI, emptyState: groupEmptyState } = ExpenseFilterSort({
+        expenses: groupExpenses,
+        categories: CATEGORIES,
+        categoryKey: 'category',
+        members: state.members,
+    });
 
     const handleDeleteGroup = () => {
         if (window.confirm(`"${group.name}" grubunu silmek istediğinize emin misiniz?`)) {
@@ -132,24 +141,24 @@ export default function GroupDetail() {
                         </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-sm flex-wrap" style={{ justifyContent: 'flex-start', marginTop: 'var(--space-md)' }}>
-                    <button className={`btn btn-sm ${isPro ? 'btn-pro-active' : 'btn-pro-gold'}`} onClick={handleExportPDF} disabled={isGenerating}>
-                        <FileText size={14} /> {isGenerating ? 'Hazırlanıyor...' : 'PDF İndir'}
-                        <span className={`badge ${isPro ? 'badge-pro-active' : 'badge-pro-gold'}`} style={{ marginLeft: 6, padding: '2px 6px', fontSize: '9px' }}>PRO</span>
+                <div className="flex items-center gap-sm" style={{ overflowX: 'auto', marginTop: 'var(--space-md)', paddingBottom: 'var(--space-xs)', flexWrap: 'nowrap' }}>
+                    <button className={`btn btn-sm ${isPro ? 'btn-pro-active' : 'btn-pro-gold'}`} onClick={handleExportPDF} disabled={isGenerating} style={{ flexShrink: 0, whiteSpace: 'nowrap', padding: '4px 10px', minHeight: '34px', fontSize: '0.78rem' }}>
+                        <FileText size={13} /> {isGenerating ? '...' : 'PDF İndir'}
+                        <span className={`badge ${isPro ? 'badge-pro-active' : 'badge-pro-gold'}`} style={{ marginLeft: 4, padding: '1px 5px', fontSize: '8px' }}>PRO</span>
                     </button>
-                    <button className="btn btn-secondary btn-sm" onClick={() => setShowMembers(true)}>
-                        <UserPlus size={14} /> Üyeler
+                    <button className="btn btn-secondary btn-sm" onClick={() => setShowMembers(true)} style={{ flexShrink: 0, whiteSpace: 'nowrap', padding: '4px 10px', minHeight: '34px', fontSize: '0.78rem' }}>
+                        <UserPlus size={13} /> Üyeler
                     </button>
-                    <button className="btn btn-primary btn-sm" onClick={() => setShowExpenseForm(true)}>
-                        <PlusCircle size={14} /> Masraf
+                    <button className="btn btn-primary btn-sm" onClick={() => setShowExpenseForm(true)} style={{ flexShrink: 0, whiteSpace: 'nowrap', padding: '4px 10px', minHeight: '34px', fontSize: '0.78rem', boxShadow: 'none' }}>
+                        <PlusCircle size={13} /> Masraf
                     </button>
                     {isAdmin ? (
-                        <button className="btn btn-ghost btn-icon btn-sm" onClick={handleDeleteGroup} title="Grubu Sil">
-                            <Trash2 size={16} style={{ color: 'var(--accent-rose)' }} />
+                        <button className="btn btn-ghost btn-icon btn-sm" onClick={handleDeleteGroup} title="Grubu Sil" style={{ flexShrink: 0, minHeight: '34px', width: '34px', height: '34px', padding: 0 }}>
+                            <Trash2 size={15} style={{ color: 'var(--accent-rose)' }} />
                         </button>
                     ) : (
-                        <button className="btn btn-ghost btn-icon btn-sm" onClick={handleLeaveGroup} title="Gruptan Çık">
-                            <LogOut size={16} style={{ color: 'var(--text-secondary)' }} />
+                        <button className="btn btn-ghost btn-icon btn-sm" onClick={handleLeaveGroup} title="Gruptan Çık" style={{ flexShrink: 0, minHeight: '34px', width: '34px', height: '34px', padding: 0 }}>
+                            <LogOut size={15} style={{ color: 'var(--text-secondary)' }} />
                         </button>
                     )}
                 </div>
@@ -179,7 +188,7 @@ export default function GroupDetail() {
             </div>
 
             {/* Member Balances */}
-            <div className="glass-card mb-xl">
+            <div className="glass-card static-card mb-xl">
                 <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Üye Bakiyeleri</h4>
                 <div className="flex flex-col gap-sm">
                     {groupMembers.map((member, i) => {
@@ -260,15 +269,16 @@ export default function GroupDetail() {
 
             {/* Sections */}
             <div className="flex flex-col gap-xl">
-                <div className="glass-card">
+                <div className="glass-card static-card">
                     <h4 className="mb-lg flex items-center gap-sm">💰 Sadeleştirilmiş Borçlar</h4>
                     <DebtSummary groupId={groupId} />
                 </div>
 
-                <div className="glass-card">
-                    <div className="flex items-center justify-between mb-lg">
-                        <h4 className="flex items-center gap-sm">📋 Harcama Geçmişi</h4>
-                        <span className="badge badge-purple">{groupExpenses.length} masraf</span>
+                <div className="glass-card static-card">
+                    <h4 className="flex items-center gap-sm" style={{ marginBottom: 'var(--space-md)' }}>📋 Harcama Geçmişi</h4>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+                        {groupFilterUI}
+                        <span className="badge badge-purple">{filteredGroupExpenses.length} masraf</span>
                     </div>
                     <div className="hide-mobile">
                         <table className="data-table">
@@ -283,7 +293,7 @@ export default function GroupDetail() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {groupExpenses.map(expense => {
+                                {filteredGroupExpenses.map(expense => {
                                     const payer = state.members[expense.paidBy];
                                     const cat = CATEGORIES[expense.category] || CATEGORIES.other;
                                     return (
@@ -327,7 +337,7 @@ export default function GroupDetail() {
 
                     {/* Mobile expense list */}
                     <div className="show-mobile" style={{ display: 'none', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-                        {groupExpenses.map(expense => {
+                        {filteredGroupExpenses.map(expense => {
                             const payer = state.members[expense.paidBy];
                             const cat = CATEGORIES[expense.category] || CATEGORIES.other;
                             return (
@@ -346,14 +356,15 @@ export default function GroupDetail() {
                             );
                         })}
                     </div>
+                    {groupEmptyState}
                 </div>
 
-                <div className="glass-card">
+                <div className="glass-card static-card">
                     <h4 className="mb-lg flex items-center gap-sm">📊 Kişi Başı Harcama</h4>
                     <MemberBalanceChart groupId={groupId} />
                 </div>
 
-                <div className="glass-card">
+                <div className="glass-card static-card">
                     <h4 className="mb-lg flex items-center gap-sm">🕐 Aktivite Akışı</h4>
                     <ActivityFeed groupId={groupId} limit={20} />
                 </div>

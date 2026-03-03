@@ -13,6 +13,7 @@ import ProUpgradeModal from './ProUpgradeModal';
 import UpgradeBanner from './UpgradeBanner';
 import { Star } from 'lucide-react';
 import { showInterstitialAd } from '../utils/adService';
+import FloatingActionMenu from './ui/FloatingActionMenu';
 
 export default function Layout() {
     const location = useLocation();
@@ -22,7 +23,6 @@ export default function Layout() {
     const [showProBenefits, setShowProBenefits] = useState(false);
     const [showProModal, setShowProModal] = useState(false);
     const [showUpgradeBanner, setShowUpgradeBanner] = useState(false);
-    const [showFabMenu, setShowFabMenu] = useState(false);
 
     const isPro = state.members[state.currentUser]?.isPro;
 
@@ -56,7 +56,7 @@ export default function Layout() {
     const pendingCount = state.settlements.filter(s => s.status !== 'paid').length;
 
     const navItems = [
-        { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+        { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/wallet', icon: Wallet, label: 'Cüzdan' },
         { to: '/groups', icon: Users, label: 'Gruplar' },
         { to: '/add-expense', icon: PlusCircle, label: 'Masraf Ekle' },
@@ -91,7 +91,7 @@ export default function Layout() {
                             key={item.to}
                             to={item.to}
                             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                            end={item.to === '/'}
+                            end={item.to === '/dashboard'}
                         >
                             <item.icon size={18} />
                             <span>{item.label}</span>
@@ -234,14 +234,24 @@ export default function Layout() {
                     ))}
 
                     {/* Central FAB */}
-                    <div className="tab-item-fab-wrapper">
-                        <button
-                            className={`central-fab ${showFabMenu ? 'active' : ''}`}
-                            onClick={() => setShowFabMenu(!showFabMenu)}
-                        >
-                            {showFabMenu ? <X size={26} /> : <Plus size={26} />}
-                        </button>
-                    </div>
+                    <FloatingActionMenu
+                        options={[
+                            {
+                                label: "Bireysel Harcama",
+                                description: "Kişisel masrafını kaydet",
+                                onClick: () => navigate('/add-personal'),
+                                Icon: <User size={22} />,
+                                color: 'var(--accent-purple)' // Passes down to options mapper
+                            },
+                            {
+                                label: "Grup Masrafı",
+                                description: "Gruba ortak masraf ekle",
+                                onClick: () => navigate('/add-expense'),
+                                Icon: <Users size={22} />,
+                                color: 'var(--accent-cyan)'
+                            }
+                        ]}
+                    />
 
                     {mobileNavRightItems.map(item => (
                         <NavLink
@@ -255,43 +265,6 @@ export default function Layout() {
                     ))}
                 </nav>
             </div>
-
-            {/* FAB Bottom Sheet */}
-            {showFabMenu && (
-                <div className="fab-sheet-overlay" onClick={() => setShowFabMenu(false)}>
-                    <div className="fab-sheet-content" onClick={e => e.stopPropagation()}>
-                        <div style={{ width: 40, height: 4, borderRadius: 'var(--radius-full)', background: 'var(--border-secondary)', margin: '0 auto var(--space-lg)' }} />
-                        <h4 style={{ marginBottom: 'var(--space-lg)', fontWeight: 700 }}>Ne eklemek istiyorsun?</h4>
-                        <div className="flex flex-col gap-sm">
-                            <button
-                                className="fab-sheet-option"
-                                onClick={() => { setShowFabMenu(false); navigate('/add-personal'); }}
-                            >
-                                <div className="fab-sheet-icon" style={{ background: 'rgba(139, 92, 246, 0.12)', color: 'var(--accent-purple)' }}>
-                                    <User size={22} />
-                                </div>
-                                <div>
-                                    <div className="font-semibold">Bireysel Harcama</div>
-                                    <div className="text-xs text-muted">Kişisel masrafını kaydet</div>
-                                </div>
-                            </button>
-                            <button
-                                className="fab-sheet-option"
-                                onClick={() => { setShowFabMenu(false); navigate('/add-expense'); }}
-                            >
-                                <div className="fab-sheet-icon" style={{ background: 'rgba(6, 182, 212, 0.12)', color: 'var(--accent-cyan)' }}>
-                                    <Users size={22} />
-                                </div>
-                                <div>
-                                    <div className="font-semibold">Grup Masrafı</div>
-                                    <div className="text-xs text-muted">Gruba ortak masraf ekle</div>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
 
             {/* Upgrade Banner for Pro Features */}
             {!isPro && (
