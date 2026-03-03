@@ -94,6 +94,7 @@ export default function Layout() {
         { to: '/groups', icon: Users, label: 'Gruplar' },
     ];
     const mobileNavRightItems = [
+        { to: '/settlements', icon: ArrowLeftRight, label: 'Ödemeler', badge: pendingCount || null },
         { to: '/reports', icon: BarChart3, label: 'Raporlar' },
         { to: '/profile', icon: CircleUser, label: 'Profil' },
     ];
