@@ -59,6 +59,7 @@ export default function GroupDetail() {
         categories: CATEGORIES,
         categoryKey: 'category',
         members: state.members,
+        enableDateFilter: true,
     });
 
     const handleDeleteGroup = () => {

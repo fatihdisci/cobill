@@ -353,7 +353,7 @@ export default function Groups() {
                             <div className="form-group">
                                 <label className="form-label">Grup Adı</label>
                                 <input className="form-input" placeholder="Örn: 🏠 Ev Masrafları" value={name}
-                                    onChange={e => setName(e.target.value)} required autoFocus />
+                                    onChange={e => setName(e.target.value)} required />
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Açıklama</label>
