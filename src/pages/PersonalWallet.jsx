@@ -53,14 +53,14 @@ export default function PersonalWallet() {
         setIsGenerating(true);
         try {
             // Dynamically import to reduce bundle size if not used
-            const { generatePersonalPDF } = await import('../utils/pdfExport');
-            const { sharePDF } = await import('../utils/helpers');
+            const { generatePersonalStatementPDF } = await import('../utils/pdfGenerator');
+            const { sharePDF } = await import('../utils/fileService');
 
             const member = state.members[state.currentUser];
-            const base64PDF = await generatePersonalPDF(member, state.personalExpenses);
+            const monthName = now.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+            const base64PDF = await generatePersonalStatementPDF(state.personalExpenses, member, monthName, PERSONAL_CATEGORIES);
 
-            const monthName = now.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' }).replace(/\s+/g, '_');
-            await sharePDF(base64PDF, `CoBill_Kisisel_Ekstre_${monthName}.pdf`);
+            await sharePDF(base64PDF, `CoBill_Kisisel_Ekstre_${monthName.replace(/\s+/g, '_')}.pdf`);
 
         } catch (error) {
             console.error('PDF Export Error:', error);
