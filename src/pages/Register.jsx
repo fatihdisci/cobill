@@ -4,8 +4,10 @@ import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from '
 import { auth, db } from '../config/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { UserPlus, MailCheck } from 'lucide-react';
+import { useTranslation, Trans } from 'react-i18next';
 
 export default function Register() {
+    const { t } = useTranslation();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -45,16 +47,16 @@ export default function Register() {
             setSuccess(true);
         } catch (err) {
             console.error('Registration error:', err);
-            let message = 'Kayıt işlemi başarısız oldu.';
+            let message = t('auth.registerFailed');
 
             if (err.code === 'auth/email-already-in-use') {
-                message = 'Bu e-posta adresi zaten kullanımda.';
+                message = t('auth.emailInUse');
             } else if (err.code === 'auth/invalid-email') {
-                message = 'Geçersiz bir e-posta adresi girdiniz.';
+                message = t('auth.invalidEmail');
             } else if (err.code === 'auth/weak-password') {
-                message = 'Şifreniz çok zayıf. En az 6 karakter olmalıdır.';
+                message = t('auth.weakPassword');
             } else if (err.code === 'auth/network-request-failed') {
-                message = 'İnternet bağlantınızı kontrol edin.';
+                message = t('auth.networkError');
             }
 
             setError(message);
@@ -75,12 +77,12 @@ export default function Register() {
                         }}>
                             <MailCheck size={32} />
                         </div>
-                        <h2 style={{ fontSize: 'var(--font-xl)', fontWeight: 800, marginBottom: 'var(--space-sm)' }}>E-posta Gönderildi</h2>
+                        <h2 style={{ fontSize: 'var(--font-xl)', fontWeight: 800, marginBottom: 'var(--space-sm)' }}>{t('auth.emailSentTitle')}</h2>
                         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: 'var(--space-xl)', lineHeight: 1.5 }}>
-                            <strong>{email}</strong> adresine bir doğrulama bağlantısı gönderdik. Lütfen gelen kutunuzu (ve gerekiyorsa spam klasörünü) kontrol edin.
+                            <Trans i18nKey="auth.emailSentDesc" values={{ email: email }} />
                         </p>
                         <Link to="/login" className="btn btn-primary w-full flex justify-center" style={{ padding: '12px' }}>
-                            Giriş Ekranına Dön
+                            {t('auth.backToLogin')}
                         </Link>
                     </div>
                 ) : (
@@ -91,9 +93,9 @@ export default function Register() {
                                 alt="CoBill Logo"
                                 style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 'var(--space-md)' }}
                             />
-                            <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>Yeni Hesap Oluştur</h2>
+                            <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>{t('auth.registerTitle')}</h2>
                             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textAlign: 'center' }}>
-                                CoBill'in avantajlarından yararlanmaya başlayın
+                                {t('auth.registerSubtitle')}
                             </p>
                         </div>
 
@@ -105,35 +107,35 @@ export default function Register() {
 
                         <form onSubmit={handleRegister} className="flex flex-col gap-md">
                             <div className="form-group">
-                                <label>Ad Soyad</label>
+                                <label>{t('auth.fullNameLabel')}</label>
                                 <input
                                     type="text"
                                     className="form-input"
                                     value={name}
                                     onChange={e => setName(e.target.value)}
-                                    placeholder="Örn: Ayşe Yılmaz"
+                                    placeholder={t('auth.fullNamePlaceholder')}
                                     required
                                 />
                             </div>
                             <div className="form-group">
-                                <label>E-posta Adresi</label>
+                                <label>{t('auth.emailLabel')}</label>
                                 <input
                                     type="email"
                                     className="form-input"
                                     value={email}
                                     onChange={e => setEmail(e.target.value)}
-                                    placeholder="ornek@mail.com"
+                                    placeholder={t('auth.emailPlaceholder')}
                                     required
                                 />
                             </div>
                             <div className="form-group">
-                                <label>Şifre</label>
+                                <label>{t('auth.passwordLabel')}</label>
                                 <input
                                     type="password"
                                     className="form-input"
                                     value={password}
                                     onChange={e => setPassword(e.target.value)}
-                                    placeholder="En az 6 karakter"
+                                    placeholder={t('auth.passwordPlaceholder')}
                                     required
                                     minLength={6}
                                 />
@@ -145,15 +147,15 @@ export default function Register() {
                                 style={{ background: 'var(--gradient-primary)', padding: '14px', fontSize: '1rem', fontWeight: 600 }}
                                 disabled={loading}
                             >
-                                {loading ? 'Kayıt Olunuyor...' : <><UserPlus size={20} /> Hesap Oluştur</>}
+                                {loading ? t('auth.registering') : <><UserPlus size={20} /> {t('auth.registerButton')}</>}
                             </button>
                         </form>
 
                         <div className="text-center mt-xl pt-lg" style={{ borderTop: '1px solid var(--border-primary)' }}>
                             <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                                Zaten hesabınız var mı?{' '}
+                                {t('auth.alreadyHaveAccount')}{' '}
                                 <Link to="/login" style={{ color: 'var(--accent-purple)', fontWeight: 700, textDecoration: 'none' }}>
-                                    Giriş Yap
+                                    {t('auth.loginButton')}
                                 </Link>
                             </p>
                         </div>

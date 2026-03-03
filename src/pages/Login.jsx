@@ -5,8 +5,10 @@ import { auth } from '../config/firebase';
 import { dbService } from '../utils/dbService';
 import { LogIn } from 'lucide-react';
 import splashScreenImg from '../../assets/splash.png';
+import { useTranslation } from 'react-i18next';
 
 export default function Login() {
+    const { t } = useTranslation();
     const [email, setEmail] = useState('test');
     const [password, setPassword] = useState('test');
     const [error, setError] = useState('');
@@ -42,7 +44,7 @@ export default function Login() {
 
             if (!user.emailVerified) {
                 await signOut(auth);
-                const error = new Error('E-posta doğrulanmadı.');
+                const error = new Error(t('auth.emailNotVerified'));
                 error.code = 'custom/email-not-verified';
                 throw error;
             }
@@ -51,9 +53,9 @@ export default function Login() {
         } catch (err) {
             console.error('Login error:', err);
             if (err.code === 'custom/email-not-verified') {
-                setError('Lütfen e-posta adresinize gönderilen doğrulama linkine tıklayın.');
+                setError(t('auth.errorVerficationLink'));
             } else {
-                setError('Giriş başarısız. Lütfen bilgilerinizi kontrol edin veya "test" ile giriniz.');
+                setError(t('auth.loginFailed'));
             }
         } finally {
             setLoading(false);
@@ -69,9 +71,9 @@ export default function Login() {
                         alt="CoBill Logo"
                         style={{ width: 250, height: 250, objectFit: 'contain', marginBottom: 'var(--space-md)' }}
                     />
-                    <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>CoBill'e Giriş Yapın</h2>
+                    <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>{t('auth.loginTitle')}</h2>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textAlign: 'center' }}>
-                        Finansal hesaplarınızı ve gruplarınızı yönetmeye devam edin.
+                        {t('auth.loginSubtitle')}
                     </p>
                 </div>
 
@@ -83,21 +85,21 @@ export default function Login() {
 
                 <form onSubmit={handleLogin} className="flex flex-col gap-md">
                     <div className="form-group">
-                        <label>E-posta Adresi</label>
+                        <label>{t('auth.emailLabel')}</label>
                         <input
                             type="text"
                             className="form-input"
                             value={email}
                             onChange={e => setEmail(e.target.value)}
-                            placeholder="ornek@mail.com veya 'test'"
+                            placeholder={t('auth.emailPlaceholderLogin')}
                             required
                         />
                     </div>
                     <div className="form-group">
                         <div className="flex justify-between items-center mb-xs">
-                            <label style={{ marginBottom: 0 }}>Şifre</label>
+                            <label style={{ marginBottom: 0 }}>{t('auth.passwordLabel')}</label>
                             <Link to="/forgot-password" style={{ fontSize: '11px', color: 'var(--text-secondary)', textDecoration: 'none' }}>
-                                Şifremi Unuttum?
+                                {t('auth.forgotPasswordLink')}
                             </Link>
                         </div>
                         <input
@@ -116,15 +118,15 @@ export default function Login() {
                         style={{ background: 'var(--gradient-primary)' }}
                         disabled={loading}
                     >
-                        {loading ? 'Giriş Yapılıyor...' : <><LogIn size={20} /> Giriş Yap</>}
+                        {loading ? t('auth.loggingIn') : <><LogIn size={20} /> {t('auth.loginButton')}</>}
                     </button>
                 </form>
 
                 <div className="text-center mt-xl pt-lg" style={{ borderTop: '1px solid var(--border-primary)' }}>
                     <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                        Hesabınız yok mu?{' '}
+                        {t('auth.noAccount')}{' '}
                         <Link to="/register" style={{ color: 'var(--accent-purple)', fontWeight: 700, textDecoration: 'none' }}>
-                            Hemen Kayıt Ol
+                            {t('auth.registerNow')}
                         </Link>
                     </p>
                 </div>

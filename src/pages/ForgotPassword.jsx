@@ -3,8 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { Mail, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function ForgotPassword() {
+    const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState({ type: '', message: '' });
     const [loading, setLoading] = useState(false);
@@ -14,7 +16,7 @@ export default function ForgotPassword() {
         e.preventDefault();
 
         if (!email) {
-            setStatus({ type: 'error', message: 'Lütfen e-posta adresinizi girin.' });
+            setStatus({ type: 'error', message: t('auth.emailRequired') });
             return;
         }
 
@@ -25,7 +27,7 @@ export default function ForgotPassword() {
             await sendPasswordResetEmail(auth, email);
             setStatus({
                 type: 'success',
-                message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi. Lütfen gelen kutunuzu kontrol edin.'
+                message: t('auth.resetLinkSent')
             });
             // İsteğe bağlı olarak başarılı mesajı gösterdikten sonra login'e yönlendirebiliriz.
             setTimeout(() => {
@@ -34,11 +36,11 @@ export default function ForgotPassword() {
         } catch (error) {
             console.error('Password reset error:', error);
             if (error.code === 'auth/user-not-found') {
-                setStatus({ type: 'error', message: 'Bu e-posta adresiyle kayıtlı bir kullanıcı bulunamadı.' });
+                setStatus({ type: 'error', message: t('auth.userNotFound') });
             } else if (error.code === 'auth/invalid-email') {
-                setStatus({ type: 'error', message: 'Geçersiz bir e-posta adresi girdiniz.' });
+                setStatus({ type: 'error', message: t('auth.invalidEmail') });
             } else {
-                setStatus({ type: 'error', message: 'Şifre sıfırlama bağlantısı gönderilirken bir hata oluştu.' });
+                setStatus({ type: 'error', message: t('auth.resetLinkError') });
             }
         } finally {
             setLoading(false);
@@ -53,7 +55,7 @@ export default function ForgotPassword() {
                         className="btn btn-ghost btn-icon btn-sm"
                         onClick={() => navigate('/login')}
                         style={{ height: '32px', width: '32px' }}
-                        title="Geri Dön"
+                        title={t('auth.goBack')}
                     >
                         <ArrowLeft size={18} />
                     </button>
@@ -64,9 +66,9 @@ export default function ForgotPassword() {
                         alt="CoBill Logo"
                         style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 'var(--space-md)' }}
                     />
-                    <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>Şifremi Unuttum</h2>
+                    <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>{t('auth.forgotPasswordTitle')}</h2>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textAlign: 'center' }}>
-                        E-posta adresinizi girin, sıfırlama bağlantısı gönderelim.
+                        {t('auth.forgotPasswordSubtitle')}
                     </p>
                 </div>
 
@@ -84,13 +86,13 @@ export default function ForgotPassword() {
 
                 <form onSubmit={handleResetPassword} className="flex flex-col gap-md">
                     <div className="form-group">
-                        <label>E-posta Adresi</label>
+                        <label>{t('auth.emailLabel')}</label>
                         <input
                             type="email"
                             className="form-input"
                             value={email}
                             onChange={e => setEmail(e.target.value)}
-                            placeholder="ornek@mail.com"
+                            placeholder={t('auth.emailPlaceholder')}
                             required
                         />
                     </div>
@@ -101,7 +103,7 @@ export default function ForgotPassword() {
                         style={{ background: 'var(--gradient-primary)', padding: '14px', fontSize: '1rem', fontWeight: 600 }}
                         disabled={loading || status.type === 'success'}
                     >
-                        {loading ? 'Gönderiliyor...' : <><Mail size={20} /> Bağlantı Gönder</>}
+                        {loading ? t('auth.sending') : <><Mail size={20} /> {t('auth.sendLink')}</>}
                     </button>
                 </form>
             </div>

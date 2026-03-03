@@ -5,20 +5,22 @@ import { ArrowLeft, Save, CalendarClock } from 'lucide-react';
 import { generateId } from '../utils/helpers';
 import { getSupportedCurrencies } from '../utils/currencyUtils';
 import { addOneMonthSafely } from '../utils/recurringUtils';
-
-const PERSONAL_CATEGORIES = {
-    Market: { icon: '🛒', label: 'Market' },
-    Fatura: { icon: '📋', label: 'Fatura' },
-    'Eğitim': { icon: '📚', label: 'Eğitim' },
-    'Eğlence': { icon: '🎬', label: 'Eğlence' },
-    'Ulaşım': { icon: '🚕', label: 'Ulaşım' },
-    'Diğer': { icon: '📦', label: 'Diğer' },
-};
+import { useTranslation } from 'react-i18next';
 
 export default function AddPersonalExpense() {
     const { state, dispatch } = useApp();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const currencies = getSupportedCurrencies();
+
+    const getCategories = () => ({
+        Market: { icon: '🛒', label: t('wallet.categories.market') },
+        Fatura: { icon: '📋', label: t('wallet.categories.bill') },
+        'Eğitim': { icon: '📚', label: t('wallet.categories.education') },
+        'Eğlence': { icon: '🎬', label: t('wallet.categories.entertainment') },
+        'Ulaşım': { icon: '🚕', label: t('wallet.categories.transport') },
+        'Diğer': { icon: '📦', label: t('wallet.categories.other') },
+    });
 
     const [form, setForm] = useState({
         amount: '',
@@ -64,8 +66,8 @@ export default function AddPersonalExpense() {
                         <ArrowLeft size={18} />
                     </button>
                     <div>
-                        <h2>Bireysel Harcama Ekle</h2>
-                        <p className="page-subtitle">Kişisel masrafınızı kaydedin</p>
+                        <h2>{t('expenseForm.addPersonalExpenseTitle')}</h2>
+                        <p className="page-subtitle">{t('expenseForm.addPersonalExpenseSubtitle')}</p>
                     </div>
                 </div>
             </div>
@@ -75,7 +77,7 @@ export default function AddPersonalExpense() {
                     {/* Amount Input - Big style (matches ExpenseForm) */}
                     <div style={{ textAlign: 'center', padding: 'var(--space-xl) 0' }}>
                         <label className="form-label" style={{ marginBottom: 'var(--space-md)', display: 'block' }}>
-                            Tutar
+                            {t('expenseForm.amount')}
                         </label>
                         <div className="flex items-center justify-center gap-md">
                             <select
@@ -115,11 +117,11 @@ export default function AddPersonalExpense() {
 
                     {/* Description */}
                     <div className="form-group">
-                        <label className="form-label">Başlık</label>
+                        <label className="form-label">{t('expenseForm.title')}</label>
                         <input
                             className="form-input"
                             type="text"
-                            placeholder="Örn: Market alışverişi, Elektrik faturası..."
+                            placeholder={t('expenseForm.titlePlaceholder')}
                             value={form.title}
                             onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))}
                             required
@@ -128,9 +130,9 @@ export default function AddPersonalExpense() {
 
                     {/* Category - Chip style (matches ExpenseForm) */}
                     <div className="form-group">
-                        <label className="form-label">Kategori</label>
+                        <label className="form-label">{t('expenseForm.category')}</label>
                         <div className="flex flex-wrap gap-sm">
-                            {Object.entries(PERSONAL_CATEGORIES).map(([key, cat]) => (
+                            {Object.entries(getCategories()).map(([key, cat]) => (
                                 <button
                                     key={key}
                                     type="button"
@@ -146,7 +148,7 @@ export default function AddPersonalExpense() {
 
                     {/* Date */}
                     <div className="form-group">
-                        <label className="form-label">Tarih</label>
+                        <label className="form-label">{t('expenseForm.date')}</label>
                         <input
                             className="form-input"
                             type="date"
@@ -165,8 +167,8 @@ export default function AddPersonalExpense() {
                         <div className="flex items-center gap-sm">
                             <CalendarClock size={18} style={{ color: 'var(--accent-amber)' }} />
                             <div>
-                                <div className="text-sm font-medium">Tekrarlayan Masraf</div>
-                                <div className="text-xs text-muted">Aylık olarak otomatik hatırlatılır</div>
+                                <div className="text-sm font-medium">{t('expenseForm.recurring')}</div>
+                                <div className="text-xs text-muted">{t('expenseForm.recurringHint')}</div>
                             </div>
                         </div>
                         <div
@@ -182,9 +184,9 @@ export default function AddPersonalExpense() {
                         disabled={saving || !form.amount || !form.title.trim()}
                     >
                         {saving ? (
-                            <span className="animate-pulse">Kaydediliyor...</span>
+                            <span className="animate-pulse">{t('expenseForm.saving')}</span>
                         ) : (
-                            <><Save size={18} /> Harcamayı Kaydet</>
+                            <><Save size={18} /> {t('expenseForm.saveExpense')}</>
                         )}
                     </button>
                 </form>
