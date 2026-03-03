@@ -21,18 +21,19 @@
 - **Tekrarlayan Bireysel Masraf:** Her ay otomatik eklenmesi için gün seçici ile tekrarlayan harcama tanımlama.
 - **Kategoriler:** 🛒 Market, 📋 Fatura, 📚 Eğitim, 🎬 Eğlence, 🚕 Ulaşım, 📦 Diğer.
 - **Bireysel Raporlar:** Kategori bazlı dağılım (yüzde ve progress bar), toplam harcama ve masraf sayısı istatistikleri.
-- **Ekstre İndirme:** Aylık harcama ekstresi PDF olarak dışa aktarma. (Pro)
+- **Tarih Filtreleme:** Ayrıntılı tarih aralığı, ay/yıl seçimi ve hızlı periyot filtreleriyle esnek raporlama.
 
 ### 📊 Raporlar ve Analitikler
 - **Segmented Control:** "Grup Raporları" ve "Bireysel Raporlar" arasında tek tıkla geçiş.
-- **Görsel Analitikler:** Harcama dağılımı donut chart, kişi başı bar chart, kategori breakdown.
-- **PDF ve Excel Dışa Aktarma:** Profesyonel dizayn edilmiş şeffaf bilançolar. (Pro)
+- **Görsel Analitikler:** Harcama dağılımı donut chart (tüm kullanıcılar için ücretsiz), kişi başı bar chart, kategori breakdown.
+- **PDF ve Excel Dışa Aktarma:** Profesyonel dizayn edilmiş şeffaf bilançolar ve ektre indirme imkanı. (Pro)
+- **Evrensel Filtreleme:** Uygulama genelinde standartlaşan, her sayfadan erişilebilen zaman bazlı gelişmiş filtreleme modülü.
 
 ### 🎨 Navigasyon ve UI
-- **Merkezi FAB (Floating Action Button):** Mobil navigasyonda ortada konumlanmış + butonu ile hızlı masraf ekleme.
-- **Bottom Sheet Menüsü:** FAB'a basınca "Bireysel Harcama" veya "Grup Masrafı" seçenekli akıcı alt menü.
-- **Mobil Tab Bar:** `[ 💳 Cüzdan | 👥 Gruplar | ➕ FAB | 📊 Raporlar | 👤 Profil ]` yapısı.
-- **Glassmorphism UI:** Modern buzlu cam efekli premium arayüz tasarımı, akıcı geçişler ve animasyonlar.
+- **Yüzen Buton (FAB):** Mobil arayüzde ekranın sağ altına sabitlenmiş, kolay erişimli animasyonlu "+" butonu.
+- **Floating Action Menu:** FAB'a basınca "Bireysel Harcama" veya "Grup Masrafı" seçeneklerinin iç içe akıcı şekilde açılması.
+- **Mobil Tab Bar:** `[ 💳 Cüzdan | 👥 Gruplar | 💸 Ödemeler | 📊 Raporlar | 👤 Profil ]` yapısı.
+- **Glassmorphism UI:** Modern buzlu cam efekti premium arayüz tasarımı, akıcı geçişler ve yaylı (spring) animasyonlar.
 
 ### 🔐 Güvenlik ve Senkronizasyon
 - **🔄 Gerçek Zamanlı Senkronizasyon:** Firebase Firestore `onSnapshot` dinleyicileri ile anlık güncelleme.
@@ -164,8 +165,6 @@ Aşağıdaki özellikler temel altyapısı hazır ancak henüz tam olarak implem
 - **📈 Bütçe Limitleri:** Kategoriye göre aylık bütçe belirleme ve aşım uyarısı
 - **🤖 AI Harcama Analizi:** Harcama patternlerini analiz ederek tasarruf önerileri
 - **📱 Push Notification Backend:** Firebase Cloud Messaging ile gerçek push bildirim altyapısı
-- **🔗 Banka Hesabı Bağlama:** Open Banking API ile otomatik masraf çekme
-- **👥 Grup İçi Oylama:** Ortak harcamalar için gruplarda oylama mekanizması
 - **📸 Fiş/Fatura Fotoğrafı:** OCR ile otomatik masraf oluşturma
 - **🌍 Çoklu Para Birimi Dönüşümü:** Gerçek zamanlı kur ile otomatik çevrim
 
