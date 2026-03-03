@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, Star, Circle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import WelcomeProModal from './WelcomeProModal';
 
 export default function ProUpgradeModal({ onClose }) {
+    const { t } = useTranslation();
     const [isMobile, setIsMobile] = useState(window.innerWidth < 480);
     const [selectedPlan, setSelectedPlan] = useState('pro-yearly');
     const [showWelcome, setShowWelcome] = useState(false);
@@ -14,41 +16,40 @@ export default function ProUpgradeModal({ onClose }) {
     }, []);
 
     const features = [
-        "Tüm ekran reklamlarını sonsuza dek kaldırın.",
-        "Bireysel ve Grup masraflarını PDF olarak dışa aktarın.",
-        "Gelişmiş bütçe grafikleri ve kişi bazlı raporlar."
+        t('paywall.feature1'),
+        t('paywall.feature2'),
+        t('paywall.feature3'),
     ];
 
     const plans = [
         {
             id: 'ad-free',
-            title: 'Reklamsız',
-            subtitle: 'Ömür Boyu',
+            title: t('paywall.adFree'),
+            subtitle: t('paywall.adFreeSubtitle'),
             price: '349 ₺',
-            period: 'Tek Seferlik',
-            desc: 'Sadece reklamları kaldırır. Pro özellikler yok.'
+            period: t('paywall.adFreeOneTime'),
+            desc: t('paywall.adFreeDesc'),
         },
         {
             id: 'pro-yearly',
-            title: 'Pro',
-            subtitle: 'Yıllık',
+            title: t('paywall.proTitle'),
+            subtitle: t('paywall.proYearly'),
             price: '699 ₺',
-            period: 'Yıl',
-            desc: 'Aylığı 58 TL\'ye gelir',
-            badge: 'EN İYİ FIRSAT - %50 TASARRUF'
+            period: t('paywall.proYearly'),
+            desc: t('paywall.proYearlyDesc'),
+            badge: t('paywall.proYearlyBadge'),
         },
         {
             id: 'pro-monthly',
-            title: 'Pro',
-            subtitle: 'Aylık',
+            title: t('paywall.proTitle'),
+            subtitle: t('paywall.proMonthly'),
             price: '89 ₺',
-            period: 'Ay',
-            desc: 'İstediğin zaman iptal et.'
+            period: t('paywall.proMonthly'),
+            desc: t('paywall.proMonthlyDesc'),
         }
     ];
 
     const handleUpgrade = () => {
-        // alert('Ödeme altyapısı entegre edilecek: ' + selectedPlan);
         setShowWelcome(true);
     };
 
@@ -113,7 +114,7 @@ export default function ProUpgradeModal({ onClose }) {
                         letterSpacing: '-0.02em',
                         maxWidth: '400px'
                     }}>
-                        CoBill deneyiminizi sınırların ötesine taşıyın.
+                        {t('paywall.title')}
                     </h2>
 
                     <div className="flex flex-col gap-sm" style={{ textAlign: 'left', maxWidth: '400px', margin: '0 auto' }}>
@@ -131,7 +132,7 @@ export default function ProUpgradeModal({ onClose }) {
                 {/* Pricing Cards */}
                 <div style={{ padding: isMobile ? '0 16px 20px' : '0 32px 32px' }}>
                     <div className="flex flex-col gap-md mb-xl">
-                        {plans.map((plan, i) => {
+                        {plans.map((plan) => {
                             const isSelected = selectedPlan === plan.id;
 
                             return (
@@ -152,7 +153,6 @@ export default function ProUpgradeModal({ onClose }) {
                                         gap: '12px'
                                     }}
                                 >
-                                    {/* Desktop & Mobile: Badge top center or right */}
                                     {plan.badge && (
                                         <div style={{
                                             position: 'absolute',
@@ -184,7 +184,6 @@ export default function ProUpgradeModal({ onClose }) {
 
                                     {/* Content Wrapper */}
                                     <div className="flex w-full" style={{ alignItems: 'center', gap: '12px' }}>
-                                        {/* Title area */}
                                         <div style={{ flex: 1 }}>
                                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap' }}>
                                                 <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -199,7 +198,6 @@ export default function ProUpgradeModal({ onClose }) {
                                             </div>
                                         </div>
 
-                                        {/* Price area */}
                                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
                                             <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>
                                                 {plan.price}
@@ -231,7 +229,7 @@ export default function ProUpgradeModal({ onClose }) {
                                 transition: 'all 0.2s ease'
                             }}
                         >
-                            Şimdi Yükselt
+                            {t('paywall.upgradeNow')}
                         </button>
 
                         <p style={{
@@ -241,7 +239,7 @@ export default function ProUpgradeModal({ onClose }) {
                             margin: 0,
                             padding: '0 10px'
                         }}>
-                            Ödeme App Store / Google Play hesabınızdan alınır. Abonelikleri cihaz ayarlarınızdan istediğiniz zaman iptal edebilirsiniz.
+                            {t('paywall.disclaimer')}
                         </p>
                     </div>
                 </div>

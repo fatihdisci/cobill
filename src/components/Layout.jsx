@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import {
     LayoutDashboard, Users, PlusCircle, ArrowLeftRight,
@@ -18,6 +19,7 @@ import RecurringPromptModal from './RecurringPromptModal';
 import { getPendingRecurringExpenses } from '../utils/recurringUtils';
 
 export default function Layout() {
+    const { t } = useTranslation();
     const location = useLocation();
     const navigate = useNavigate();
     const { state } = useApp();
@@ -80,23 +82,23 @@ export default function Layout() {
     const pendingCount = state.settlements.filter(s => s.status !== 'paid').length;
 
     const navItems = [
-        { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-        { to: '/wallet', icon: Wallet, label: 'Cüzdan' },
-        { to: '/groups', icon: Users, label: 'Gruplar' },
-        { to: '/add-expense', icon: PlusCircle, label: 'Masraf Ekle' },
-        { to: '/settlements', icon: ArrowLeftRight, label: 'Ödemeler', badge: pendingCount || null },
-        { to: '/reports', icon: BarChart3, label: 'Raporlar' },
-        { to: '/profile', icon: CircleUser, label: 'Profil' },
+        { to: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard') },
+        { to: '/wallet', icon: Wallet, label: t('nav.wallet') },
+        { to: '/groups', icon: Users, label: t('nav.groups') },
+        { to: '/add-expense', icon: PlusCircle, label: t('nav.addExpense') },
+        { to: '/settlements', icon: ArrowLeftRight, label: t('nav.settlements'), badge: pendingCount || null },
+        { to: '/reports', icon: BarChart3, label: t('nav.reports') },
+        { to: '/profile', icon: CircleUser, label: t('nav.profile') },
     ];
 
     const mobileNavLeftItems = [
-        { to: '/wallet', icon: Wallet, label: 'Cüzdan' },
-        { to: '/groups', icon: Users, label: 'Gruplar' },
+        { to: '/wallet', icon: Wallet, label: t('nav.wallet') },
+        { to: '/groups', icon: Users, label: t('nav.groups') },
     ];
     const mobileNavRightItems = [
-        { to: '/settlements', icon: ArrowLeftRight, label: 'Ödemeler', badge: pendingCount || null },
-        { to: '/reports', icon: BarChart3, label: 'Raporlar' },
-        { to: '/profile', icon: CircleUser, label: 'Profil' },
+        { to: '/settlements', icon: ArrowLeftRight, label: t('nav.settlements'), badge: pendingCount || null },
+        { to: '/reports', icon: BarChart3, label: t('nav.reports') },
+        { to: '/profile', icon: CircleUser, label: t('nav.profile') },
     ];
 
     return (
@@ -110,7 +112,7 @@ export default function Layout() {
                 </div>
 
                 <nav className="sidebar-nav">
-                    <span className="sidebar-section-label">Ana Menü</span>
+                    <span className="sidebar-section-label">{t('nav.mainMenu')}</span>
                     {navItems.map(item => (
                         <NavLink
                             key={item.to}
@@ -124,7 +126,7 @@ export default function Layout() {
                         </NavLink>
                     ))}
 
-                    <span className="sidebar-section-label" style={{ marginTop: 'var(--space-lg)' }}>Gruplar</span>
+                    <span className="sidebar-section-label" style={{ marginTop: 'var(--space-lg)' }}>{t('nav.myGroups')}</span>
                     {state.groups.map(group => (
                         <NavLink
                             key={group.id}
@@ -153,7 +155,7 @@ export default function Layout() {
                             }}
                         >
                             <Star size={18} fill="white" />
-                            <span style={{ fontWeight: 700 }}>Pro'ya Geç</span>
+                            <span style={{ fontWeight: 700 }}>{t('nav.goToPro')}</span>
                         </div>
                     )}
                     <div className="nav-item" onClick={() => navigate('/profile')} style={{ cursor: 'pointer', justifyContent: 'flex-start' }}>
@@ -162,9 +164,9 @@ export default function Layout() {
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                             <div className="text-sm font-semibold truncate">
-                                {state.members[state.currentUser]?.name || 'Kullanıcı'}
+                                {state.members[state.currentUser]?.name || t('common.user')}
                             </div>
-                            <div className="text-xs text-muted">{isPro ? 'Pro Plan' : 'Ücretsiz Plan'}</div>
+                            <div className="text-xs text-muted">{isPro ? t('common.proPlan') : t('common.freePlan')}</div>
                         </div>
                     </div>
                 </div>
@@ -249,15 +251,15 @@ export default function Layout() {
                 <FloatingActionMenu
                     options={[
                         {
-                            label: "Bireysel Harcama",
-                            description: "Kişisel masrafını kaydet",
+                            label: t('fab.personalExpense'),
+                            description: t('fab.personalExpenseDesc'),
                             onClick: () => navigate('/add-personal'),
                             Icon: <User size={22} />,
                             color: 'var(--accent-purple)'
                         },
                         {
-                            label: "Grup Masrafı",
-                            description: "Gruba ortak masraf ekle",
+                            label: t('fab.groupExpense'),
+                            description: t('fab.groupExpenseDesc'),
                             onClick: () => navigate('/add-expense'),
                             Icon: <Users size={22} />,
                             color: 'var(--accent-cyan)'
