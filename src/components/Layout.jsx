@@ -244,7 +244,29 @@ export default function Layout() {
                 </div>
             </main>
 
-            {/* Mobile Bottom Tab Bar with Central FAB */}
+            {/* Global FAB (Mobile) */}
+            <div className="hide-desktop">
+                <FloatingActionMenu
+                    options={[
+                        {
+                            label: "Bireysel Harcama",
+                            description: "Kişisel masrafını kaydet",
+                            onClick: () => navigate('/add-personal'),
+                            Icon: <User size={22} />,
+                            color: 'var(--accent-purple)'
+                        },
+                        {
+                            label: "Grup Masrafı",
+                            description: "Gruba ortak masraf ekle",
+                            onClick: () => navigate('/add-expense'),
+                            Icon: <Users size={22} />,
+                            color: 'var(--accent-cyan)'
+                        }
+                    ]}
+                />
+            </div>
+
+            {/* Mobile Bottom Tab Bar */}
             <div className="mobile-tab-bar">
                 <nav>
                     {mobileNavLeftItems.map(item => {
@@ -260,26 +282,6 @@ export default function Layout() {
                             </NavLink>
                         );
                     })}
-
-                    {/* Central FAB */}
-                    <FloatingActionMenu
-                        options={[
-                            {
-                                label: "Bireysel Harcama",
-                                description: "Kişisel masrafını kaydet",
-                                onClick: () => navigate('/add-personal'),
-                                Icon: <User size={22} />,
-                                color: 'var(--accent-purple)' // Passes down to options mapper
-                            },
-                            {
-                                label: "Grup Masrafı",
-                                description: "Gruba ortak masraf ekle",
-                                onClick: () => navigate('/add-expense'),
-                                Icon: <Users size={22} />,
-                                color: 'var(--accent-cyan)'
-                            }
-                        ]}
-                    />
 
                     {mobileNavRightItems.map(item => (
                         <NavLink

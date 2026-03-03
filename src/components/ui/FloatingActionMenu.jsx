@@ -1,30 +1,43 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 
 const FloatingActionMenu = ({ options, className = "" }) => {
     const [isOpen, setIsOpen] = useState(false);
     const fabRef = useRef(null);
-    const [menuPos, setMenuPos] = useState({ left: 0, bottom: 0 });
 
     const toggleMenu = () => {
-        if (!isOpen && fabRef.current) {
-            const rect = fabRef.current.getBoundingClientRect();
-            // Center the menu horizontally on the FAB center, position above it
-            setMenuPos({
-                left: rect.left + rect.width / 2,
-                bottom: window.innerHeight - rect.top + 12, // 12px gap above the button
-            });
-        }
         setIsOpen(!isOpen);
     };
 
     return (
-        <div className={`tab-item-fab-wrapper ${className}`} style={{ position: 'relative' }}>
+        <div className={`global-fab-wrapper ${className}`} style={{
+            position: 'fixed',
+            bottom: '86px', // strictly above tab bar
+            right: '20px',
+            zIndex: 100
+        }}>
             <button
                 ref={fabRef}
-                className={`central-fab ${isOpen ? 'active' : ''}`}
+                className={`fab-button ${isOpen ? 'active' : ''}`}
                 onClick={toggleMenu}
+                style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '50%',
+                    background: 'var(--gradient-primary)',
+                    color: 'white',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: isOpen ? '0 12px 36px rgba(139, 92, 246, 0.6)' : '0 8px 28px rgba(139, 92, 246, 0.45)',
+                    transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    zIndex: 10,
+                    outline: 'none',
+                    WebkitTapHighlightColor: 'transparent',
+                }}
             >
                 <motion.div
                     animate={{ rotate: isOpen ? 45 : 0 }}
@@ -54,11 +67,11 @@ const FloatingActionMenu = ({ options, className = "" }) => {
                             }}
                         />
 
-                        {/* Menu Options — fixed position, centered on the FAB */}
+                        {/* Menu Options — absolute relative to wrapper, expanding up and right-aligned */}
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.85, y: 10, x: "-50%" }}
-                            animate={{ opacity: 1, scale: 1, y: 0, x: "-50%" }}
-                            exit={{ opacity: 0, scale: 0.85, y: 10, x: "-50%" }}
+                            initial={{ opacity: 0, scale: 0.85, y: 10, originX: 1, originY: 1 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.85, y: 10 }}
                             transition={{
                                 duration: 0.3,
                                 type: "spring",
@@ -66,9 +79,9 @@ const FloatingActionMenu = ({ options, className = "" }) => {
                                 damping: 25,
                             }}
                             style={{
-                                position: 'fixed',
-                                bottom: menuPos.bottom,
-                                left: menuPos.left,
+                                position: 'absolute',
+                                bottom: '70px',
+                                right: '0px',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: '10px',
