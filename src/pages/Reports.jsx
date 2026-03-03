@@ -8,6 +8,10 @@ import ProUpgradeModal from '../components/ProUpgradeModal';
 import { generateGroupPDF, generatePersonalStatementPDF } from '../utils/pdfGenerator';
 import { sharePDF } from '../utils/fileService';
 import { calculateBalances, simplifyDebts } from '../utils/debtSimplification';
+import { SlidersHorizontal, RotateCcw } from 'lucide-react';
+import DateFilterBar from '../components/DateFilterBar';
+import { filterByDateRange, getDateRange } from '../utils/dateFilterUtils';
+import { createPortal } from 'react-dom';
 
 export default function Reports() {
     const { state } = useApp();
@@ -16,6 +20,9 @@ export default function Reports() {
     const [showExportModal, setShowExportModal] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const [reportTab, setReportTab] = useState('group'); // 'group' | 'personal'
+
+    const [showFilterModal, setShowFilterModal] = useState(false);
+    const [dateFilter, setDateFilter] = useState(getDateRange('all'));
 
     const isPro = state.members[state.currentUser]?.isPro;
     const group = state.groups.find(g => g.id === selectedGroup);
@@ -44,8 +51,14 @@ export default function Reports() {
     }
 
     // PRO CONTENT BELOW (Untouched structure)
-    const expenses = state.expenses.filter(e => e.groupId === selectedGroup);
-    const groupSettlements = state.settlements.filter(s => s.groupId === selectedGroup && s.status === 'paid');
+    let expenses = state.expenses.filter(e => e.groupId === selectedGroup);
+    let groupSettlements = state.settlements.filter(s => s.groupId === selectedGroup && s.status === 'paid');
+
+    if (dateFilter) {
+        expenses = filterByDateRange(expenses, dateFilter.startDate, dateFilter.endDate);
+        groupSettlements = filterByDateRange(groupSettlements, dateFilter.startDate, dateFilter.endDate);
+    }
+
     const totalSpent = expenses.reduce((s, e) => s + e.amount, 0);
 
     const categoryBreakdown = {};
@@ -55,9 +68,14 @@ export default function Reports() {
     });
 
     // Personal expenses breakdown
-    const personalTotal = state.personalExpenses.reduce((s, e) => s + e.amount, 0);
+    let personalFilteredExpenses = state.personalExpenses;
+    if (dateFilter) {
+        personalFilteredExpenses = filterByDateRange(personalFilteredExpenses, dateFilter.startDate, dateFilter.endDate);
+    }
+
+    const personalTotal = personalFilteredExpenses.reduce((s, e) => s + e.amount, 0);
     const personalCategoryBreakdown = {};
-    state.personalExpenses.forEach(e => {
+    personalFilteredExpenses.forEach(e => {
         personalCategoryBreakdown[e.category] = (personalCategoryBreakdown[e.category] || 0) + e.amount;
     });
 
@@ -100,6 +118,30 @@ export default function Reports() {
                 </button>
             </div>
 
+            <div style={{ marginBottom: 'var(--space-xl)', display: 'flex', justifyContent: 'flex-start' }}>
+                <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => setShowFilterModal(true)}
+                    style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                        padding: '6px 14px', minHeight: '36px', fontSize: '0.82rem', borderRadius: 'var(--radius-md)',
+                    }}
+                >
+                    <SlidersHorizontal size={14} />
+                    <span>Filtrele</span>
+                    {(dateFilter.startDate || dateFilter.endDate) && (
+                        <span style={{
+                            background: 'var(--gradient-primary)', color: 'white',
+                            fontSize: '10px', fontWeight: 800, width: '18px', height: '18px',
+                            borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            marginLeft: '2px',
+                        }}>
+                            1
+                        </span>
+                    )}
+                </button>
+            </div>
+
             {reportTab === 'group' ? (
                 <>
                     <div className="form-group mb-xl" style={{ maxWidth: 300 }}>
@@ -137,11 +179,11 @@ export default function Reports() {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--space-xl)' }} className="reports-grid">
                                 <div className="glass-card">
                                     <h4 className="mb-lg">📊 Kategori Dağılımı</h4>
-                                    <SpendingByCategory groupId={selectedGroup} />
+                                    <SpendingByCategory groupId={selectedGroup} dateFilter={dateFilter} />
                                 </div>
                                 <div className="glass-card">
                                     <h4 className="mb-lg">👥 Kişi Başı Harcama</h4>
-                                    <MemberBalanceChart groupId={selectedGroup} />
+                                    <MemberBalanceChart groupId={selectedGroup} dateFilter={dateFilter} />
                                 </div>
                             </div>
 
@@ -274,6 +316,52 @@ export default function Reports() {
                 />
             )}
             {showProModal && <ProUpgradeModal onClose={() => setShowProModal(false)} />}
+
+            {/* Filter Modal */}
+            {createPortal(
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 9999,
+                    pointerEvents: showFilterModal ? 'auto' : 'none',
+                    visibility: showFilterModal ? 'visible' : 'hidden',
+                    opacity: showFilterModal ? 1 : 0,
+                    transition: 'opacity 200ms ease, visibility 200ms ease',
+                }}>
+                    <div onClick={() => setShowFilterModal(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)' }} />
+                    <div style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0,
+                        background: 'var(--bg-secondary)', borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
+                        padding: 'var(--space-xl)', maxHeight: '75vh', overflowY: 'auto',
+                        transform: showFilterModal ? 'translateY(0)' : 'translateY(100%)', transition: 'transform 300ms ease',
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+                            <h4 style={{ fontWeight: 700, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <SlidersHorizontal size={18} /> Filtrele
+                            </h4>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button className="btn btn-ghost btn-sm" onClick={() => setDateFilter(getDateRange('all'))} style={{ fontSize: '0.75rem', padding: '4px 10px', minHeight: '30px' }}>
+                                    <RotateCcw size={12} /> Sıfırla
+                                </button>
+                                <button className="btn btn-ghost btn-icon" onClick={() => setShowFilterModal(false)} style={{ width: '30px', height: '30px', minHeight: '30px', padding: 0 }}>
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        </div>
+                        <div style={{ width: 40, height: 4, borderRadius: 'var(--radius-full)', background: 'var(--border-secondary)', margin: '-12px auto var(--space-lg)' }} />
+
+                        <div style={{ marginBottom: 'var(--space-xl)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 'var(--space-md)', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                Tarih Seçimi
+                            </div>
+                            <DateFilterBar onChange={setDateFilter} defaultPreset="all" />
+                        </div>
+
+                        <button className="btn btn-primary w-full" onClick={() => setShowFilterModal(false)} style={{ padding: '12px', fontSize: '1rem', fontWeight: 700, borderRadius: 'var(--radius-lg)', marginTop: 'var(--space-md)' }}>
+                            Sonuçları Göster
+                        </button>
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     );
 }

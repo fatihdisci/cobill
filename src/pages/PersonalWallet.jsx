@@ -49,6 +49,7 @@ export default function PersonalWallet() {
         expenses: state.personalExpenses,
         categories: PERSONAL_CATEGORIES,
         categoryKey: 'category',
+        enableDateFilter: true,
     });
 
     return (

@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { Mail, ArrowLeft } from 'lucide-react';
-import splashScreenImg from '../../assets/splash.png';
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState('');
@@ -51,19 +50,19 @@ export default function ForgotPassword() {
             <div className="glass-card w-full relative" style={{ maxWidth: 420, padding: 'var(--space-2xl)' }}>
                 <div className="absolute top-0 left-0" style={{ padding: 'var(--space-lg)' }}>
                     <button
-                        className="btn btn-ghost btn-icon"
+                        className="btn btn-ghost btn-icon btn-sm"
                         onClick={() => navigate('/login')}
-                        style={{ height: '48px', width: '48px', borderRadius: '50%' }}
+                        style={{ height: '32px', width: '32px' }}
                         title="Geri Dön"
                     >
-                        <ArrowLeft size={24} />
+                        <ArrowLeft size={18} />
                     </button>
                 </div>
                 <div className="flex flex-col items-center mb-xl">
                     <img
-                        src={splashScreenImg}
+                        src="/icon.png"
                         alt="CoBill Logo"
-                        style={{ width: 250, height: 250, objectFit: 'contain', marginBottom: 'var(--space-md)' }}
+                        style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 'var(--space-md)' }}
                     />
                     <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>Şifremi Unuttum</h2>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textAlign: 'center' }}>

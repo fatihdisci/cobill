@@ -1,6 +1,8 @@
 import { useState, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { SlidersHorizontal, ArrowUpDown, Tag, User, X, Check, RotateCcw } from 'lucide-react';
+import DateFilterBar from './DateFilterBar';
+import { getDateRange, filterByDateRange } from '../utils/dateFilterUtils';
 
 /**
  * Evrensel Masraf Filtreleme ve Sıralama Bileşeni
@@ -12,6 +14,7 @@ export default function ExpenseFilterSort({
     members = null,
     dateKey = 'date',
     amountKey = 'amount',
+    enableDateFilter = false, // EKLENDI
 }) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -25,6 +28,9 @@ export default function ExpenseFilterSort({
     // PaidBy filtre state
     const [selectedMembers, setSelectedMembers] = useState(new Set());
     const [memberFilterInitialized, setMemberFilterInitialized] = useState(false);
+
+    // Tarih filtre state
+    const [dateFilter, setDateFilter] = useState(getDateRange('all')); // EKLENDİ
 
     // Mevcut benzersiz kategorileri bul
     const availableCategories = useMemo(() => {
@@ -82,6 +88,7 @@ export default function ExpenseFilterSort({
         setSortBy('date-desc');
         setSelectedCategories(new Set(availableCategories));
         if (availableMembers.length > 0) setSelectedMembers(new Set(availableMembers));
+        if (enableDateFilter) setDateFilter(getDateRange('all')); // EKLENDİ
     };
 
     // Aktif filtre sayısı
@@ -90,8 +97,9 @@ export default function ExpenseFilterSort({
         if (sortBy !== 'date-desc') count++;
         if (selectedCategories.size < availableCategories.length) count++;
         if (members && selectedMembers.size < availableMembers.length) count++;
+        if (enableDateFilter && (dateFilter.startDate || dateFilter.endDate)) count++; // EKLENDİ
         return count;
-    }, [sortBy, selectedCategories, availableCategories, selectedMembers, availableMembers, members]);
+    }, [sortBy, selectedCategories, availableCategories, selectedMembers, availableMembers, members, enableDateFilter, dateFilter]);
 
     // Filtreleme ve sıralama (useMemo ile optimize)
     const filteredExpenses = useMemo(() => {
@@ -104,6 +112,11 @@ export default function ExpenseFilterSort({
             if (members && selectedMembers.size === 0) return false;
             return true;
         });
+
+        // Tarih filtresi EKLENDİ
+        if (enableDateFilter && dateFilter) {
+            result = filterByDateRange(result, dateFilter.startDate, dateFilter.endDate, dateKey);
+        }
 
         // Sıralama
         result.sort((a, b) => {
@@ -122,7 +135,7 @@ export default function ExpenseFilterSort({
         });
 
         return result;
-    }, [expenses, selectedCategories, selectedMembers, sortBy, categoryKey, dateKey, amountKey, members]);
+    }, [expenses, selectedCategories, selectedMembers, sortBy, members, categoryKey, dateKey, amountKey, enableDateFilter, dateFilter]);
 
     const sortOptions = [
         { value: 'date-desc', label: 'Yeni → Eski' },
@@ -267,6 +280,16 @@ export default function ExpenseFilterSort({
                                     ))}
                                 </div>
                             </div>
+
+                            {/* Tarih Seçimi EKLENDİ */}
+                            {enableDateFilter && (
+                                <div style={{ marginBottom: 'var(--space-xl)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 'var(--space-md)', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        Tarih Seçimi
+                                    </div>
+                                    <DateFilterBar onChange={setDateFilter} defaultPreset="all" />
+                                </div>
+                            )}
 
                             {/* Category Section */}
                             <div style={{ marginBottom: members ? 'var(--space-xl)' : 0 }}>

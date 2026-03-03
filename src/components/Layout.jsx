@@ -246,16 +246,19 @@ export default function Layout() {
             {/* Mobile Bottom Tab Bar with Central FAB */}
             <div className="mobile-tab-bar">
                 <nav>
-                    {mobileNavLeftItems.map(item => (
-                        <NavLink
-                            key={item.to}
-                            to={item.to}
-                            className={({ isActive }) => `tab-item ${isActive ? 'active' : ''}`}
-                        >
-                            <item.icon size={22} />
-                            <span>{item.label}</span>
-                        </NavLink>
-                    ))}
+                    {mobileNavLeftItems.map(item => {
+                        const isGroupActive = item.to === '/groups' && location.pathname.startsWith('/group');
+                        return (
+                            <NavLink
+                                key={item.to}
+                                to={item.to}
+                                className={({ isActive }) => `tab-item ${isActive || isGroupActive ? 'active' : ''}`}
+                            >
+                                <item.icon size={22} />
+                                <span>{item.label}</span>
+                            </NavLink>
+                        );
+                    })}
 
                     {/* Central FAB */}
                     <FloatingActionMenu

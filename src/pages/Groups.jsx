@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     PlusCircle, Users, TrendingUp, TrendingDown, Wallet,
-    ArrowLeftRight, MailCheck, UserCheck, X, Zap
+    ArrowLeftRight, MailCheck, UserCheck, X, Zap,
+    SlidersHorizontal, RotateCcw, CheckCircle
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import GroupCard from '../components/GroupCard';
@@ -10,8 +11,9 @@ import ActivityFeed from '../components/ActivityFeed';
 import { SpendingByCategory } from '../components/BalanceChart';
 import { calculateBalances, getTotalUserDebt } from '../utils/debtSimplification';
 import { formatCurrency } from '../utils/currencyUtils';
-import ProUpgradeModal from '../components/ProUpgradeModal';
-import { showInterstitialAd } from '../utils/adService';
+import DateFilterBar from '../components/DateFilterBar';
+import { getDateRange, filterByDateRange } from '../utils/dateFilterUtils';
+import { createPortal } from 'react-dom';
 
 export default function Groups() {
     const { state, dispatch } = useApp();
@@ -21,6 +23,8 @@ export default function Groups() {
     const [desc, setDesc] = useState('');
     const [currency, setCurrency] = useState('TRY');
     const [showProModal, setShowProModal] = useState(false);
+    const [dateFilter, setDateFilter] = useState(getDateRange('all'));
+    const [showFilterModal, setShowFilterModal] = useState(false);
     const isPro = state.members[state.currentUser]?.isPro;
 
     const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#f43f5e', '#3b82f6', '#ec4899'];
@@ -108,7 +112,7 @@ export default function Groups() {
     };
 
     return (
-        <div>
+        <div style={{ position: 'relative' }}>
             <div className="page-header">
                 <div>
                     <h2>
@@ -118,9 +122,31 @@ export default function Groups() {
                     </h2>
                     <p className="page-subtitle">Grup masraflarının özeti</p>
                 </div>
-                <button className="btn btn-primary" onClick={() => setShowNew(true)}>
-                    <PlusCircle size={16} /> Yeni Grup
-                </button>
+                <div className="flex gap-sm">
+                    <button
+                        className="btn btn-secondary"
+                        onClick={() => setShowFilterModal(true)}
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '6px',
+                            minHeight: '36px', fontSize: '0.82rem', borderRadius: 'var(--radius-md)',
+                        }}
+                    >
+                        <SlidersHorizontal size={14} /> Filtrele
+                        {(dateFilter.startDate || dateFilter.endDate) && (
+                            <span style={{
+                                background: 'var(--gradient-primary)', color: 'white',
+                                fontSize: '10px', fontWeight: 800, width: '18px', height: '18px',
+                                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                marginLeft: '2px',
+                            }}>
+                                1
+                            </span>
+                        )}
+                    </button>
+                    <button className="btn btn-primary" onClick={() => setShowNew(true)}>
+                        <PlusCircle size={16} /> Yeni Grup
+                    </button>
+                </div>
             </div>
 
             {/* Bekleyen Davetler */}
@@ -262,24 +288,58 @@ export default function Groups() {
                         <div className="glass-card" style={{ minWidth: 0 }}>
                             <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Harcama Dağılımı</h4>
                             <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '4px', position: 'relative' }}>
-                                {!isPro && (
-                                    <div style={{
-                                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                                        backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 10,
-                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                        backgroundColor: 'rgba(26, 32, 53, 0.3)', borderRadius: 12
-                                    }}>
-                                        <button className="btn btn-primary" style={{ background: 'var(--gradient-primary)', border: 'none', boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)' }} onClick={() => setShowProModal(true)}>
-                                            Pro'ya geçerek aç
-                                        </button>
-                                    </div>
-                                )}
-                                <SpendingByCategory />
+                                <SpendingByCategory dateFilter={dateFilter} />
                             </div>
                         </div>
                     )}
                 </div>
             </div>
+
+            {/* Filter Modal */}
+            {createPortal(
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 9999,
+                    pointerEvents: showFilterModal ? 'auto' : 'none',
+                    visibility: showFilterModal ? 'visible' : 'hidden',
+                    opacity: showFilterModal ? 1 : 0,
+                    transition: 'opacity 200ms ease, visibility 200ms ease',
+                }}>
+                    <div onClick={() => setShowFilterModal(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)' }} />
+                    <div style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0,
+                        background: 'var(--bg-secondary)', borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
+                        padding: 'var(--space-xl)', maxHeight: '75vh', overflowY: 'auto',
+                        transform: showFilterModal ? 'translateY(0)' : 'translateY(100%)', transition: 'transform 300ms ease',
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+                            <h4 style={{ fontWeight: 700, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <SlidersHorizontal size={18} /> Filtrele
+                            </h4>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button className="btn btn-ghost btn-sm" onClick={() => setDateFilter(getDateRange('all'))} style={{ fontSize: '0.75rem', padding: '4px 10px', minHeight: '30px' }}>
+                                    <RotateCcw size={12} /> Sıfırla
+                                </button>
+                                <button className="btn btn-ghost btn-icon" onClick={() => setShowFilterModal(false)} style={{ width: '30px', height: '30px', minHeight: '30px', padding: 0 }}>
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        </div>
+                        <div style={{ width: 40, height: 4, borderRadius: 'var(--radius-full)', background: 'var(--border-secondary)', margin: '-12px auto var(--space-lg)' }} />
+
+                        <div style={{ marginBottom: 'var(--space-xl)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 'var(--space-md)', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                Tarih Seçimi
+                            </div>
+                            <DateFilterBar onChange={setDateFilter} defaultPreset="all" />
+                        </div>
+
+                        <button className="btn btn-primary w-full" onClick={() => setShowFilterModal(false)} style={{ padding: '12px', fontSize: '1rem', fontWeight: 700, borderRadius: 'var(--radius-lg)', marginTop: 'var(--space-md)' }}>
+                            Sonuçları Göster
+                        </button>
+                    </div>
+                </div>,
+                document.body
+            )}
 
             {/* New Group Modal */}
             {showNew && (
