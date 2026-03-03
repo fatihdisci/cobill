@@ -153,13 +153,13 @@ Aşağıdaki özellikler temel altyapısı hazır ancak henüz tam olarak implem
 ### Yakında Gelecek
 | Özellik | Durum | Açıklama |
 |---------|-------|----------|
-| **Bireysel Ekstre PDF** | 🔘 Placeholder | Cüzdan sayfasındaki "Ekstre İndir" butonu şu an alert gösteriyor, gerçek PDF oluşturma henüz eklenmedi |
-| **Tekrarlayan Masraf Otomasyonu** | 🔘 Veri Modeli Hazır | `isRecurring` ve `recurringDay` alanları kaydediliyor ancak arka planda otomatik ekleme (cron/Cloud Function) henüz aktif değil |
+| **Bireysel Ekstre PDF** | ✅ Tamamlandı | İstediğiniz aya ait bireysel harcama dökümleri kategorize edilmiş şekilde PDF olarak indirilip paylaşılabilir |
+| **Tekrarlayan Masraf Otomasyonu** | ✅ Tamamlandı | Uygulama açılışında tarih kontrolü yapılarak vadesi gelen tekrarlayan masraflar otomatik olarak listeye dahil edilir |
 | **Bildirim Tercihleri** | 🔘 UI Var | Ayarlar sayfasında bildirim toggle'ları mevcut, backend bağlantısı yapılacak |
 | **Tema/Dark Mode Geçişi** | 🔘 CSS Hazır | CSS değişken altyapısı dark mode'a uygun, toggle mekanizması eklenecek |
 | **Gerçek Ödeme Entegrasyonu** | 🔲 Planlandı | Borç ödemelerinde gerçek para transferi (Stripe/İyzico) entegrasyonu |
 | **Çoklu Dil Desteği (i18n)** | 🔲 Planlandı | Şu an sadece Türkçe, İngilizce ve diğer diller eklenecek |
-| **Pro Abonelik Satın Alma** | 🔘 Modal Hazır | ProUpgradeModal gösteriliyor ancak gerçek ödeme sistemi bağlanacak |
+| **Pro Abonelik Satın Alma** | 🔘 Demo Aktif | Gelecek olan gerçek ödeme altyapısına kadar Pro deneme/mock modülüyle çalışmaktadır |
 
 ### Gelecek Planları
 - **📈 Bütçe Limitleri:** Kategoriye göre aylık bütçe belirleme ve aşım uyarısı
