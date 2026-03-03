@@ -108,7 +108,7 @@ export default function ExpenseForm({ groupId, onClose }) {
                         className="form-select"
                         value={form.currency}
                         onChange={e => setForm(prev => ({ ...prev, currency: e.target.value }))}
-                        style={{ width: '90px', textAlign: 'center' }}
+                        style={{ minWidth: '100px', textAlign: 'center' }}
                     >
                         {currencies.map(c => (
                             <option key={c.code} value={c.code}>{c.symbol} {c.code}</option>

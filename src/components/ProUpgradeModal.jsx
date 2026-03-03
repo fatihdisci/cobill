@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, Star, Circle } from 'lucide-react';
+import WelcomeProModal from './WelcomeProModal';
 
 export default function ProUpgradeModal({ onClose }) {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 480);
     const [selectedPlan, setSelectedPlan] = useState('pro-yearly');
+    const [showWelcome, setShowWelcome] = useState(false);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 480);
@@ -22,33 +24,37 @@ export default function ProUpgradeModal({ onClose }) {
             id: 'ad-free',
             title: 'Reklamsız',
             subtitle: 'Ömür Boyu',
-            price: '149 ₺',
+            price: '349 ₺',
             period: 'Tek Seferlik',
-            desc: 'Sadece reklamları kaldırır. Pro özellikler içermez.'
+            desc: 'Sadece reklamları kaldırır. Pro özellikler yok.'
         },
         {
             id: 'pro-yearly',
             title: 'Pro',
             subtitle: 'Yıllık',
-            price: '299 ₺',
+            price: '699 ₺',
             period: 'Yıl',
-            desc: 'Aylık sadece 24.90 TL\'ye gelir',
+            desc: 'Aylığı 58 TL\'ye gelir',
             badge: 'EN İYİ FIRSAT - %50 TASARRUF'
         },
         {
             id: 'pro-monthly',
             title: 'Pro',
             subtitle: 'Aylık',
-            price: '49 ₺',
+            price: '89 ₺',
             period: 'Ay',
             desc: 'İstediğin zaman iptal et.'
         }
     ];
 
     const handleUpgrade = () => {
-        alert('Ödeme altyapısı entegre edilecek: ' + selectedPlan);
-        // onClose();
+        // alert('Ödeme altyapısı entegre edilecek: ' + selectedPlan);
+        setShowWelcome(true);
     };
+
+    if (showWelcome) {
+        return <WelcomeProModal selectedPlan={selectedPlan} onClose={onClose} />;
+    }
 
     return (
         <div className="modal-overlay animate-fade-in" onClick={onClose} style={{
