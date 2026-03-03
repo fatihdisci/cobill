@@ -51,12 +51,12 @@ export default function ForgotPassword() {
             <div className="glass-card w-full relative" style={{ maxWidth: 420, padding: 'var(--space-2xl)' }}>
                 <div className="absolute top-0 left-0" style={{ padding: 'var(--space-lg)' }}>
                     <button
-                        className="btn btn-ghost btn-icon btn-sm"
+                        className="btn btn-ghost btn-icon"
                         onClick={() => navigate('/login')}
-                        style={{ height: '32px', width: '32px' }}
+                        style={{ height: '48px', width: '48px', borderRadius: '50%' }}
                         title="Geri Dön"
                     >
-                        <ArrowLeft size={18} />
+                        <ArrowLeft size={24} />
                     </button>
                 </div>
                 <div className="flex flex-col items-center mb-xl">
