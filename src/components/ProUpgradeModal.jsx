@@ -14,7 +14,7 @@ export default function ProUpgradeModal({ onClose }) {
         {
             icon: Download,
             title: 'Detaylı PDF Raporları',
-            desc: 'Tüm grup harcamalarını ve kimin kime borcu olduğunu PDF formatında görüntüleyin.',
+            desc: 'Tüm grup harcamalarını ve bireysel ekstrenizi PDF formatında indirin.',
             color: 'var(--accent-cyan)'
         },
         {

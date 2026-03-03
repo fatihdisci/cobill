@@ -233,6 +233,11 @@ export const dbService = {
         return docRef.id;
     },
 
+    savePersonalExpense: async (expenseData) => {
+        if (!expenseData || !expenseData.id) return;
+        await setDoc(doc(db, 'personal_expenses', expenseData.id), expenseData, { merge: true });
+    },
+
     deletePersonalExpense: async (id) => {
         if (!id) return;
         await deleteDoc(doc(db, 'personal_expenses', id));

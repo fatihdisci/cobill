@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { ArrowLeft, Save, CalendarClock } from 'lucide-react';
 import { generateId } from '../utils/helpers';
 import { getSupportedCurrencies } from '../utils/currencyUtils';
+import { addOneMonthSafely } from '../utils/recurringUtils';
 
 const PERSONAL_CATEGORIES = {
     Market: { icon: '🛒', label: 'Market' },
@@ -26,7 +27,6 @@ export default function AddPersonalExpense() {
         category: 'Market',
         date: new Date().toISOString().split('T')[0],
         isRecurring: false,
-        recurringDay: 1,
     });
     const [saving, setSaving] = useState(false);
 
@@ -35,6 +35,9 @@ export default function AddPersonalExpense() {
         if (!form.amount || !form.title.trim()) return;
 
         setSaving(true);
+
+        const expenseDateStr = new Date(form.date).toISOString().split('T')[0];
+        const nextRecurringDate = form.isRecurring ? addOneMonthSafely(expenseDateStr) : null;
 
         const expense = {
             id: generateId(),
@@ -45,7 +48,7 @@ export default function AddPersonalExpense() {
             date: new Date(form.date).toISOString(),
             userId: state.currentUser,
             isRecurring: form.isRecurring,
-            recurringDay: form.isRecurring ? form.recurringDay : null,
+            nextRecurringDate: nextRecurringDate,
         };
 
         await dispatch({ type: 'ADD_PERSONAL_EXPENSE', payload: expense });
@@ -163,7 +166,7 @@ export default function AddPersonalExpense() {
                             <CalendarClock size={18} style={{ color: 'var(--accent-amber)' }} />
                             <div>
                                 <div className="text-sm font-medium">Tekrarlayan Masraf</div>
-                                <div className="text-xs text-muted">Her ay otomatik ekle</div>
+                                <div className="text-xs text-muted">Aylık olarak otomatik hatırlatılır</div>
                             </div>
                         </div>
                         <div
@@ -171,21 +174,6 @@ export default function AddPersonalExpense() {
                             onClick={() => setForm(prev => ({ ...prev, isRecurring: !prev.isRecurring }))}
                         />
                     </div>
-
-                    {form.isRecurring && (
-                        <div className="form-group animate-fade-in">
-                            <label className="form-label">Her Ayın Kaçında?</label>
-                            <select
-                                className="form-select"
-                                value={form.recurringDay}
-                                onChange={e => setForm(prev => ({ ...prev, recurringDay: parseInt(e.target.value) }))}
-                            >
-                                {Array.from({ length: 28 }, (_, i) => i + 1).map(d => (
-                                    <option key={d} value={d}>{d}. gün</option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
 
                     {/* Submit */}
                     <button

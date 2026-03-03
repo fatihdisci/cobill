@@ -5,7 +5,7 @@ import { formatCurrency } from '../utils/currencyUtils';
 import { CATEGORIES, formatDate } from '../utils/helpers';
 import { FileText, Download, Mail, Copy, Lock, MessageCircle, X, CheckCircle2, ArrowRight, Star, TrendingUp, PieChart, Users, Receipt, Bell, Zap } from 'lucide-react';
 import ProUpgradeModal from '../components/ProUpgradeModal';
-import { generateGroupPDF } from '../utils/pdfGenerator';
+import { generateGroupPDF, generatePersonalStatementPDF } from '../utils/pdfGenerator';
 import { sharePDF } from '../utils/fileService';
 import { calculateBalances, simplifyDebts } from '../utils/debtSimplification';
 
@@ -68,17 +68,15 @@ export default function Reports() {
                     <h2>Raporlar <span className="badge badge-pro-gold" style={{ marginLeft: 8, verticalAlign: 'middle' }}>PRO</span></h2>
                     <p className="page-subtitle">Harcama analizi ve dışa aktarma</p>
                 </div>
-                {reportTab === 'group' && (
-                    <div className="flex gap-sm">
-                        <button
-                            className="btn btn-pro-active"
-                            onClick={() => setShowExportModal(true)}
-                            disabled={!group}
-                        >
-                            <Download size={14} /> Dışarı Aktar
-                        </button>
-                    </div>
-                )}
+                <div className="flex gap-sm">
+                    <button
+                        className="btn btn-pro-active"
+                        onClick={() => setShowExportModal(true)}
+                        disabled={reportTab === 'group' && !group}
+                    >
+                        <Download size={14} /> Dışarı Aktar
+                    </button>
+                </div>
             </div>
 
             {/* Segmented Control */}
@@ -271,6 +269,8 @@ export default function Reports() {
                     groupSettlements={groupSettlements}
                     setIsGenerating={setIsGenerating}
                     isGenerating={isGenerating}
+                    reportTab={reportTab}
+                    personalCategories={PERSONAL_CATS}
                 />
             )}
             {showProModal && <ProUpgradeModal onClose={() => setShowProModal(false)} />}
@@ -282,8 +282,8 @@ function NonProReportsView({ groups, selectedGroup, setSelectedGroup, setShowPro
     const features = [
         { icon: <PieChart size={18} />, color: 'var(--accent-purple)', title: 'Kategori Analizi', desc: 'Harcamaları kategorilere göre görselleştir' },
         { icon: <Users size={18} />, color: 'var(--accent-cyan)', title: 'Kişi Bazlı Rapor', desc: 'Kim ne kadar harcadı, grafiklerle incele' },
-        { icon: <Download size={18} />, color: 'var(--accent-emerald)', title: 'PDF Dışa Aktarma', desc: 'Tüm grup işlemlerini PDF formatında dışarı aktar' },
-        { icon: <Bell size={18} />, color: 'var(--accent-amber)', title: 'Hızlı Paylaşım', desc: 'Tahsilat raporlarını WhatsApp veya e-posta ile paylaş' },
+        { icon: <FileText size={18} />, color: 'var(--accent-amber)', title: 'Bireysel Ekstre', desc: 'Aylık bireysel masraflarınızı PDF olarak indirin' },
+        { icon: <Download size={18} />, color: 'var(--accent-emerald)', title: 'PDF Dışa Aktarma', desc: 'Tüm grup işlemlerini profesyonel PDF rapor olarak dışarı aktar' },
     ];
 
     return (
@@ -358,24 +358,51 @@ function NonProReportsView({ groups, selectedGroup, setSelectedGroup, setShowPro
 }
 
 // Sub-components for better readability
-function ExportModal({ onClose, group, state, expenses, groupSettlements, setIsGenerating, isGenerating }) {
+function ExportModal({ onClose, group, state, expenses, groupSettlements, setIsGenerating, isGenerating, reportTab, personalCategories }) {
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 400 }}>
                 <div className="modal-header mb-md">
-                    <h3 className="flex items-center gap-xs"><Download size={18} /> Raporu Dışarı Aktar</h3>
+                    <h3 className="flex items-center gap-xs"><Download size={18} /> {reportTab === 'group' ? 'Grup Raporunu' : 'Bireysel Ekstreyi'} Dışarı Aktar</h3>
                     <button className="btn btn-ghost btn-icon" onClick={onClose}><X size={18} /></button>
                 </div>
                 <div className="flex flex-col gap-sm">
                     <button className="btn btn-secondary w-full flex justify-start items-center gap-md" onClick={async () => {
-                        if (!group) return;
+                        if (reportTab === 'group' && !group) return;
                         try {
                             setIsGenerating(true);
-                            const groupMembers = group.members.map(id => state.members[id]).filter(Boolean);
-                            const balances = calculateBalances(expenses, groupMembers);
-                            const simplifiedDebts = simplifyDebts(balances);
-                            const base64PDF = await generateGroupPDF(group, groupMembers, expenses, balances, simplifiedDebts, groupSettlements);
-                            await sharePDF(base64PDF, `CoBill_${group.name.replace(/\s+/g, '_')}_Rapor.pdf`);
+                            if (reportTab === 'group') {
+                                const groupMembers = group.members.map(id => state.members[id]).filter(Boolean);
+                                const balances = calculateBalances(expenses, groupMembers);
+                                const simplifiedDebts = simplifyDebts(balances);
+                                const base64PDF = await generateGroupPDF(group, groupMembers, expenses, balances, simplifiedDebts, groupSettlements);
+                                await sharePDF(base64PDF, `CoBill_${group.name.replace(/\s+/g, '_')}_Rapor.pdf`);
+                            } else {
+                                const now = new Date();
+                                const currentMonth = now.getMonth();
+                                const currentYear = now.getFullYear();
+                                const thisMonthExpenses = state.personalExpenses.filter(e => {
+                                    const d = new Date(e.date);
+                                    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+                                });
+
+                                if (thisMonthExpenses.length === 0) {
+                                    alert('Bu ay için henüz harcama bulunmuyor.');
+                                    setIsGenerating(false);
+                                    onClose();
+                                    return;
+                                }
+
+                                const monthName = now.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+                                const user = state.members[state.currentUser];
+                                const base64 = await generatePersonalStatementPDF(
+                                    thisMonthExpenses,
+                                    user,
+                                    monthName,
+                                    personalCategories
+                                );
+                                await sharePDF(base64, `CoBill_Ekstre_${monthName.replace(/\s+/g, '_')}.pdf`);
+                            }
                         } catch (error) {
                             console.error('PDF Export Error:', error);
                             alert('PDF oluşturulurken bir hata oluştu.');

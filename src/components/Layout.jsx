@@ -14,6 +14,8 @@ import UpgradeBanner from './UpgradeBanner';
 import { Star } from 'lucide-react';
 import { showInterstitialAd } from '../utils/adService';
 import FloatingActionMenu from './ui/FloatingActionMenu';
+import RecurringPromptModal from './RecurringPromptModal';
+import { getPendingRecurringExpenses } from '../utils/recurringUtils';
 
 export default function Layout() {
     const location = useLocation();
@@ -23,6 +25,10 @@ export default function Layout() {
     const [showProBenefits, setShowProBenefits] = useState(false);
     const [showProModal, setShowProModal] = useState(false);
     const [showUpgradeBanner, setShowUpgradeBanner] = useState(false);
+
+    // Recurring expenses
+    const [showRecurringModal, setShowRecurringModal] = useState(false);
+    const [pendingRecurring, setPendingRecurring] = useState([]);
 
     const isPro = state.members[state.currentUser]?.isPro;
 
@@ -52,6 +58,24 @@ export default function Layout() {
         window.addEventListener('show-pro-banner', handler);
         return () => window.removeEventListener('show-pro-banner', handler);
     }, []);
+
+    // Check for pending recurring expenses once per session when data is loaded
+    useEffect(() => {
+        if (!state.currentUser || pendingRecurring.length > 0 || sessionStorage.getItem('recurringCheckedToday')) return;
+
+        // Make sure data is mostly loaded. Since we are inside Layout, AppContext is providing state.
+        if (state.expenses.length > 0 || state.personalExpenses.length > 0) {
+            const pendingGroup = getPendingRecurringExpenses(state.expenses);
+            const pendingPersonal = getPendingRecurringExpenses(state.personalExpenses);
+            const allPending = [...pendingGroup, ...pendingPersonal];
+
+            if (allPending.length > 0) {
+                setPendingRecurring(allPending);
+                setShowRecurringModal(true);
+            }
+            sessionStorage.setItem('recurringCheckedToday', 'true');
+        }
+    }, [state.expenses, state.personalExpenses, state.currentUser, pendingRecurring.length]);
 
     const pendingCount = state.settlements.filter(s => s.status !== 'paid').length;
 

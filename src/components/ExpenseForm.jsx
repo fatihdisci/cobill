@@ -5,6 +5,7 @@ import { useApp } from '../context/AppContext';
 import { generateId, CATEGORIES } from '../utils/helpers';
 import { getSupportedCurrencies } from '../utils/currencyUtils';
 import { showInterstitialAd } from '../utils/adService';
+import { addOneMonthSafely } from '../utils/recurringUtils';
 
 export default function ExpenseForm({ groupId, onClose }) {
     const { state, dispatch } = useApp();
@@ -21,9 +22,9 @@ export default function ExpenseForm({ groupId, onClose }) {
         paidBy: state.currentUser,
         splitType: 'equal',
         splitAmong: group?.members || [],
+        splitAmong: group?.members || [],
         category: 'other',
         isRecurring: false,
-        recurringDay: 1,
     });
 
     const selectedGroup = state.groups.find(g => g.id === form.groupId);
@@ -36,6 +37,9 @@ export default function ExpenseForm({ groupId, onClose }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!form.description || !form.amount || !form.groupId) return;
+        const nowIso = new Date().toISOString();
+        const expenseDateStr = nowIso.split('T')[0];
+        const nextRecurringDate = form.isRecurring ? addOneMonthSafely(expenseDateStr) : null;
 
         const expense = {
             id: generateId(),
@@ -47,9 +51,9 @@ export default function ExpenseForm({ groupId, onClose }) {
             splitAmong: form.splitAmong,
             splitType: form.splitType,
             category: form.category,
-            date: new Date().toISOString(),
+            date: nowIso,
             isRecurring: form.isRecurring,
-            recurringDay: form.isRecurring ? form.recurringDay : null,
+            nextRecurringDate: nextRecurringDate,
         };
 
         dispatch({ type: 'ADD_EXPENSE', payload: expense });
@@ -255,7 +259,7 @@ export default function ExpenseForm({ groupId, onClose }) {
                     <CalendarClock size={18} style={{ color: 'var(--accent-amber)' }} />
                     <div>
                         <div className="text-sm font-medium">Tekrarlayan Masraf</div>
-                        <div className="text-xs text-muted">Her ay otomatik ekle</div>
+                        <div className="text-xs text-muted">Aylık olarak otomatik hatırlatılır</div>
                     </div>
                 </div>
                 <div
@@ -263,21 +267,6 @@ export default function ExpenseForm({ groupId, onClose }) {
                     onClick={() => setForm(prev => ({ ...prev, isRecurring: !prev.isRecurring }))}
                 />
             </div>
-
-            {form.isRecurring && (
-                <div className="form-group animate-fade-in">
-                    <label className="form-label">Her Ayın Kaçında?</label>
-                    <select
-                        className="form-select"
-                        value={form.recurringDay}
-                        onChange={e => setForm(prev => ({ ...prev, recurringDay: parseInt(e.target.value) }))}
-                    >
-                        {Array.from({ length: 28 }, (_, i) => i + 1).map(d => (
-                            <option key={d} value={d}>{d}. gün</option>
-                        ))}
-                    </select>
-                </div>
-            )}
 
             {/* Submit */}
             <button type="submit" className="btn btn-primary btn-lg w-full" disabled={!form.amount || !form.description}>

@@ -2,11 +2,9 @@ import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { formatCurrency } from '../utils/currencyUtils';
 import { formatDate } from '../utils/helpers';
-import { Wallet, Trash2, Download, Calendar, Loader2 } from 'lucide-react';
+import { Wallet, Trash2, Calendar } from 'lucide-react';
 import ProUpgradeModal from '../components/ProUpgradeModal';
 import ExpenseFilterSort from '../components/ExpenseFilterSort';
-import { generatePersonalStatementPDF } from '../utils/pdfGenerator';
-import { sharePDF } from '../utils/fileService';
 
 const PERSONAL_CATEGORIES = {
     Market: { icon: '🛒', label: 'Market', color: 'var(--accent-emerald)' },
@@ -20,7 +18,6 @@ const PERSONAL_CATEGORIES = {
 export default function PersonalWallet() {
     const { state, dispatch } = useApp();
     const [showProModal, setShowProModal] = useState(false);
-    const [pdfLoading, setPdfLoading] = useState(false);
     const isPro = state.members[state.currentUser]?.isPro;
 
     const now = new Date();
@@ -47,34 +44,6 @@ export default function PersonalWallet() {
         }
     };
 
-    const handlePdfExport = async () => {
-        if (!isPro) {
-            setShowProModal(true);
-            return;
-        }
-        if (thisMonthExpenses.length === 0) {
-            alert('Bu ay için henüz harcama bulunmuyor.');
-            return;
-        }
-        setPdfLoading(true);
-        try {
-            const monthName = now.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
-            const user = state.members[state.currentUser];
-            const base64 = await generatePersonalStatementPDF(
-                thisMonthExpenses,
-                user,
-                monthName,
-                PERSONAL_CATEGORIES
-            );
-            await sharePDF(base64, `CoBill_Ekstre_${monthName.replace(/\s+/g, '_')}.pdf`);
-        } catch (err) {
-            console.error('[PersonalWallet] PDF export error:', err);
-            alert('PDF oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
-        } finally {
-            setPdfLoading(false);
-        }
-    };
-
     // Use ExpenseFilterSort hook
     const { filteredExpenses, filterUI, emptyState } = ExpenseFilterSort({
         expenses: state.personalExpenses,
@@ -89,11 +58,6 @@ export default function PersonalWallet() {
                     <h2>💳 Cüzdan</h2>
                     <p className="page-subtitle">Bireysel harcamalarınız</p>
                 </div>
-                <button className={`btn btn-sm ${isPro ? 'btn-pro-active' : 'btn-pro-gold'}`} onClick={handlePdfExport} disabled={pdfLoading} style={{ whiteSpace: 'nowrap' }}>
-                    {pdfLoading ? <Loader2 size={14} className="spin" /> : <Download size={14} />}
-                    {pdfLoading ? 'Hazırlanıyor...' : 'Ekstre İndir'}
-                    <span className={`badge ${isPro ? 'badge-pro-active' : 'badge-pro-gold'}`} style={{ marginLeft: 4, padding: '1px 5px', fontSize: '8px' }}>PRO</span>
-                </button>
             </div>
 
             {/* Monthly Summary Card — always shows real total */}

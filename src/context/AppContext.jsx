@@ -121,6 +121,11 @@ function appReducer(state, action) {
         // Personal Expenses
         case 'ADD_PERSONAL_EXPENSE':
             return { ...state, personalExpenses: [action.payload, ...state.personalExpenses] };
+        case 'UPDATE_PERSONAL_EXPENSE':
+            return {
+                ...state,
+                personalExpenses: state.personalExpenses.map(e => e.id === action.payload.id ? { ...e, ...action.payload } : e),
+            };
         case 'DELETE_PERSONAL_EXPENSE':
             return { ...state, personalExpenses: state.personalExpenses.filter(e => e.id !== action.payload) };
         case 'SYNC_PERSONAL_EXPENSES':
@@ -461,6 +466,9 @@ export function AppProvider({ children, user }) {
                     }
                     break;
                 }
+                case 'UPDATE_PERSONAL_EXPENSE':
+                    await dbService.savePersonalExpense(action.payload);
+                    break;
                 case 'DELETE_PERSONAL_EXPENSE':
                     await dbService.deletePersonalExpense(action.payload);
                     break;
