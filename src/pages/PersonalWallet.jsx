@@ -16,6 +16,7 @@ const PERSONAL_CATEGORIES = {
 };
 
 export default function PersonalWallet() {
+    const { state, dispatch } = useApp();
     const [showProModal, setShowProModal] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const isPro = state.members[state.currentUser]?.isPro;
