@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle2, Star } from 'lucide-react';
+import { X, CheckCircle2, Star, Circle } from 'lucide-react';
 
 export default function ProUpgradeModal({ onClose }) {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 480);
@@ -21,7 +21,7 @@ export default function ProUpgradeModal({ onClose }) {
         {
             id: 'ad-free',
             title: 'Reklamsız',
-            subtitle: '(Ömür Boyu)',
+            subtitle: 'Ömür Boyu',
             price: '149 ₺',
             period: 'Tek Seferlik',
             desc: 'Sadece reklamları kaldırır. Pro özellikler içermez.'
@@ -29,7 +29,7 @@ export default function ProUpgradeModal({ onClose }) {
         {
             id: 'pro-yearly',
             title: 'Pro',
-            subtitle: '(Yıllık)',
+            subtitle: 'Yıllık',
             price: '299 ₺',
             period: 'Yıl',
             desc: 'Aylık sadece 24.90 TL\'ye gelir',
@@ -38,7 +38,7 @@ export default function ProUpgradeModal({ onClose }) {
         {
             id: 'pro-monthly',
             title: 'Pro',
-            subtitle: '(Aylık)',
+            subtitle: 'Aylık',
             price: '49 ₺',
             period: 'Ay',
             desc: 'İstediğin zaman iptal et.'
@@ -62,14 +62,14 @@ export default function ProUpgradeModal({ onClose }) {
         }}>
             <div className="modal-content animate-fade-in-up" onClick={e => e.stopPropagation()} style={{
                 width: '100%',
-                maxWidth: '600px',
+                maxWidth: '540px',
                 maxHeight: '90vh',
                 overflowY: 'auto',
                 overflowX: 'hidden',
                 background: 'var(--bg-primary)',
                 borderRadius: '24px',
                 border: '1px solid var(--border-primary)',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                boxShadow: 'none',
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
@@ -86,38 +86,35 @@ export default function ProUpgradeModal({ onClose }) {
 
                 {/* Header */}
                 <div style={{
-                    padding: isMobile ? '40px 24px 24px' : '48px 32px 32px',
+                    padding: isMobile ? '32px 20px 20px' : '40px 32px 24px',
                     textAlign: 'center',
-                    background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0) 100%)'
                 }}>
                     <div style={{
-                        width: 64, height: 64, borderRadius: '20px',
-                        background: 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)',
+                        width: 56, height: 56, borderRadius: '16px',
+                        background: 'var(--gradient-primary)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        margin: '0 auto 20px',
-                        boxShadow: '0 10px 25px -5px rgba(139, 92, 246, 0.5)'
+                        margin: '0 auto 16px',
                     }}>
-                        <Star size={32} color="white" fill="white" />
+                        <Star size={28} color="white" fill="white" />
                     </div>
 
                     <h2 style={{
-                        fontSize: isMobile ? '1.5rem' : '2rem',
+                        fontSize: isMobile ? '1.35rem' : '1.75rem',
                         fontWeight: 800,
-                        margin: '0 0 16px',
-                        lineHeight: 1.2,
-                        background: 'linear-gradient(to right, #fff, #cbd5e1)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        letterSpacing: '-0.02em'
+                        margin: '0 auto 16px',
+                        lineHeight: 1.3,
+                        color: 'var(--text-primary)',
+                        letterSpacing: '-0.02em',
+                        maxWidth: '400px'
                     }}>
-                        CoBill deneyiminizi <br /> sınırların ötesine taşıyın.
+                        CoBill deneyiminizi sınırların ötesine taşıyın.
                     </h2>
 
                     <div className="flex flex-col gap-sm" style={{ textAlign: 'left', maxWidth: '400px', margin: '0 auto' }}>
                         {features.map((feature, i) => (
                             <div key={i} className="flex items-start gap-md">
-                                <CheckCircle2 size={20} style={{ color: 'var(--accent-purple)', flexShrink: 0, marginTop: 2 }} />
-                                <span style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.4 }}>
+                                <CheckCircle2 size={18} style={{ color: 'var(--accent-purple)', flexShrink: 0, marginTop: 2 }} />
+                                <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.4 }}>
                                     {feature}
                                 </span>
                             </div>
@@ -126,79 +123,86 @@ export default function ProUpgradeModal({ onClose }) {
                 </div>
 
                 {/* Pricing Cards */}
-                <div style={{ padding: isMobile ? '0 20px 24px' : '0 32px 32px' }}>
-                    <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-md mb-2xl`}>
-                        {plans.map(plan => {
+                <div style={{ padding: isMobile ? '0 16px 20px' : '0 32px 32px' }}>
+                    <div className="flex flex-col gap-md mb-xl">
+                        {plans.map((plan, i) => {
                             const isSelected = selectedPlan === plan.id;
-                            const isYearly = plan.id === 'pro-yearly';
 
                             return (
                                 <div
                                     key={plan.id}
-                                    className="glass-card"
                                     onClick={() => setSelectedPlan(plan.id)}
                                     style={{
-                                        flex: 1,
                                         position: 'relative',
                                         cursor: 'pointer',
-                                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        transition: 'all 0.2s ease',
                                         border: isSelected ? '2px solid var(--accent-purple)' : '1px solid var(--border-primary)',
-                                        background: isSelected ? 'rgba(139, 92, 246, 0.05)' : 'var(--bg-glass)',
-                                        boxShadow: isSelected && isYearly ? '0 0 20px rgba(139, 92, 246, 0.3)' : 'none',
-                                        transform: isSelected && !isMobile ? 'scale(1.05)' : 'scale(1)',
-                                        padding: '24px 16px',
-                                        textAlign: 'center',
+                                        background: isSelected ? 'rgba(139, 92, 246, 0.08)' : 'var(--bg-card)',
+                                        borderRadius: '16px',
+                                        padding: '12px 16px',
                                         display: 'flex',
-                                        flexDirection: 'column',
-                                        opacity: isSelected ? 1 : 0.7
+                                        alignItems: 'center',
+                                        flexDirection: 'row',
+                                        gap: '12px'
                                     }}
                                 >
+                                    {/* Desktop & Mobile: Badge top center or right */}
                                     {plan.badge && (
                                         <div style={{
                                             position: 'absolute',
-                                            top: -12,
-                                            left: '50%',
-                                            transform: 'translateX(-50%)',
-                                            background: 'linear-gradient(90deg, #d946ef 0%, #8b5cf6 100%)',
+                                            top: '-10px',
+                                            right: '16px',
+                                            background: 'var(--gradient-primary)',
                                             color: 'white',
                                             fontSize: '0.65rem',
                                             fontWeight: 800,
-                                            padding: '4px 12px',
-                                            borderRadius: '12px',
+                                            padding: '4px 10px',
+                                            borderRadius: '8px',
                                             whiteSpace: 'nowrap',
-                                            boxShadow: '0 4px 10px rgba(139, 92, 246, 0.4)',
-                                            letterSpacing: '0.05em'
+                                            letterSpacing: '0.03em',
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                            zIndex: 2
                                         }}>
                                             {plan.badge}
                                         </div>
                                     )}
 
-                                    <div style={{ marginBottom: 16 }}>
-                                        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>{plan.title}</div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{plan.subtitle}</div>
+                                    {/* Radio indicator */}
+                                    <div style={{ flexShrink: 0 }}>
+                                        {isSelected ? (
+                                            <CheckCircle2 size={24} style={{ color: 'var(--accent-purple)' }} fill="var(--accent-purple)" stroke="white" />
+                                        ) : (
+                                            <Circle size={24} style={{ color: 'var(--text-muted)' }} />
+                                        )}
                                     </div>
 
-                                    <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                        <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'white', lineHeight: 1 }}>
-                                            {plan.price}
+                                    {/* Content Wrapper */}
+                                    <div className="flex w-full" style={{ alignItems: 'center', gap: '12px' }}>
+                                        {/* Title area */}
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap' }}>
+                                                <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                                    {plan.title}
+                                                </span>
+                                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                                    {plan.subtitle}
+                                                </span>
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.3 }}>
+                                                {plan.desc}
+                                            </div>
                                         </div>
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>
-                                            / {plan.period}
+
+                                        {/* Price area */}
+                                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>
+                                                {plan.price}
+                                            </div>
+                                            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                                                / {plan.period}
+                                            </div>
                                         </div>
                                     </div>
-
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 'auto', lineHeight: 1.4 }}>
-                                        {plan.desc}
-                                    </div>
-
-                                    {/* Selection Indicator */}
-                                    <div style={{
-                                        width: 20, height: 20, borderRadius: '50%',
-                                        border: isSelected ? '6px solid var(--accent-purple)' : '2px solid var(--border-secondary)',
-                                        margin: '16px auto 0',
-                                        background: 'var(--bg-primary)',
-                                        transition: 'all 0.2s ease'
-                                    }} />
                                 </div>
                             );
                         })}
@@ -211,15 +215,14 @@ export default function ProUpgradeModal({ onClose }) {
                             onClick={handleUpgrade}
                             style={{
                                 padding: '16px',
-                                fontSize: '1.1rem',
+                                fontSize: '1.05rem',
                                 fontWeight: 800,
                                 borderRadius: '16px',
-                                background: 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)',
+                                background: 'var(--gradient-primary)',
                                 border: 'none',
-                                boxShadow: '0 10px 25px -5px rgba(139, 92, 246, 0.5)',
                                 color: 'white',
-                                marginBottom: '16px',
-                                transition: 'all 0.3s ease'
+                                marginBottom: '12px',
+                                transition: 'all 0.2s ease'
                             }}
                         >
                             Şimdi Yükselt
@@ -230,7 +233,7 @@ export default function ProUpgradeModal({ onClose }) {
                             color: 'var(--text-muted)',
                             lineHeight: 1.5,
                             margin: 0,
-                            padding: '0 20px'
+                            padding: '0 10px'
                         }}>
                             Ödeme App Store / Google Play hesabınızdan alınır. Abonelikleri cihaz ayarlarınızdan istediğiniz zaman iptal edebilirsiniz.
                         </p>
