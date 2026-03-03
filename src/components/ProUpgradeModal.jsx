@@ -1,8 +1,9 @@
-import { Check, Star, Zap, Download, Bell, LayoutDashboard, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { X, CheckCircle2, Star } from 'lucide-react';
 
 export default function ProUpgradeModal({ onClose }) {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 480);
+    const [selectedPlan, setSelectedPlan] = useState('pro-yearly');
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 480);
@@ -11,164 +12,229 @@ export default function ProUpgradeModal({ onClose }) {
     }, []);
 
     const features = [
+        "Tüm ekran reklamlarını sonsuza dek kaldırın.",
+        "Bireysel ve Grup masraflarını PDF olarak dışa aktarın.",
+        "Gelişmiş bütçe grafikleri ve kişi bazlı raporlar."
+    ];
+
+    const plans = [
         {
-            icon: Download,
-            title: 'Detaylı PDF Raporları',
-            desc: 'Tüm grup harcamalarını ve bireysel ekstrenizi PDF formatında indirin.',
-            color: 'var(--accent-cyan)'
+            id: 'ad-free',
+            title: 'Reklamsız',
+            subtitle: '(Ömür Boyu)',
+            price: '149 ₺',
+            period: 'Tek Seferlik',
+            desc: 'Sadece reklamları kaldırır. Pro özellikler içermez.'
         },
         {
-            icon: Bell,
-            title: 'Kolay Paylaşım & Hatırlatma',
-            desc: 'Tahsilat raporlarını doğrudan WhatsApp ile tek dokunuşta paylaşın.',
-            color: 'var(--accent-emerald)'
+            id: 'pro-yearly',
+            title: 'Pro',
+            subtitle: '(Yıllık)',
+            price: '299 ₺',
+            period: 'Yıl',
+            desc: 'Aylık sadece 24.90 TL\'ye gelir',
+            badge: 'EN İYİ FIRSAT - %50 TASARRUF'
         },
         {
-            icon: LayoutDashboard,
-            title: 'Görsel Harcama Analizleri',
-            desc: 'Hangi kategoriye ne kadar harcandığını gösteren grafiklere anında erişin.',
-            color: 'var(--accent-purple)'
-        },
-        {
-            icon: Zap,
-            title: 'Reklamsız Deneyim',
-            desc: 'Araya giren veya ekranı kaplayan hiçbir reklam olmadan temiz bir deneyim yaşayın.',
-            color: 'var(--accent-rose)'
+            id: 'pro-monthly',
+            title: 'Pro',
+            subtitle: '(Aylık)',
+            price: '49 ₺',
+            period: 'Ay',
+            desc: 'İstediğin zaman iptal et.'
         }
     ];
+
+    const handleUpgrade = () => {
+        alert('Ödeme altyapısı entegre edilecek: ' + selectedPlan);
+        // onClose();
+    };
 
     return (
         <div className="modal-overlay animate-fade-in" onClick={onClose} style={{
             zIndex: 1100,
-            padding: isMobile ? '20px 16px' : '20px',
+            padding: isMobile ? '20px 16px' : '40px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(5, 8, 15, 0.75)',
-            backdropFilter: 'blur(8px)'
+            background: 'rgba(5, 8, 15, 0.85)',
+            backdropFilter: 'blur(10px)'
         }}>
-            <div className="modal-content" onClick={e => e.stopPropagation()} style={{
+            <div className="modal-content animate-fade-in-up" onClick={e => e.stopPropagation()} style={{
                 width: '100%',
-                maxWidth: '440px',
-                maxHeight: '85vh',
-                padding: 0,
+                maxWidth: '600px',
+                maxHeight: '90vh',
                 overflowY: 'auto',
                 overflowX: 'hidden',
-                background: 'rgb(10, 15, 28)',
-                borderRadius: '32px',
-                border: 'none',
-                boxShadow: 'none',
+                background: 'var(--bg-primary)',
+                borderRadius: '24px',
+                border: '1px solid var(--border-primary)',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
-                position: 'relative',
-                animation: 'modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                outline: 'none'
+                padding: 0
             }}>
-                {/* Header section with gradient */}
-                <div style={{
-                    background: 'linear-gradient(135deg, #312e81 0%, #1e1b4b 100%)',
-                    padding: isMobile ? 'var(--space-xl) var(--space-lg)' : 'var(--space-2xl) var(--space-xl)',
-                    textAlign: 'center',
-                    position: 'relative',
-                    flexShrink: 0
-                }}>
-                    <button
-                        className="btn btn-ghost btn-icon"
-                        onClick={onClose}
-                        style={{ position: 'absolute', top: 16, right: 16, color: 'rgba(255,255,255,0.5)', zIndex: 10 }}
-                    >
-                        <X size={20} />
-                    </button>
+                {/* Close Button */}
+                <button
+                    className="btn btn-ghost btn-icon"
+                    onClick={onClose}
+                    style={{ position: 'absolute', top: 16, right: 16, zIndex: 10, color: 'var(--text-secondary)' }}
+                >
+                    <X size={24} />
+                </button>
 
+                {/* Header */}
+                <div style={{
+                    padding: isMobile ? '40px 24px 24px' : '48px 32px 32px',
+                    textAlign: 'center',
+                    background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0) 100%)'
+                }}>
                     <div style={{
-                        width: isMobile ? 60 : 80, height: isMobile ? 60 : 80, borderRadius: '20px',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        backdropFilter: 'blur(10px)',
+                        width: 64, height: 64, borderRadius: '20px',
+                        background: 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        margin: '0 auto var(--space-lg)',
-                        border: 'none',
-                        boxShadow: 'none'
+                        margin: '0 auto 20px',
+                        boxShadow: '0 10px 25px -5px rgba(139, 92, 246, 0.5)'
                     }}>
-                        <Star size={isMobile ? 32 : 40} color="#f59e0b" fill="#f59e0b" />
+                        <Star size={32} color="white" fill="white" />
                     </div>
 
-                    <h2 style={{ color: 'white', fontSize: isMobile ? 'var(--font-2xl)' : 'var(--font-3xl)', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
-                        CoBill <span className="text-gradient" style={{ background: 'linear-gradient(to right, #f59e0b, #fbbf24)' }}>Pro</span>
+                    <h2 style={{
+                        fontSize: isMobile ? '1.5rem' : '2rem',
+                        fontWeight: 800,
+                        margin: '0 0 16px',
+                        lineHeight: 1.2,
+                        background: 'linear-gradient(to right, #fff, #cbd5e1)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        letterSpacing: '-0.02em'
+                    }}>
+                        CoBill deneyiminizi <br /> sınırların ötesine taşıyın.
                     </h2>
-                    <p style={{ color: 'rgba(255,255,255,0.6)', marginTop: 'var(--space-sm)', fontSize: isMobile ? '0.9rem' : '1rem' }}>
-                        Finansal kontrolünüzü bir üst seviyeye taşıyın.
-                    </p>
-                </div>
 
-                <div style={{ padding: isMobile ? 'var(--space-xl)' : 'var(--space-2xl)', flex: 1 }}>
-                    <div className="flex flex-col gap-lg mb-xl">
-                        {features.map((f, i) => (
-                            <div key={i} className="flex gap-md animate-fade-in-up" style={{ animationDelay: `${i * 0.1}s` }}>
-                                <div style={{
-                                    width: 40, height: 40, borderRadius: '10px',
-                                    background: 'rgba(255,255,255,0.03)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    color: f.color, flexShrink: 0,
-                                    border: '1px solid rgba(255,255,255,0.05)'
-                                }}>
-                                    <f.icon size={20} />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <h4 style={{ color: 'white', margin: '0 0 2px', fontSize: '0.95rem', fontWeight: 600 }}>{f.title}</h4>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', lineHeight: 1.3, margin: 0 }}>{f.desc}</p>
-                                </div>
+                    <div className="flex flex-col gap-sm" style={{ textAlign: 'left', maxWidth: '400px', margin: '0 auto' }}>
+                        {features.map((feature, i) => (
+                            <div key={i} className="flex items-start gap-md">
+                                <CheckCircle2 size={20} style={{ color: 'var(--accent-purple)', flexShrink: 0, marginTop: 2 }} />
+                                <span style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.4 }}>
+                                    {feature}
+                                </span>
                             </div>
                         ))}
                     </div>
+                </div>
 
-                    <div style={{
-                        background: 'rgba(255, 255, 255, 0.02)',
-                        padding: 'var(--space-md) var(--space-lg)',
-                        borderRadius: '16px',
-                        marginBottom: 'var(--space-lg)',
-                        border: 'none',
-                        boxShadow: 'none',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                    }}>
-                        <div>
-                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Aylık Abonelik</div>
-                            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'white' }}>29,99₺ <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 400 }}>/ay</span></div>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                            <span className="badge badge-purple" style={{ fontSize: '10px' }}>PRO AKTİF</span>
-                        </div>
+                {/* Pricing Cards */}
+                <div style={{ padding: isMobile ? '0 20px 24px' : '0 32px 32px' }}>
+                    <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-md mb-2xl`}>
+                        {plans.map(plan => {
+                            const isSelected = selectedPlan === plan.id;
+                            const isYearly = plan.id === 'pro-yearly';
+
+                            return (
+                                <div
+                                    key={plan.id}
+                                    className="glass-card"
+                                    onClick={() => setSelectedPlan(plan.id)}
+                                    style={{
+                                        flex: 1,
+                                        position: 'relative',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        border: isSelected ? '2px solid var(--accent-purple)' : '1px solid var(--border-primary)',
+                                        background: isSelected ? 'rgba(139, 92, 246, 0.05)' : 'var(--bg-glass)',
+                                        boxShadow: isSelected && isYearly ? '0 0 20px rgba(139, 92, 246, 0.3)' : 'none',
+                                        transform: isSelected && !isMobile ? 'scale(1.05)' : 'scale(1)',
+                                        padding: '24px 16px',
+                                        textAlign: 'center',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        opacity: isSelected ? 1 : 0.7
+                                    }}
+                                >
+                                    {plan.badge && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: -12,
+                                            left: '50%',
+                                            transform: 'translateX(-50%)',
+                                            background: 'linear-gradient(90deg, #d946ef 0%, #8b5cf6 100%)',
+                                            color: 'white',
+                                            fontSize: '0.65rem',
+                                            fontWeight: 800,
+                                            padding: '4px 12px',
+                                            borderRadius: '12px',
+                                            whiteSpace: 'nowrap',
+                                            boxShadow: '0 4px 10px rgba(139, 92, 246, 0.4)',
+                                            letterSpacing: '0.05em'
+                                        }}>
+                                            {plan.badge}
+                                        </div>
+                                    )}
+
+                                    <div style={{ marginBottom: 16 }}>
+                                        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>{plan.title}</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{plan.subtitle}</div>
+                                    </div>
+
+                                    <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'white', lineHeight: 1 }}>
+                                            {plan.price}
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>
+                                            / {plan.period}
+                                        </div>
+                                    </div>
+
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 'auto', lineHeight: 1.4 }}>
+                                        {plan.desc}
+                                    </div>
+
+                                    {/* Selection Indicator */}
+                                    <div style={{
+                                        width: 20, height: 20, borderRadius: '50%',
+                                        border: isSelected ? '6px solid var(--accent-purple)' : '2px solid var(--border-secondary)',
+                                        margin: '16px auto 0',
+                                        background: 'var(--bg-primary)',
+                                        transition: 'all 0.2s ease'
+                                    }} />
+                                </div>
+                            );
+                        })}
                     </div>
 
-                    <button
-                        className="btn btn-primary w-full btn-lg"
-                        style={{
-                            background: 'var(--gradient-primary)',
-                            border: 'none',
-                            fontSize: '1rem',
-                            fontWeight: 700,
-                            padding: '14px',
-                            boxShadow: 'none',
-                            transition: 'all 0.2s ease',
-                            marginBottom: 'var(--space-md)'
-                        }}
-                        onClick={() => {
-                            alert("Bize olan güvenin için teşekkürler! \nŞu anda geliştirme aşamasındayız, Pro özelliklerini hesabında ücretsiz test etmen için hemen aktif ediyoruz.");
-                            onClose();
-                        }}
-                    >
-                        Ücretsiz Beta'yı Dene
-                    </button>
+                    {/* CTA Section */}
+                    <div style={{ textAlign: 'center' }}>
+                        <button
+                            className="btn btn-primary w-full"
+                            onClick={handleUpgrade}
+                            style={{
+                                padding: '16px',
+                                fontSize: '1.1rem',
+                                fontWeight: 800,
+                                borderRadius: '16px',
+                                background: 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)',
+                                border: 'none',
+                                boxShadow: '0 10px 25px -5px rgba(139, 92, 246, 0.5)',
+                                color: 'white',
+                                marginBottom: '16px',
+                                transition: 'all 0.3s ease'
+                            }}
+                        >
+                            Şimdi Yükselt
+                        </button>
 
-                    <p style={{
-                        textAlign: 'center',
-                        color: 'var(--text-muted)',
-                        fontSize: '0.75rem',
-                        margin: 0
-                    }}>
-                        Geliştirme sürecinde limitler tamamen kaldırılmıştır.
-                    </p>
+                        <p style={{
+                            fontSize: '0.7rem',
+                            color: 'var(--text-muted)',
+                            lineHeight: 1.5,
+                            margin: 0,
+                            padding: '0 20px'
+                        }}>
+                            Ödeme App Store / Google Play hesabınızdan alınır. Abonelikleri cihaz ayarlarınızdan istediğiniz zaman iptal edebilirsiniz.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
