@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { formatCurrency } from '../utils/currencyUtils';
 import { formatDate } from '../utils/helpers';
-import { Wallet, Trash2, Calendar } from 'lucide-react';
+import { Wallet, Trash2, Calendar, Sparkles } from 'lucide-react';
 import ProUpgradeModal from '../components/ProUpgradeModal';
 import ExpenseFilterSort from '../components/ExpenseFilterSort';
 
@@ -16,8 +16,8 @@ const PERSONAL_CATEGORIES = {
 };
 
 export default function PersonalWallet() {
-    const { state, dispatch } = useApp();
     const [showProModal, setShowProModal] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
     const isPro = state.members[state.currentUser]?.isPro;
 
     const now = new Date();
@@ -44,6 +44,32 @@ export default function PersonalWallet() {
         }
     };
 
+    const handleExportPDF = async () => {
+        if (!isPro) {
+            setShowProModal(true);
+            return;
+        }
+
+        setIsGenerating(true);
+        try {
+            // Dynamically import to reduce bundle size if not used
+            const { generatePersonalPDF } = await import('../utils/pdfExport');
+            const { sharePDF } = await import('../utils/helpers');
+
+            const member = state.members[state.currentUser];
+            const base64PDF = await generatePersonalPDF(member, state.personalExpenses);
+
+            const monthName = now.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' }).replace(/\s+/g, '_');
+            await sharePDF(base64PDF, `CoBill_Kisisel_Ekstre_${monthName}.pdf`);
+
+        } catch (error) {
+            console.error('PDF Export Error:', error);
+            alert('PDF oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     // Use ExpenseFilterSort hook
     const { filteredExpenses, filterUI, emptyState } = ExpenseFilterSort({
         expenses: state.personalExpenses,
@@ -54,11 +80,24 @@ export default function PersonalWallet() {
 
     return (
         <div className="animate-fade-in" style={{ maxWidth: 700, margin: '0 auto' }}>
-            <div className="page-header">
+            <div className="page-header flex justify-between items-center">
                 <div>
                     <h2>💳 Cüzdan</h2>
                     <p className="page-subtitle">Bireysel harcamalarınız</p>
                 </div>
+                <button
+                    className={`btn btn-sm ${isPro ? 'btn-secondary' : 'btn-pro'} ${isGenerating ? 'opacity-50' : ''}`}
+                    onClick={handleExportPDF}
+                    disabled={isGenerating}
+                    style={{ fontSize: '0.78rem', padding: '6px 12px' }}
+                >
+                    {isGenerating ? 'Hazırlanıyor...' : (
+                        <div className="flex items-center gap-xs">
+                            Ekstre İndir
+                            {!isPro && <Sparkles size={12} />}
+                        </div>
+                    )}
+                </button>
             </div>
 
             {/* Monthly Summary Card — always shows real total */}
