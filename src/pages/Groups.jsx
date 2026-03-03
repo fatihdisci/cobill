@@ -108,7 +108,7 @@ export default function Groups() {
     };
 
     return (
-        <div className="animate-fade-in">
+        <div>
             <div className="page-header">
                 <div>
                     <h2>
