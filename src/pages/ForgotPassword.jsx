@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { Mail, ArrowLeft } from 'lucide-react';
+import splashScreenImg from '../../assets/splash.png';
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState('');
@@ -60,9 +61,9 @@ export default function ForgotPassword() {
                 </div>
                 <div className="flex flex-col items-center mb-xl">
                     <img
-                        src="/icon.png"
+                        src={splashScreenImg}
                         alt="CoBill Logo"
-                        style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 'var(--space-md)' }}
+                        style={{ width: 250, height: 250, objectFit: 'contain', marginBottom: 'var(--space-md)' }}
                     />
                     <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>Şifremi Unuttum</h2>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textAlign: 'center' }}>

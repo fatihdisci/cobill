@@ -80,7 +80,7 @@ function App() {
         position: 'fixed', inset: 0, backgroundColor: '#0a0e1a', zIndex: 9999,
         display: 'flex', alignItems: 'center', justifyContent: 'center'
       }}>
-        <img src={splashScreenImg} alt="CoBill Yükleniyor" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', animation: 'pulse 2s infinite' }} />
+        <img src={splashScreenImg} alt="CoBill Yükleniyor" style={{ width: '250px', height: '250px', objectFit: 'contain', animation: 'pulse 2s infinite' }} />
       </div>
     );
   }

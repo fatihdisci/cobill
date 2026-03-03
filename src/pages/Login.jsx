@@ -67,7 +67,7 @@ export default function Login() {
                     <img
                         src={splashScreenImg}
                         alt="CoBill Logo"
-                        style={{ width: 140, height: 140, objectFit: 'contain', marginBottom: 'var(--space-md)' }}
+                        style={{ width: 250, height: 250, objectFit: 'contain', marginBottom: 'var(--space-md)' }}
                     />
                     <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>CoBill'e Giriş Yapın</h2>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textAlign: 'center' }}>
