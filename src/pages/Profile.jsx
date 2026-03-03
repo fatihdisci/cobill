@@ -6,12 +6,14 @@ import {
     Eye, EyeOff
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from 'react-i18next';
 import { getAvatarColor, getInitials } from '../utils/helpers';
 import { auth } from '../config/firebase';
 import { updatePassword } from 'firebase/auth';
 
 export default function Profile() {
     const { state, dispatch } = useApp();
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const currentUser = state.members[state.currentUser];
 
@@ -38,7 +40,7 @@ export default function Profile() {
 
     // Settings States
     const [reminderFrequency, setReminderFrequency] = useState(state.settings?.reminderFrequency || 'never');
-    const [language, setLanguage] = useState(state.settings?.language || 'TR');
+    const [language, setLanguage] = useState(i18n.language?.toUpperCase() === 'EN' ? 'EN' : 'TR');
 
     const formatIBAN = (value) => {
         const cleaned = value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
@@ -98,8 +100,11 @@ export default function Profile() {
             type: 'UPDATE_MEMBER',
             payload: { id: state.currentUser, settings: newSettings }
         });
+        // i18n dil değiştirme
+        const langCode = language.toLowerCase();
+        i18n.changeLanguage(langCode);
         setExpanded(null);
-        alert('Uygulama ayarları başarıyla kaydedildi.');
+        alert(t('settings.saved'));
     };
 
     const handleSaveSecurity = async (e) => {
