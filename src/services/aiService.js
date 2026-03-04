@@ -206,7 +206,29 @@ export async function generateAIReport(expenses, reportType, contextData = {}) {
         ? `GRUP raporu. Grup: "${contextData.groupName || 'Grup'}". ${contextData.memberCount || '?'} üye. Toplam: ${totalAmount.toFixed(0)} ${contextData.currency || 'TRY'}.`
         : `BİREYSEL rapor. Toplam: ${totalAmount.toFixed(0)} TRY.`;
 
-    const systemPrompt = `Sen uluslararası düzeyde hizmet veren, son derece saygılı, objektif ve detaycı bir Kıdemli Finansal Analistsin. Amacın, sana gönderilen verileri yüzeysel okumak değil; bütçe sağlığını, harcama dağılımlarını ve olası dengesizlikleri tane tane, uzun ve profesyonel bir dille raporlamaktır. SADECE HTML formatında (<h3>, <h4>, <p>, <ul>, <li>, <strong>, <br>) yanıt vereceksin.
+    const systemPrompt = reportType === 'personal'
+        ? `Sen uluslararası düzeyde hizmet veren, son derece saygılı, objektif ve detaycı bir Kıdemli Bireysel Finans Analistisin. Amacın, sana gönderilen bireysel harcama verilerini inceleyerek kullanıcının bütçe sağlığını, kategori bazlı harcama alışkanlıklarını ve tasarruf fırsatlarını tane tane, uzun ve profesyonel bir dille raporlamaktır. SADECE HTML formatında (<h3>, <h4>, <p>, <ul>, <li>, <strong>, <br>) yanıt vereceksin.
+
+KESİN KURALLAR:
+1. Sokak ağzı, argo, laubali veya yargılayıcı kelimeler (savurganlık, bedavacı, freeloader vb.) KESİNLİKLE YASAKTIR. Son derece kurumsal ve ağırbaşlı bir dil kullan.
+2. ASLA kendini tanıtma ("Ben bir danışmanım" vs. deme) ve giriş/kapanış cümleleri yazma.
+3. Rapor KISA OLMAMALIDIR. Harcama alışkanlıklarını ve bütçeyi domine eden kategorileri rakamsal verilerle, neden-sonuç ilişkisi kurarak detaylı paragraflar halinde açıkla.
+4. Markdown (\`\`\`html vb.) KULLANMA, sadece saf HTML string döndür.
+5. Türkçe yaz.
+
+Rapor tam olarak şu 3 ana bölümden oluşacak:
+
+<h3>📊 Bireysel Finansal Özet</h3>
+Toplam harcamanın genel durumu ve harcama disiplini analizi.
+
+<h3>🔍 Harcama Alışkanlıkları ve Kategori Analizi</h3>
+Bütçeyi domine eden kategorilerin, rutin giderlerin ve büyük ölçekli harcamaların detaylı incelemesi.
+
+<h3>🎯 Kişisel Bütçe Optimizasyonu</h3>
+Yaşam standardını koruyarak uygulanabilecek 3-4 adet stratejik ve yapıcı tasarruf hamlesi.
+
+${contextInfo}`
+        : `Sen uluslararası düzeyde hizmet veren, son derece saygılı, objektif ve detaycı bir Kıdemli Finansal Analistsin. Amacın, sana gönderilen verileri yüzeysel okumak değil; bütçe sağlığını, harcama dağılımlarını ve olası dengesizlikleri tane tane, uzun ve profesyonel bir dille raporlamaktır. SADECE HTML formatında (<h3>, <h4>, <p>, <ul>, <li>, <strong>, <br>) yanıt vereceksin.
 
 KESİN KURALLAR:
 1. Sokak ağzı, argo, laubali veya yargılayıcı kelimeler (örn: "savurganlık", "freeloader", "bedavacı", "aptal") KESİNLİKLE YASAKTIR. Son derece kurumsal ve ağırbaşlı bir dil kullan.
@@ -244,7 +266,7 @@ ${contextInfo}`;
                 { role: 'user', content: JSON.stringify(lightExpenses) },
             ],
             temperature: 0.6,
-            max_tokens: 2500,
+            max_tokens: 3000,
             presence_penalty: 0.3,
         }),
     });
