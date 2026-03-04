@@ -19,11 +19,13 @@ import ProUpgradeModal from '../components/ProUpgradeModal';
 import { generateGroupPDF } from '../utils/pdfGenerator';
 import { sharePDF } from '../utils/fileService';
 import ExpenseFilterSort from '../components/ExpenseFilterSort';
+import { useTranslation } from 'react-i18next';
 
 export default function GroupDetail() {
     const { groupId } = useParams();
     const navigate = useNavigate();
     const { state, dispatch } = useApp();
+    const { t } = useTranslation();
 
     const [showMembers, setShowMembers] = useState(false);
     const [showExpenseForm, setShowExpenseForm] = useState(false);
@@ -38,9 +40,9 @@ export default function GroupDetail() {
         return (
             <div className="empty-state animate-fade-in">
                 <div className="empty-icon">🔍</div>
-                <h3>Grup bulunamadı</h3>
+                <h3>{t('groups.groupNotFound')}</h3>
                 <button className="btn btn-secondary mt-lg" onClick={() => navigate('/groups')}>
-                    <ArrowLeft size={16} /> Gruplara Dön
+                    <ArrowLeft size={16} /> {t('groups.backToGroups')}
                 </button>
             </div>
         );
@@ -63,14 +65,14 @@ export default function GroupDetail() {
     });
 
     const handleDeleteGroup = () => {
-        if (window.confirm(`"${group.name}" grubunu silmek istediğinize emin misiniz?`)) {
+        if (window.confirm(t('groups.deleteGroupConfirm', { name: group.name }))) {
             dispatch({ type: 'DELETE_GROUP', payload: groupId });
             navigate('/groups');
         }
     };
 
     const handleLeaveGroup = () => {
-        if (window.confirm(`"${group.name}" grubundan çıkmak istediğinize emin misiniz?`)) {
+        if (window.confirm(t('groups.leaveGroupConfirm', { name: group.name }))) {
             dispatch({ type: 'REMOVE_MEMBER_FROM_GROUP', payload: { groupId, memberId: state.currentUser } });
             navigate('/groups');
         }
@@ -82,7 +84,7 @@ export default function GroupDetail() {
 
     const handleDeleteExpense = (expense) => {
         if (!canDeleteExpense(expense)) return;
-        if (window.confirm(`"${expense.description}" tutarındaki bu masrafı silmek istediğinize emin misiniz?`)) {
+        if (window.confirm(t('groups.deleteExpenseConfirm', { desc: expense.description }))) {
             dispatch({ type: 'DELETE_EXPENSE', payload: expense.id });
         }
     };
@@ -112,7 +114,7 @@ export default function GroupDetail() {
             await sharePDF(base64PDF, `CoBill_${group.name.replace(/\s+/g, '_')}_Rapor.pdf`);
         } catch (error) {
             console.error('PDF Export Error:', error);
-            alert('PDF oluşturulurken bir hata oluştu.');
+            alert(t('groups.pdfError'));
         } finally {
             setIsGenerating(false);
         }
@@ -135,23 +137,23 @@ export default function GroupDetail() {
                             gap: 'var(--space-md)'
                         }}>
                             {group.name}
-                            {!isAdmin && <span className="badge badge-secondary" style={{ fontSize: '0.65rem' }}>Paylaşılan</span>}
+                            {!isAdmin && <span className="badge badge-secondary" style={{ fontSize: '0.65rem' }}>{t('groups.shared')}</span>}
                         </h2>
                         <p className="page-subtitle" style={{ paddingLeft: 'var(--space-md)' }}>
-                            {group.description || `${groupMembers.length} üye`}
+                            {group.description || `${groupMembers.length} ${t('common.user')}`}
                         </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-sm" style={{ overflowX: 'auto', marginTop: 'var(--space-md)', paddingBottom: 'var(--space-xs)', flexWrap: 'nowrap' }}>
                     <button className={`btn btn-sm ${isPro ? 'btn-pro-active' : 'btn-pro-gold'}`} onClick={handleExportPDF} disabled={isGenerating} style={{ flexShrink: 0, whiteSpace: 'nowrap', padding: '4px 10px', minHeight: '34px', fontSize: '0.78rem' }}>
-                        <FileText size={13} /> {isGenerating ? '...' : 'PDF İndir'}
+                        <FileText size={13} /> {isGenerating ? '...' : t('groups.downloadPdf')}
                         <span className={`badge ${isPro ? 'badge-pro-active' : 'badge-pro-gold'}`} style={{ marginLeft: 4, padding: '1px 5px', fontSize: '8px' }}>PRO</span>
                     </button>
                     <button className="btn btn-secondary btn-sm" onClick={() => setShowMembers(true)} style={{ flexShrink: 0, whiteSpace: 'nowrap', padding: '4px 10px', minHeight: '34px', fontSize: '0.78rem' }}>
-                        <UserPlus size={13} /> Üyeler
+                        <UserPlus size={13} /> {t('groups.members')}
                     </button>
                     <button className="btn btn-primary btn-sm" onClick={() => setShowExpenseForm(true)} style={{ flexShrink: 0, whiteSpace: 'nowrap', padding: '4px 10px', minHeight: '34px', fontSize: '0.78rem', boxShadow: 'none' }}>
-                        <PlusCircle size={13} /> Masraf
+                        <PlusCircle size={13} /> {t('groups.expense')}
                     </button>
                     {isAdmin ? (
                         <button className="btn btn-ghost btn-icon btn-sm" onClick={handleDeleteGroup} title="Grubu Sil" style={{ flexShrink: 0, minHeight: '34px', width: '34px', height: '34px', padding: 0 }}>
@@ -168,20 +170,20 @@ export default function GroupDetail() {
             {/* Quick Stats */}
             <div className="grid grid-3 mb-xl mobile-scroller" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
                 <div className="stat-card animate-fade-in-up stagger-1">
-                    <div className="stat-label">Toplam Harcama</div>
+                    <div className="stat-label">{t('groups.totalExpense')}</div>
                     <div className="stat-value text-gradient">{formatCurrency(totalSpent, group.currency)}</div>
                 </div>
                 <div className="stat-card animate-fade-in-up stagger-2">
-                    <div className="stat-label">Üye Sayısı</div>
+                    <div className="stat-label">{t('groups.memberCount')}</div>
                     <div className="stat-value" style={{ color: 'var(--accent-cyan-light)' }}>
                         {groupMembers.length}
                         <span style={{ fontSize: 'var(--font-sm)', fontWeight: 400, color: 'var(--text-muted)', marginLeft: 6 }}>
-                            ({groupMembers.filter(m => m.isGhost).length} hayalet)
+                            {t('groups.ghostCount', { count: groupMembers.filter(m => m.isGhost).length })}
                         </span>
                     </div>
                 </div>
                 <div className="stat-card animate-fade-in-up stagger-3">
-                    <div className="stat-label">Tekrarlayan</div>
+                    <div className="stat-label">{t('groups.recurring')}</div>
                     <div className="stat-value" style={{ color: 'var(--accent-amber-light)' }}>
                         {recurringExpenses.length}
                     </div>
@@ -190,7 +192,7 @@ export default function GroupDetail() {
 
             {/* Member Balances */}
             <div className="glass-card static-card mb-xl">
-                <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Üye Bakiyeleri</h4>
+                <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>{t('groups.memberBalances')}</h4>
                 <div className="flex flex-col gap-sm">
                     {groupMembers.map((member, i) => {
                         const balance = balances[member.id] || 0;
@@ -210,10 +212,10 @@ export default function GroupDetail() {
                                         <div>
                                             <div className="text-sm font-semibold flex items-center gap-sm flex-wrap">
                                                 {member.name}
-                                                {member.isGhost && <span className="badge badge-ghost"><Ghost size={9} /> Hayalet</span>}
+                                                {member.isGhost && <span className="badge badge-ghost"><Ghost size={9} /> {t('groups.ghost')}</span>}
                                             </div>
                                             {!hasIban && (
-                                                <div className="text-xs text-tertiary mt-xs">IBAN bilgisi yok</div>
+                                                <div className="text-xs text-tertiary mt-xs">{t('groups.noIban')}</div>
                                             )}
                                         </div>
                                         <div className="text-sm font-bold" style={{
@@ -230,21 +232,21 @@ export default function GroupDetail() {
                                                 <button
                                                     className={`btn btn-sm ${copyFeedback[member.id] ? 'btn-success' : 'btn-secondary'}`}
                                                     onClick={() => handleCopyIBAN(member.iban, member.id)}
-                                                    title="IBAN Kopyala"
+                                                    title={t('groups.copyIban')}
                                                 >
                                                     {copyFeedback[member.id] ? (
-                                                        <><Check size={12} /> Kopyalandı!</>
+                                                        <><Check size={12} /> {t('groups.copied')}</>
                                                     ) : (
-                                                        <><Copy size={12} /> IBAN Kopyala</>
+                                                        <><Copy size={12} /> {t('groups.copyIban')}</>
                                                     )}
                                                 </button>
                                             ) : (
                                                 <button
                                                     className="btn btn-sm btn-ghost"
                                                     onClick={() => setShowMembers(true)}
-                                                    title="IBAN Ekle"
+                                                    title={t('groups.addIban')}
                                                 >
-                                                    <Edit2 size={12} /> IBAN Ekle
+                                                    <Edit2 size={12} /> {t('groups.addIban')}
                                                 </button>
                                             )}
                                         </div>
@@ -271,25 +273,25 @@ export default function GroupDetail() {
             {/* Sections */}
             <div className="flex flex-col gap-xl">
                 <div className="glass-card static-card">
-                    <h4 className="mb-lg flex items-center gap-sm">💰 Sadeleştirilmiş Borçlar</h4>
+                    <h4 className="mb-lg flex items-center gap-sm">💰 {t('groups.simplifiedDebts')}</h4>
                     <DebtSummary groupId={groupId} />
                 </div>
 
                 <div className="glass-card static-card">
-                    <h4 className="flex items-center gap-sm" style={{ marginBottom: 'var(--space-md)' }}>📋 Harcama Geçmişi</h4>
+                    <h4 className="flex items-center gap-sm" style={{ marginBottom: 'var(--space-md)' }}>📋 {t('groups.expenseHistory')}</h4>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
                         {groupFilterUI}
-                        <span className="badge badge-purple">{filteredGroupExpenses.length} masraf</span>
+                        <span className="badge badge-purple">{filteredGroupExpenses.length} {t('groups.expense').toLowerCase()}</span>
                     </div>
                     <div className="hide-mobile">
                         <table className="data-table">
                             <thead>
                                 <tr>
-                                    <th>Açıklama</th>
-                                    <th>Kategori</th>
-                                    <th>Ödeyen</th>
-                                    <th>Tarih</th>
-                                    <th style={{ textAlign: 'right' }}>Tutar</th>
+                                    <th>{t('groups.description')}</th>
+                                    <th>{t('groups.category')}</th>
+                                    <th>{t('groups.paidBy')}</th>
+                                    <th>{t('groups.date')}</th>
+                                    <th style={{ textAlign: 'right' }}>{t('groups.amount')}</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -361,12 +363,12 @@ export default function GroupDetail() {
                 </div>
 
                 <div className="glass-card static-card">
-                    <h4 className="mb-lg flex items-center gap-sm">📊 Kişi Başı Harcama</h4>
+                    <h4 className="mb-lg flex items-center gap-sm">📊 {t('groups.perPersonExpense')}</h4>
                     <MemberBalanceChart groupId={groupId} />
                 </div>
 
                 <div className="glass-card static-card">
-                    <h4 className="mb-lg flex items-center gap-sm">🕐 Aktivite Akışı</h4>
+                    <h4 className="mb-lg flex items-center gap-sm">🕐 {t('groups.activityFeed')}</h4>
                     <ActivityFeed groupId={groupId} limit={20} />
                 </div>
             </div>
@@ -380,7 +382,7 @@ export default function GroupDetail() {
                 <div className="modal-overlay" onClick={() => setShowExpenseForm(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 560 }}>
                         <div className="modal-header">
-                            <h3>Masraf Ekle</h3>
+                            <h3>{t('groups.addExpenseTitle')}</h3>
                             <button className="btn btn-ghost btn-icon" onClick={() => setShowExpenseForm(false)}>✕</button>
                         </div>
                         <ExpenseForm groupId={groupId} onClose={() => setShowExpenseForm(false)} />

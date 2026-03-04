@@ -14,9 +14,11 @@ import { formatCurrency } from '../utils/currencyUtils';
 import DateFilterBar from '../components/DateFilterBar';
 import { getDateRange, filterByDateRange } from '../utils/dateFilterUtils';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function Groups() {
     const { state, dispatch } = useApp();
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [showNew, setShowNew] = useState(false);
     const [name, setName] = useState('');
@@ -54,7 +56,7 @@ export default function Groups() {
             iconBg: 'rgba(16, 185, 129, 0.15)',
             iconColor: 'var(--accent-emerald)',
             value: formatCurrency(totalOwedToYou, 'TRY'),
-            label: 'Sana Borçlu',
+            label: t('dashboard.owedToYou'),
             gradient: 'var(--gradient-success)',
         },
         {
@@ -62,7 +64,7 @@ export default function Groups() {
             iconBg: 'rgba(244, 63, 94, 0.15)',
             iconColor: 'var(--accent-rose)',
             value: formatCurrency(totalYouOwe, 'TRY'),
-            label: 'Senin Borcun',
+            label: t('dashboard.youOwe'),
             gradient: 'var(--gradient-danger)',
         },
         {
@@ -70,7 +72,7 @@ export default function Groups() {
             iconBg: 'rgba(139, 92, 246, 0.15)',
             iconColor: 'var(--accent-purple)',
             value: formatCurrency(totalExpenses, 'TRY'),
-            label: 'Toplam Harcama',
+            label: t('dashboard.totalExpense'),
             gradient: 'var(--gradient-primary)',
         },
         {
@@ -78,7 +80,7 @@ export default function Groups() {
             iconBg: 'rgba(245, 158, 11, 0.15)',
             iconColor: 'var(--accent-amber)',
             value: pendingSettlements.toString(),
-            label: 'Bekleyen Ödeme',
+            label: t('dashboard.pendingSettlement'),
             gradient: 'var(--gradient-danger)',
         },
     ];
@@ -116,11 +118,11 @@ export default function Groups() {
             <div className="page-header">
                 <div>
                     <h2>
-                        Merhaba, <span className="text-gradient">
-                            {state.members[state.currentUser]?.name?.split(' ')[0] || 'Kullanıcı'}
+                        {t('dashboard.greeting')} <span className="text-gradient">
+                            {state.members[state.currentUser]?.name?.split(' ')[0] || t('common.user')}
                         </span> 👋
                     </h2>
-                    <p className="page-subtitle">Grup masraflarının özeti</p>
+                    <p className="page-subtitle">{t('groups.subtitle')}</p>
                 </div>
                 <div className="flex gap-sm">
                     <button
@@ -131,7 +133,7 @@ export default function Groups() {
                             minHeight: '36px', fontSize: '0.82rem', borderRadius: 'var(--radius-md)',
                         }}
                     >
-                        <SlidersHorizontal size={14} /> Filtrele
+                        <SlidersHorizontal size={14} /> {t('groups.filter')}
                         {(dateFilter.startDate || dateFilter.endDate) && (
                             <span style={{
                                 background: 'var(--gradient-primary)', color: 'white',
@@ -144,7 +146,7 @@ export default function Groups() {
                         )}
                     </button>
                     <button className="btn btn-primary" onClick={() => setShowNew(true)}>
-                        <PlusCircle size={16} /> Yeni Grup
+                        <PlusCircle size={16} /> {t('groups.newGroup')}
                     </button>
                 </div>
             </div>
@@ -153,7 +155,7 @@ export default function Groups() {
             {state.invitations && state.invitations.length > 0 && (
                 <div className="glass-card mb-xl animate-fade-in-up" style={{ border: '1px solid rgba(245, 158, 11, 0.3)', background: 'var(--bg-card)' }}>
                     <h4 className="flex items-center gap-sm mb-lg" style={{ color: 'var(--accent-amber-light)' }}>
-                        <MailCheck size={18} /> Bekleyen Davetler
+                        <MailCheck size={18} /> {t('dashboard.pendingInvitations')}
                         <span className="badge badge-amber" style={{ marginLeft: 'auto' }}>{state.invitations.length}</span>
                     </h4>
                     <div className="flex flex-col gap-md">
@@ -166,7 +168,7 @@ export default function Groups() {
                             }}>
                                 <div style={{ flex: 1 }}>
                                     <div className="text-sm font-semibold">
-                                        <strong>{inv.invitedByName || 'Birisi'}</strong> seni <strong>"{inv.groupName}"</strong> grubuna davet etti.
+                                        <strong>{inv.invitedByName || t('common.user')}</strong> {t('dashboard.invitedBy')} <strong>"{inv.groupName}"</strong>.
                                     </div>
                                     <div className="text-xs text-muted mt-xs">
                                         {inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('tr-TR') : ''}
@@ -180,14 +182,14 @@ export default function Groups() {
                                             payload: { invitationId: inv.id, invitation: inv }
                                         })}
                                     >
-                                        <UserCheck size={14} /> Kabul Et
+                                        <UserCheck size={14} /> {t('dashboard.accept')}
                                     </button>
                                     <button
                                         className="btn btn-ghost btn-sm"
                                         onClick={() => dispatch({ type: 'REJECT_INVITATION', payload: inv.id })}
                                         style={{ color: 'var(--accent-rose)' }}
                                     >
-                                        <X size={14} /> Reddet
+                                        <X size={14} /> {t('dashboard.reject')}
                                     </button>
                                 </div>
                             </div>
@@ -222,19 +224,19 @@ export default function Groups() {
                 {/* Left: Groups */}
                 <div style={{ minWidth: 0 }}>
                     <div className="flex items-center justify-between mb-lg">
-                        <h3>Grupların</h3>
-                        <span className="badge badge-purple">{state.groups.length} grup</span>
+                        <h3>{t('dashboard.yourGroups')}</h3>
+                        <span className="badge badge-purple">{state.groups.length}</span>
                     </div>
 
                     {state.groups.length === 0 ? (
                         <div className="glass-card animate-fade-in-up flex flex-col items-center text-center" style={{ padding: 'var(--space-2xl) var(--space-xl)' }}>
                             <Users size={40} style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-md)', opacity: 0.5 }} />
-                            <h4 style={{ marginBottom: 'var(--space-xs)', color: 'var(--text-primary)' }}>Henüz grubun yok</h4>
+                            <h4 style={{ marginBottom: 'var(--space-xs)', color: 'var(--text-primary)' }}>{t('dashboard.noGroupsYet')}</h4>
                             <p className="text-sm text-muted" style={{ marginBottom: 'var(--space-lg)', maxWidth: 260 }}>
-                                Arkadaşlarınla ortak masrafları takip etmek için ilk grubunu oluştur.
+                                {t('dashboard.createFirstGroup')}
                             </p>
                             <button className="btn btn-primary flex items-center gap-sm" onClick={() => setShowNew(true)}>
-                                <PlusCircle size={16} /> Yeni Grup Oluştur
+                                <PlusCircle size={16} /> {t('dashboard.createNewGroup')}
                             </button>
                         </div>
                     ) : (
@@ -255,7 +257,7 @@ export default function Groups() {
                                 onClick={() => setShowNew(true)}
                             >
                                 <PlusCircle size={32} style={{ color: 'var(--text-muted)', marginBottom: 8 }} />
-                                <p className="text-sm text-muted">Yeni Grup Oluştur</p>
+                                <p className="text-sm text-muted">{t('dashboard.createNewGroup')}</p>
                             </div>
                         </div>
                     )}
@@ -265,10 +267,10 @@ export default function Groups() {
                         <div className="glass-card animate-fade-in-up flex flex-col justify-center items-center text-center relative overflow-hidden mt-lg" style={{ padding: 'var(--space-lg)', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
                             <div style={{ position: 'absolute', top: -40, right: -40, width: 90, height: 90, borderRadius: '50%', background: 'var(--gradient-primary)', filter: 'blur(35px)', opacity: 0.5 }}></div>
                             <Zap size={24} style={{ color: 'var(--accent-purple)', marginBottom: 'var(--space-xs)' }} />
-                            <h4 style={{ marginBottom: 4, fontSize: '0.9rem' }}>Reklamsız Deneyim</h4>
-                            <p className="text-xs text-muted mb-md">Kesintisiz ve premium özellikler için Pro'ya geçin.</p>
+                            <h4 style={{ marginBottom: 4, fontSize: '0.9rem' }}>{t('dashboard.adFreeExperience')}</h4>
+                            <p className="text-xs text-muted mb-md">{t('dashboard.adFreeDesc')}</p>
                             <button className="btn btn-pro-active" style={{ fontSize: '0.8rem', padding: '6px 12px', minHeight: '36px' }} onClick={() => setShowProModal(true)}>
-                                Hemen İncele
+                                {t('dashboard.checkNow')}
                             </button>
                             <span style={{ position: 'absolute', top: 6, right: 10, fontSize: '9px', background: 'var(--bg-glass)', border: '1px solid var(--border-primary)', padding: '2px 6px', borderRadius: 4, color: 'var(--text-tertiary)', letterSpacing: 0.5 }}>AD</span>
                         </div>
@@ -278,7 +280,7 @@ export default function Groups() {
                 {/* Right: Activity + Chart */}
                 <div className="flex flex-col gap-xl sidebar-panel" style={{ minWidth: 0 }}>
                     <div className="glass-card" style={{ minWidth: 0 }}>
-                        <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Son Aktiviteler</h4>
+                        <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>{t('dashboard.recentActivities')}</h4>
                         <div style={{ width: '100%', overflowX: 'auto' }}>
                             <ActivityFeed limit={8} />
                         </div>
@@ -286,7 +288,7 @@ export default function Groups() {
 
                     {totalExpenses > 0 && (
                         <div className="glass-card" style={{ minWidth: 0 }}>
-                            <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>Harcama Dağılımı</h4>
+                            <h4 className="mb-lg" style={{ fontSize: 'var(--font-base)' }}>{t('dashboard.spendingDistribution')}</h4>
                             <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '4px', position: 'relative' }}>
                                 <SpendingByCategory dateFilter={dateFilter} />
                             </div>
@@ -313,11 +315,11 @@ export default function Groups() {
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
                             <h4 style={{ fontWeight: 700, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <SlidersHorizontal size={18} /> Filtrele
+                                <SlidersHorizontal size={18} /> {t('groups.filter')}
                             </h4>
                             <div style={{ display: 'flex', gap: '8px' }}>
                                 <button className="btn btn-ghost btn-sm" onClick={() => setDateFilter(getDateRange('all'))} style={{ fontSize: '0.75rem', padding: '4px 10px', minHeight: '30px' }}>
-                                    <RotateCcw size={12} /> Sıfırla
+                                    <RotateCcw size={12} /> {t('groups.reset')}
                                 </button>
                                 <button className="btn btn-ghost btn-icon" onClick={() => setShowFilterModal(false)} style={{ width: '30px', height: '30px', minHeight: '30px', padding: 0 }}>
                                     <X size={16} />
@@ -328,13 +330,13 @@ export default function Groups() {
 
                         <div style={{ marginBottom: 'var(--space-xl)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 'var(--space-md)', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                Tarih Seçimi
+                                {t('groups.dateSelection')}
                             </div>
                             <DateFilterBar onChange={setDateFilter} defaultPreset="all" />
                         </div>
 
                         <button className="btn btn-primary w-full" onClick={() => setShowFilterModal(false)} style={{ padding: '12px', fontSize: '1rem', fontWeight: 700, borderRadius: 'var(--radius-lg)', marginTop: 'var(--space-md)' }}>
-                            Sonuçları Göster
+                            {t('groups.showResults')}
                         </button>
                     </div>
                 </div>,
@@ -346,22 +348,22 @@ export default function Groups() {
                 <div className="modal-overlay" onClick={() => setShowNew(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3>Yeni Grup Oluştur</h3>
+                            <h3>{t('dashboard.newGroupModalTitle')}</h3>
                             <button className="btn btn-ghost btn-icon" onClick={() => setShowNew(false)}>✕</button>
                         </div>
                         <form onSubmit={handleCreate} className="flex flex-col gap-lg">
                             <div className="form-group">
-                                <label className="form-label">Grup Adı</label>
-                                <input className="form-input" placeholder="Örn: 🏠 Ev Masrafları" value={name}
+                                <label className="form-label">{t('dashboard.groupName')}</label>
+                                <input className="form-input" placeholder={t('dashboard.groupNamePlaceholder')} value={name}
                                     onChange={e => setName(e.target.value)} required />
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Açıklama</label>
-                                <input className="form-input" placeholder="Kısa açıklama..." value={desc}
+                                <label className="form-label">{t('dashboard.description')}</label>
+                                <input className="form-input" placeholder={t('dashboard.descriptionPlaceholder')} value={desc}
                                     onChange={e => setDesc(e.target.value)} />
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Para Birimi</label>
+                                <label className="form-label">{t('dashboard.currency')}</label>
                                 <select className="form-select" value={currency} onChange={e => setCurrency(e.target.value)}>
                                     <option value="TRY">₺ TRY</option>
                                     <option value="USD">$ USD</option>
@@ -370,7 +372,7 @@ export default function Groups() {
                                 </select>
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Renk</label>
+                                <label className="form-label">{t('dashboard.color')}</label>
                                 <div className="flex gap-sm">
                                     {colors.map(c => (
                                         <div key={c} onClick={() => setColor(c)} style={{
@@ -382,7 +384,7 @@ export default function Groups() {
                                 </div>
                             </div>
                             <button type="submit" className="btn btn-primary w-full btn-lg">
-                                <Users size={16} /> Oluştur
+                                <Users size={16} /> {t('common.save')}
                             </button>
                         </form>
                     </div>

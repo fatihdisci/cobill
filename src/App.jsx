@@ -12,7 +12,6 @@ import AddExpense from './pages/AddExpense';
 import Profile from './pages/Profile';
 import Settlements from './pages/Settlements';
 import Reports from './pages/Reports';
-import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -112,7 +111,6 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/settlements" element={<Settlements />} />
             <Route path="/reports" element={<Reports />} />
-            <Route path="/settings" element={<Settings />} />
             <Route path="/wallet" element={<PersonalWallet />} />
             <Route path="/add-personal" element={<AddPersonalExpense />} />
           </Route>

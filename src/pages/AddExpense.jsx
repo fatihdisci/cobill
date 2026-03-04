@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Receipt } from 'lucide-react';
 import ExpenseForm from '../components/ExpenseForm';
+import { useTranslation } from 'react-i18next';
 
 export default function AddExpense() {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     return (
         <div className="animate-fade-in" style={{ maxWidth: 600, margin: '0 auto' }}>
@@ -13,8 +15,8 @@ export default function AddExpense() {
                         <ArrowLeft size={18} />
                     </button>
                     <div>
-                        <h2>Masraf Ekle</h2>
-                        <p className="page-subtitle">Yeni bir harcama kaydet</p>
+                        <h2>{t('expenseForm.addExpenseTitle')}</h2>
+                        <p className="page-subtitle">{t('expenseForm.addExpenseSubtitle')}</p>
                     </div>
                 </div>
             </div>

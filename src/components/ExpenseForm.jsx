@@ -6,10 +6,12 @@ import { generateId, CATEGORIES } from '../utils/helpers';
 import { getSupportedCurrencies } from '../utils/currencyUtils';
 import { showInterstitialAd } from '../utils/adService';
 import { addOneMonthSafely } from '../utils/recurringUtils';
+import { useTranslation } from 'react-i18next';
 
 export default function ExpenseForm({ groupId, onClose }) {
     const { state, dispatch } = useApp();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const currencies = getSupportedCurrencies();
 
     const group = groupId ? state.groups.find(g => g.id === groupId) : null;
@@ -21,7 +23,6 @@ export default function ExpenseForm({ groupId, onClose }) {
         currency: group?.currency || state.settings.defaultCurrency || 'TRY',
         paidBy: state.currentUser,
         splitType: 'equal',
-        splitAmong: group?.members || [],
         splitAmong: group?.members || [],
         category: 'other',
         isRecurring: false,
@@ -101,7 +102,7 @@ export default function ExpenseForm({ groupId, onClose }) {
             {/* Amount Input - Big style */}
             <div style={{ textAlign: 'center', padding: 'var(--space-xl) 0' }}>
                 <label className="form-label" style={{ marginBottom: 'var(--space-md)', display: 'block' }}>
-                    Tutar
+                    {t('expenseForm.amount')}
                 </label>
                 <div className="flex items-center justify-center gap-md">
                     <select
@@ -138,7 +139,7 @@ export default function ExpenseForm({ groupId, onClose }) {
                 </div>
                 {perPerson > 0 && (
                     <div className="text-sm text-muted mt-md animate-fade-in">
-                        Kişi başı: <strong style={{ color: 'var(--accent-cyan-light)' }}>
+                        {t('expenseForm.perPerson')} <strong style={{ color: 'var(--accent-cyan-light)' }}>
                             {perPerson.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {form.currency}
                         </strong>
                     </div>
@@ -147,10 +148,10 @@ export default function ExpenseForm({ groupId, onClose }) {
 
             {/* Description */}
             <div className="form-group">
-                <label className="form-label">Açıklama</label>
+                <label className="form-label">{t('expenseForm.description')}</label>
                 <input
                     className="form-input"
-                    placeholder="Örn: Öğle yemeği, Taksi, Fatura..."
+                    placeholder={t('expenseForm.descriptionPlaceholder')}
                     value={form.description}
                     onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
                     required
@@ -160,14 +161,14 @@ export default function ExpenseForm({ groupId, onClose }) {
             {/* Group Select (if not pre-selected) */}
             {!groupId && (
                 <div className="form-group">
-                    <label className="form-label">Grup</label>
+                    <label className="form-label">{t('expenseForm.group')}</label>
                     <select
                         className="form-select"
                         value={form.groupId}
                         onChange={e => handleGroupChange(e.target.value)}
                         required
                     >
-                        <option value="">Grup Seçin</option>
+                        <option value="">{t('expenseForm.selectGroup')}</option>
                         {state.groups.map(g => (
                             <option key={g.id} value={g.id}>{g.name}</option>
                         ))}
@@ -177,7 +178,7 @@ export default function ExpenseForm({ groupId, onClose }) {
 
             {/* Paid By */}
             <div className="form-group">
-                <label className="form-label">Ödeyen</label>
+                <label className="form-label">{t('expenseForm.paidBy')}</label>
                 <select
                     className="form-select"
                     value={form.paidBy}
@@ -193,7 +194,7 @@ export default function ExpenseForm({ groupId, onClose }) {
 
             {/* Category */}
             <div className="form-group">
-                <label className="form-label">Kategori</label>
+                <label className="form-label">{t('expenseForm.category')}</label>
                 <div className="flex flex-wrap gap-sm">
                     {Object.entries(CATEGORIES).map(([key, cat]) => (
                         <button
@@ -203,7 +204,7 @@ export default function ExpenseForm({ groupId, onClose }) {
                             onClick={() => setForm(prev => ({ ...prev, category: key }))}
                             style={{ fontSize: 'var(--font-sm)' }}
                         >
-                            {cat.icon} {cat.label}
+                            {cat.icon} {t(`wallet.categories.${key}`) || cat.label}
                         </button>
                     ))}
                 </div>
@@ -211,7 +212,7 @@ export default function ExpenseForm({ groupId, onClose }) {
 
             {/* Split Among */}
             <div className="form-group">
-                <label className="form-label">Paylaşılanlar</label>
+                <label className="form-label">{t('expenseForm.splitAmong')}</label>
                 <div className="flex flex-col gap-sm">
                     {groupMembers.map(m => (
                         <label
@@ -258,8 +259,8 @@ export default function ExpenseForm({ groupId, onClose }) {
                 <div className="flex items-center gap-sm">
                     <CalendarClock size={18} style={{ color: 'var(--accent-amber)' }} />
                     <div>
-                        <div className="text-sm font-medium">Tekrarlayan Masraf</div>
-                        <div className="text-xs text-muted">Aylık olarak otomatik hatırlatılır</div>
+                        <div className="text-sm font-medium">{t('expenseForm.recurring')}</div>
+                        <div className="text-xs text-muted">{t('expenseForm.recurringHint')}</div>
                     </div>
                 </div>
                 <div
@@ -270,7 +271,7 @@ export default function ExpenseForm({ groupId, onClose }) {
 
             {/* Submit */}
             <button type="submit" className="btn btn-primary btn-lg w-full" disabled={!form.amount || !form.description}>
-                <Receipt size={18} /> Masrafı Kaydet
+                <Receipt size={18} /> {t('expenseForm.saveExpense')}
             </button>
         </form>
     );

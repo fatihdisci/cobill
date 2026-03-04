@@ -15,8 +15,11 @@ const PERSONAL_CATEGORIES = {
     'Diğer': { icon: '📦', label: 'Diğer', color: 'var(--text-tertiary)' },
 };
 
+import { useTranslation } from 'react-i18next';
+
 export default function PersonalWallet() {
     const { state, dispatch } = useApp();
+    const { t } = useTranslation();
     const [showProModal, setShowProModal] = useState(false);
     const isPro = state.members[state.currentUser]?.isPro;
 
@@ -39,9 +42,19 @@ export default function PersonalWallet() {
     });
 
     const handleDelete = (id) => {
-        if (window.confirm('Bu harcamayı silmek istediğinize emin misiniz?')) {
+        if (window.confirm(t('wallet.deleteConfirm'))) {
             dispatch({ type: 'DELETE_PERSONAL_EXPENSE', payload: id });
         }
+    };
+
+    // Define categories inside component to use translations
+    const PERSONAL_CATEGORIES = {
+        Market: { icon: '🛒', label: t('wallet.categories.market'), color: 'var(--accent-emerald)' },
+        Fatura: { icon: '📋', label: t('wallet.categories.bill'), color: 'var(--accent-cyan)' },
+        'Eğitim': { icon: '📚', label: t('wallet.categories.education'), color: 'var(--accent-blue)' },
+        'Eğlence': { icon: '🎬', label: t('wallet.categories.entertainment'), color: 'var(--accent-purple)' },
+        'Ulaşım': { icon: '🚕', label: t('wallet.categories.transport'), color: 'var(--accent-amber)' },
+        'Diğer': { icon: '📦', label: t('wallet.categories.other'), color: 'var(--text-tertiary)' },
     };
 
     // Use ExpenseFilterSort hook
@@ -56,8 +69,8 @@ export default function PersonalWallet() {
         <div className="animate-fade-in" style={{ maxWidth: 700, margin: '0 auto' }}>
             <div className="page-header">
                 <div>
-                    <h2>💳 Cüzdan</h2>
-                    <p className="page-subtitle">Bireysel harcamalarınız</p>
+                    <h2>💳 {t('wallet.title')}</h2>
+                    <p className="page-subtitle">{t('wallet.subtitle')}</p>
                 </div>
             </div>
 
@@ -78,7 +91,7 @@ export default function PersonalWallet() {
                 <div style={{ fontSize: 'var(--font-3xl)', fontWeight: 900, marginBottom: 'var(--space-xs)' }} className="text-gradient">
                     {formatCurrency(totalThisMonth, 'TRY')}
                 </div>
-                <div className="text-sm text-muted">Bu ay toplam {thisMonthExpenses.length} harcama</div>
+                <div className="text-sm text-muted">{t('wallet.totalThisMonth')} {thisMonthExpenses.length} {t('wallet.expenses')}</div>
 
                 {/* Mini category bars */}
                 {Object.keys(categoryBreakdown).length > 0 && (
@@ -130,7 +143,7 @@ export default function PersonalWallet() {
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                     <div className="font-semibold text-sm truncate">{expense.title}</div>
                                     <div className="text-xs text-muted flex items-center gap-xs">
-                                        <span>{expense.category}</span>
+                                        <span>{PERSONAL_CATEGORIES[expense.category]?.label || t('wallet.categories.other')}</span>
                                         <span>·</span>
                                         <span>{formatDate(expense.date)}</span>
                                     </div>
@@ -154,8 +167,8 @@ export default function PersonalWallet() {
             ) : (
                 <div className="empty-state glass-card static-card">
                     <div className="empty-icon">💳</div>
-                    <h3>Henüz harcama yok</h3>
-                    <p className="text-sm mb-lg">Alt menüdeki + butonuna basarak bireysel harcama ekleyin.</p>
+                    <h3>{t('wallet.noExpensesYet')}</h3>
+                    <p className="text-sm mb-lg">{t('wallet.addExpenseHint')}</p>
                 </div>
             )}
 

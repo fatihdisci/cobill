@@ -12,9 +12,11 @@ import { SlidersHorizontal, RotateCcw } from 'lucide-react';
 import DateFilterBar from '../components/DateFilterBar';
 import { filterByDateRange, getDateRange } from '../utils/dateFilterUtils';
 import { createPortal } from 'react-dom';
+import { useTranslation, Trans } from 'react-i18next';
 
 export default function Reports() {
     const { state } = useApp();
+    const { t } = useTranslation();
     const [selectedGroup, setSelectedGroup] = useState(state.groups[0]?.id || '');
     const [showProModal, setShowProModal] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
@@ -44,6 +46,7 @@ export default function Reports() {
                     selectedGroup={selectedGroup}
                     setSelectedGroup={setSelectedGroup}
                     setShowProModal={setShowProModal}
+                    t={t}
                 />
                 {showProModal && <ProUpgradeModal onClose={() => setShowProModal(false)} />}
             </>
@@ -83,8 +86,8 @@ export default function Reports() {
         <div className="animate-fade-in relative">
             <div className="page-header">
                 <div>
-                    <h2>Raporlar <span className="badge badge-pro-gold" style={{ marginLeft: 8, verticalAlign: 'middle' }}>PRO</span></h2>
-                    <p className="page-subtitle">Harcama analizi ve dışa aktarma</p>
+                    <h2>{t('reports.pageTitle')} <span className="badge badge-pro-gold" style={{ marginLeft: 8, verticalAlign: 'middle' }}>PRO</span></h2>
+                    <p className="page-subtitle">{t('reports.pageSubtitle')}</p>
                 </div>
                 <div className="flex gap-sm">
                     <button
@@ -92,7 +95,7 @@ export default function Reports() {
                         onClick={() => setShowExportModal(true)}
                         disabled={reportTab === 'group' && !group}
                     >
-                        <Download size={14} /> Dışarı Aktar
+                        <Download size={14} /> {t('reports.export')}
                     </button>
                 </div>
             </div>
@@ -107,14 +110,14 @@ export default function Reports() {
                     onClick={() => setReportTab('group')}
                     style={{ flex: 1, borderRadius: 'var(--radius-md)', fontWeight: 600 }}
                 >
-                    👥 Grup Raporları
+                    👥 {t('reports.groupReports')}
                 </button>
                 <button
                     className={`btn btn-sm ${reportTab === 'personal' ? 'btn-primary' : 'btn-ghost'}`}
                     onClick={() => setReportTab('personal')}
                     style={{ flex: 1, borderRadius: 'var(--radius-md)', fontWeight: 600 }}
                 >
-                    👤 Bireysel Raporlar
+                    👤 {t('reports.personalReports')}
                 </button>
             </div>
 
@@ -128,7 +131,7 @@ export default function Reports() {
                     }}
                 >
                     <SlidersHorizontal size={14} />
-                    <span>Filtrele</span>
+                    <span>{t('reports.filter')}</span>
                     {(dateFilter.startDate || dateFilter.endDate) && (
                         <span style={{
                             background: 'var(--gradient-primary)', color: 'white',
@@ -145,7 +148,7 @@ export default function Reports() {
             {reportTab === 'group' ? (
                 <>
                     <div className="form-group mb-xl" style={{ maxWidth: 300 }}>
-                        <label className="form-label">Grup Seçin</label>
+                        <label className="form-label">{t('reports.selectGroup')}</label>
                         <select
                             className="form-select"
                             value={selectedGroup}
@@ -161,15 +164,15 @@ export default function Reports() {
                         <div className="flex flex-col gap-xl">
                             <div className="grid grid-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
                                 <div className="stat-card">
-                                    <div className="stat-label">Toplam Harcama</div>
+                                    <div className="stat-label">{t('reports.totalExpense')}</div>
                                     <div className="stat-value text-gradient">{formatCurrency(totalSpent, group.currency)}</div>
                                 </div>
                                 <div className="stat-card">
-                                    <div className="stat-label">Masraf Sayısı</div>
+                                    <div className="stat-label">{t('reports.expenseCount')}</div>
                                     <div className="stat-value" style={{ color: 'var(--accent-cyan-light)' }}>{expenses.length}</div>
                                 </div>
                                 <div className="stat-card">
-                                    <div className="stat-label">Kişi Başı Ortalama</div>
+                                    <div className="stat-label">{t('reports.averagePerPerson')}</div>
                                     <div className="stat-value" style={{ color: 'var(--accent-amber-light)' }}>
                                         {formatCurrency(totalSpent / Math.max(group.members.length, 1), group.currency)}
                                     </div>
@@ -178,20 +181,20 @@ export default function Reports() {
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--space-xl)' }} className="reports-grid">
                                 <div className="glass-card">
-                                    <h4 className="mb-lg">📊 Kategori Dağılımı</h4>
+                                    <h4 className="mb-lg">📊 {t('reports.categoryDistribution')}</h4>
                                     <SpendingByCategory groupId={selectedGroup} dateFilter={dateFilter} />
                                 </div>
                                 <div className="glass-card">
-                                    <h4 className="mb-lg">👥 Kişi Başı Harcama</h4>
+                                    <h4 className="mb-lg">👥 {t('reports.perPersonExpenseTitle')}</h4>
                                     <MemberBalanceChart groupId={selectedGroup} dateFilter={dateFilter} />
                                 </div>
                             </div>
 
                             <div className="glass-card hide-mobile">
-                                <h4 className="mb-lg">Kategori Detayları</h4>
+                                <h4 className="mb-lg">{t('reports.categoryDetails')}</h4>
                                 <table className="data-table">
                                     <thead>
-                                        <tr><th>Kategori</th><th style={{ textAlign: 'right' }}>Tutar</th><th style={{ textAlign: 'right' }}>Yüzde</th><th>Dağılım</th></tr>
+                                        <tr><th>{t('common.category')}</th><th style={{ textAlign: 'right' }}>{t('common.amount')}</th><th style={{ textAlign: 'right' }}>{t('reports.percentage')}</th><th>{t('reports.distribution')}</th></tr>
                                     </thead>
                                     <tbody>
                                         {Object.entries(categoryBreakdown).map(([cat, amount]) => {
@@ -199,7 +202,7 @@ export default function Reports() {
                                             const pct = totalSpent > 0 ? (amount / totalSpent * 100) : 0;
                                             return (
                                                 <tr key={cat}>
-                                                    <td><span className="flex items-center gap-sm"><span>{c.icon}</span>{c.label}</span></td>
+                                                    <td><span className="flex items-center gap-sm"><span>{c.icon}</span>{t(`wallet.categories.${cat}`) || c.label}</span></td>
                                                     <td style={{ textAlign: 'right' }}>{formatCurrency(amount, group.currency)}</td>
                                                     <td style={{ textAlign: 'right' }}>{pct.toFixed(1)}%</td>
                                                     <td><div className="progress-bar" style={{ width: 120 }}><div className="progress-fill" style={{ width: `${pct}%` }} /></div></td>
@@ -211,7 +214,7 @@ export default function Reports() {
                             </div>
 
                             <div className="glass-card">
-                                <h4 className="mb-lg">🤝 Grup Ödemeleri</h4>
+                                <h4 className="mb-lg">🤝 {t('reports.groupPayments')}</h4>
                                 {groupSettlements.length > 0 ? (
                                     <div className="flex flex-col gap-sm">
                                         {groupSettlements.map((s, i) => (
@@ -232,12 +235,12 @@ export default function Reports() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-center p-xl"><p className="text-muted text-sm">Henüz kaydedilmiş ödeme bulunmuyor.</p></div>
+                                    <div className="text-center p-xl"><p className="text-muted text-sm">{t('reports.noPayments')}</p></div>
                                 )}
                             </div>
                         </div>
                     ) : (
-                        <div className="text-center p-2xl"><p className="text-muted">Grup seçin.</p></div>
+                        <div className="text-center p-2xl"><p className="text-muted">{t('reports.pleaseSelectGroup')}</p></div>
                     )}
                 </>
             ) : (
@@ -245,21 +248,21 @@ export default function Reports() {
                 <div className="flex flex-col gap-xl">
                     <div className="grid grid-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
                         <div className="stat-card">
-                            <div className="stat-label">Toplam Bireysel Harcama</div>
+                            <div className="stat-label">{t('reports.totalPersonalExpense')}</div>
                             <div className="stat-value text-gradient">{formatCurrency(personalTotal, 'TRY')}</div>
                         </div>
                         <div className="stat-card">
-                            <div className="stat-label">Harcama Sayısı</div>
+                            <div className="stat-label">{t('reports.expenseCount')}</div>
                             <div className="stat-value" style={{ color: 'var(--accent-cyan-light)' }}>{state.personalExpenses.length}</div>
                         </div>
                         <div className="stat-card">
-                            <div className="stat-label">Kategori Sayısı</div>
+                            <div className="stat-label">{t('reports.categoryCount')}</div>
                             <div className="stat-value" style={{ color: 'var(--accent-amber-light)' }}>{Object.keys(personalCategoryBreakdown).length}</div>
                         </div>
                     </div>
 
                     <div className="glass-card">
-                        <h4 className="mb-lg">📊 Kategori Dağılımı</h4>
+                        <h4 className="mb-lg">📊 {t('reports.categoryDistribution')}</h4>
                         {Object.keys(personalCategoryBreakdown).length > 0 ? (
                             <div className="flex flex-col gap-md">
                                 {Object.entries(personalCategoryBreakdown)
@@ -279,7 +282,7 @@ export default function Reports() {
                                                 </div>
                                                 <div style={{ flex: 1 }}>
                                                     <div className="flex justify-between mb-xs">
-                                                        <span className="text-sm font-semibold">{cat}</span>
+                                                        <span className="text-sm font-semibold">{t(`wallet.categories.${cat}`) || cat}</span>
                                                         <span className="text-sm font-bold">{pct.toFixed(1)}%</span>
                                                     </div>
                                                     <div className="progress-bar" style={{ height: 8, borderRadius: 'var(--radius-full)', background: 'var(--bg-glass)' }}>
@@ -296,7 +299,7 @@ export default function Reports() {
                                     })}
                             </div>
                         ) : (
-                            <div className="text-center p-xl"><p className="text-muted text-sm">Henüz bireysel harcama bulunmuyor.</p></div>
+                            <div className="text-center p-xl"><p className="text-muted text-sm">{t('reports.noPersonalExpenses')}</p></div>
                         )}
                     </div>
                 </div>
@@ -313,6 +316,7 @@ export default function Reports() {
                     isGenerating={isGenerating}
                     reportTab={reportTab}
                     personalCategories={PERSONAL_CATS}
+                    t={t}
                 />
             )}
             {showProModal && <ProUpgradeModal onClose={() => setShowProModal(false)} />}
@@ -335,11 +339,11 @@ export default function Reports() {
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
                             <h4 style={{ fontWeight: 700, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <SlidersHorizontal size={18} /> Filtrele
+                                <SlidersHorizontal size={18} /> {t('reports.filter')}
                             </h4>
                             <div style={{ display: 'flex', gap: '8px' }}>
                                 <button className="btn btn-ghost btn-sm" onClick={() => setDateFilter(getDateRange('all'))} style={{ fontSize: '0.75rem', padding: '4px 10px', minHeight: '30px' }}>
-                                    <RotateCcw size={12} /> Sıfırla
+                                    <RotateCcw size={12} /> {t('reports.reset')}
                                 </button>
                                 <button className="btn btn-ghost btn-icon" onClick={() => setShowFilterModal(false)} style={{ width: '30px', height: '30px', minHeight: '30px', padding: 0 }}>
                                     <X size={16} />
@@ -350,13 +354,13 @@ export default function Reports() {
 
                         <div style={{ marginBottom: 'var(--space-xl)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 'var(--space-md)', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                Tarih Seçimi
+                                {t('reports.dateSelection')}
                             </div>
                             <DateFilterBar onChange={setDateFilter} defaultPreset="all" />
                         </div>
 
                         <button className="btn btn-primary w-full" onClick={() => setShowFilterModal(false)} style={{ padding: '12px', fontSize: '1rem', fontWeight: 700, borderRadius: 'var(--radius-lg)', marginTop: 'var(--space-md)' }}>
-                            Sonuçları Göster
+                            {t('reports.showResults')}
                         </button>
                     </div>
                 </div>,
@@ -366,20 +370,20 @@ export default function Reports() {
     );
 }
 
-function NonProReportsView({ groups, selectedGroup, setSelectedGroup, setShowProModal }) {
+function NonProReportsView({ groups, selectedGroup, setSelectedGroup, setShowProModal, t }) {
     const features = [
-        { icon: <PieChart size={18} />, color: 'var(--accent-purple)', title: 'Kategori Analizi', desc: 'Harcamaları kategorilere göre görselleştir' },
-        { icon: <Users size={18} />, color: 'var(--accent-cyan)', title: 'Kişi Bazlı Rapor', desc: 'Kim ne kadar harcadı, grafiklerle incele' },
-        { icon: <FileText size={18} />, color: 'var(--accent-amber)', title: 'Bireysel Ekstre', desc: 'Aylık bireysel masraflarınızı PDF olarak indirin' },
-        { icon: <Download size={18} />, color: 'var(--accent-emerald)', title: 'PDF Dışa Aktarma', desc: 'Tüm grup işlemlerini profesyonel PDF rapor olarak dışarı aktar' },
+        { icon: <PieChart size={18} />, color: 'var(--accent-purple)', title: t('reports.features.categoryAnalysis.title'), desc: t('reports.features.categoryAnalysis.desc') },
+        { icon: <Users size={18} />, color: 'var(--accent-cyan)', title: t('reports.features.personBased.title'), desc: t('reports.features.personBased.desc') },
+        { icon: <FileText size={18} />, color: 'var(--accent-amber)', title: t('reports.features.personalStatement.title'), desc: t('reports.features.personalStatement.desc') },
+        { icon: <Download size={18} />, color: 'var(--accent-emerald)', title: t('reports.features.pdfExport.title'), desc: t('reports.features.pdfExport.desc') },
     ];
 
     return (
         <div className="animate-fade-in" style={{ paddingBottom: 'var(--space-3xl)' }}>
             <div className="page-header">
                 <div>
-                    <h2>Raporlar</h2>
-                    <p className="page-subtitle">Detaylı harcama analizi ve dışa aktarma</p>
+                    <h2>{t('reports.pageTitle')}</h2>
+                    <p className="page-subtitle">{t('reports.nonProSubtitle')}</p>
                 </div>
             </div>
 
@@ -400,10 +404,10 @@ function NonProReportsView({ groups, selectedGroup, setSelectedGroup, setShowPro
                 </div>
 
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: 'var(--space-xs)', color: 'var(--text-primary)' }}>
-                    Pro Raporlarını Keşfet
+                    {t('reports.discoverPro')}
                 </h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: 1.6, maxWidth: 320, margin: '0 auto var(--space-xl)' }}>
-                    Harcamalarını analiz et, gruplarını yönet ve profesyonel raporlar oluştur.
+                    {t('reports.discoverProDesc')}
                 </p>
 
                 <button
@@ -415,7 +419,7 @@ function NonProReportsView({ groups, selectedGroup, setSelectedGroup, setShowPro
                     }}
                     onClick={() => setShowProModal(true)}
                 >
-                    <Star size={16} fill="currentColor" style={{ marginRight: 6 }} /> Pro'ya Yükselt
+                    <Star size={16} fill="currentColor" style={{ marginRight: 6 }} /> {t('reports.upgradeToPro')}
                 </button>
             </div>
 
@@ -446,12 +450,12 @@ function NonProReportsView({ groups, selectedGroup, setSelectedGroup, setShowPro
 }
 
 // Sub-components for better readability
-function ExportModal({ onClose, group, state, expenses, groupSettlements, setIsGenerating, isGenerating, reportTab, personalCategories }) {
+function ExportModal({ onClose, group, state, expenses, groupSettlements, setIsGenerating, isGenerating, reportTab, personalCategories, t }) {
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 400 }}>
                 <div className="modal-header mb-md">
-                    <h3 className="flex items-center gap-xs"><Download size={18} /> {reportTab === 'group' ? 'Grup Raporunu' : 'Bireysel Ekstreyi'} Dışarı Aktar</h3>
+                    <h3 className="flex items-center gap-xs"><Download size={18} /> {reportTab === 'group' ? t('reports.exportGroupReport') : t('reports.exportPersonalStatement')}</h3>
                     <button className="btn btn-ghost btn-icon" onClick={onClose}><X size={18} /></button>
                 </div>
                 <div className="flex flex-col gap-sm">
@@ -475,7 +479,7 @@ function ExportModal({ onClose, group, state, expenses, groupSettlements, setIsG
                                 });
 
                                 if (thisMonthExpenses.length === 0) {
-                                    alert('Bu ay için henüz harcama bulunmuyor.');
+                                    alert(t('reports.noExpensesThisMonth'));
                                     setIsGenerating(false);
                                     onClose();
                                     return;
@@ -493,23 +497,23 @@ function ExportModal({ onClose, group, state, expenses, groupSettlements, setIsG
                             }
                         } catch (error) {
                             console.error('PDF Export Error:', error);
-                            alert('PDF oluşturulurken bir hata oluştu.');
+                            alert(t('reports.pdfError'));
                         } finally {
                             setIsGenerating(false);
                             onClose();
                         }
                     }} disabled={isGenerating}>
                         <FileText size={18} style={{ color: 'var(--accent-cyan)' }} />
-                        {isGenerating ? 'PDF Hazırlanıyor...' : 'PDF İndir / Paylaş'}
+                        {isGenerating ? t('reports.preparingPdf') : t('reports.downloadSharePdf')}
                     </button>
                     <button className="btn btn-secondary w-full flex justify-start items-center gap-md" onClick={() => onClose()}>
-                        <MessageCircle size={18} style={{ color: 'var(--accent-emerald)' }} /> WhatsApp ile Gönder
+                        <MessageCircle size={18} style={{ color: 'var(--accent-emerald)' }} /> {t('reports.sendViaWhatsapp')}
                     </button>
                     <button className="btn btn-secondary w-full flex justify-start items-center gap-md" onClick={() => onClose()}>
-                        <Mail size={18} style={{ color: 'var(--accent-purple)' }} /> E-Posta ile Gönder
+                        <Mail size={18} style={{ color: 'var(--accent-purple)' }} /> {t('reports.sendViaEmail')}
                     </button>
                     <button className="btn btn-secondary w-full flex justify-start items-center gap-md" onClick={() => onClose()}>
-                        <Copy size={18} style={{ color: 'var(--text-secondary)' }} /> Metin Olarak Kopyala
+                        <Copy size={18} style={{ color: 'var(--text-secondary)' }} /> {t('reports.copyAsText')}
                     </button>
                 </div>
             </div>

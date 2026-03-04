@@ -76,7 +76,7 @@ export default function Profile() {
             payload: { id: state.currentUser, email: accountForm.email, phone: accountForm.phone }
         });
         setExpanded(null);
-        alert('Hesap bilgileri güncellendi.');
+        alert(t('profile.accountInfoUpdated'));
     };
 
     const handleFrequencyChange = (e) => {
@@ -110,35 +110,35 @@ export default function Profile() {
     const handleSaveSecurity = async (e) => {
         e.preventDefault();
         if (securityForm.newPass !== securityForm.confirmPass) {
-            alert('Yeni şifreler uyuşmuyor, lütfen tekrar deneyin.');
+            alert(t('profile.passwordsDoNotMatch'));
             return;
         }
         if (securityForm.newPass.length < 6) {
-            alert('Şifre en az 6 karakter olmalıdır.');
+            alert(t('profile.passwordMinLength'));
             return;
         }
 
         try {
             if (auth.currentUser && auth.currentUser.uid !== 'test-user-id') {
                 await updatePassword(auth.currentUser, securityForm.newPass);
-                alert('Güvenlik ayarlarınız başarıyla güncellendi.');
+                alert(t('profile.securityUpdated'));
             } else {
                 // Mock user
-                alert('Test hesabı: Şifreniz başarıyla güncellendi (Sanal işlem).');
+                alert(t('profile.testAccountMock'));
             }
             setSecurityForm({ currentPass: '', newPass: '', confirmPass: '' });
             setExpanded(null);
         } catch (error) {
             if (error.code === 'auth/requires-recent-login') {
-                alert('Güvenlik nedeniyle şifre değiştirmeden önce tekrar giriş yapmalısınız (Uygulamadan çıkıp tekrar girin).');
+                alert(t('profile.reauthRequired'));
             } else {
-                alert('Şifre güncellenirken hata oluştu: ' + error.message);
+                alert(t('profile.passwordError') + error.message);
             }
         }
     };
 
     const handleLogout = () => {
-        if (window.confirm('Hesabınızdan çıkış yapmak istediğinize emin misiniz?')) {
+        if (window.confirm(t('profile.logoutConfirm'))) {
             // Gerçek bir uygulamada token silinir vs.
             sessionStorage.removeItem('MOCK_FIREBASE_USER');
             // Normally you would sign out of Firebase here as well:
@@ -163,20 +163,20 @@ export default function Profile() {
                     {getInitials(currentUser?.name)}
                 </div>
                 <h2 style={{ fontSize: 'var(--font-2xl)', marginTop: 'var(--space-sm)' }}>
-                    {currentUser?.name || 'Kullanıcı Kimliği'}
+                    {currentUser?.name || t('profile.userIdentity')}
                 </h2>
             </div>
 
             {/* 2. Kendi IBAN Kartın */}
             <div className="glass-card stagger-1">
                 <div className="flex justify-between items-start mb-md">
-                    <span className="form-label" style={{ fontSize: 'var(--font-xs)' }}>Kendi IBAN Bilgin</span>
+                    <span className="form-label" style={{ fontSize: 'var(--font-xs)' }}>{t('profile.ownIbanInfo')}</span>
                     {!isEditingIban && currentUser?.iban && (
                         <button
                             className="btn btn-ghost btn-sm btn-icon"
                             onClick={handleCopyIBAN}
                             style={{ height: '32px', width: '32px' }}
-                            title="Kopyala"
+                            title={t('profile.copy')}
                         >
                             {copyFeedback ? <Check size={16} className="text-emerald" /> : <Copy size={16} />}
                         </button>
@@ -194,11 +194,11 @@ export default function Profile() {
                             autoFocus
                         />
                         <div className="flex gap-sm mt-xs">
-                            <button className="btn btn-primary btn-sm flex-1" onClick={handleSaveIban}>Kaydet</button>
+                            <button className="btn btn-primary btn-sm flex-1" onClick={handleSaveIban}>{t('common.save')}</button>
                             <button className="btn btn-secondary btn-sm" onClick={() => {
                                 setIsEditingIban(false);
                                 setTempIban(currentUser?.iban || '');
-                            }}>İptal</button>
+                            }}>{t('common.cancel')}</button>
                         </div>
                     </div>
                 ) : (
@@ -208,14 +208,14 @@ export default function Profile() {
                                 {currentUser?.iban ? (
                                     showIban ? currentUser.iban : currentUser.iban.replace(/^(.{2})(.+)(.{4})$/, (_, p1, p2, p3) => `${p1}**** **** **** ${p3}`)
                                 ) : (
-                                    <span className="text-muted italic">Kayıtlı IBAN bulunamadı</span>
+                                    <span className="text-muted italic">{t('profile.noIbanSaved')}</span>
                                 )}
                             </div>
                             {currentUser?.iban && (
                                 <button
                                     className="btn btn-ghost btn-sm btn-icon ml-xs"
                                     onClick={() => setShowIban(!showIban)}
-                                    title={showIban ? "Gizle" : "Göster"}
+                                    title={showIban ? t('settings.hide') : t('settings.show')}
                                     style={{ height: '24px', width: '24px' }}
                                 >
                                     {showIban ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -230,7 +230,7 @@ export default function Profile() {
                             }}
                             style={{ height: 'auto', padding: '4px 8px' }}
                         >
-                            <Edit2 size={12} style={{ marginRight: '4px' }} /> Düzenle
+                            <Edit2 size={12} style={{ marginRight: '4px' }} /> {t('common.edit')}
                         </button>
                     </div>
                 )}
@@ -245,8 +245,8 @@ export default function Profile() {
                         <div className="flex items-center gap-md">
                             <div className="icon-box purple"><User size={18} /></div>
                             <div className="flex flex-col">
-                                <span className="text-sm font-semibold">Hesap Bilgileri</span>
-                                <span className="text-xs text-muted">E-posta ve telefon numarası</span>
+                                <span className="text-sm font-semibold">{t('profile.accountInfo')}</span>
+                                <span className="text-xs text-muted">{t('profile.emailAndPhone')}</span>
                             </div>
                         </div>
                         {expanded === 'account' ? <ChevronDown size={16} className="text-muted" /> : <ChevronRight size={16} className="text-muted" />}
@@ -255,14 +255,14 @@ export default function Profile() {
                         <div className="animate-fade-in" style={expandableStyle}>
                             <form onSubmit={handleSaveAccount} className="flex flex-col gap-sm">
                                 <div className="form-group">
-                                    <label className="form-label text-xs">E-posta Adresi</label>
-                                    <input type="email" required className="form-input btn-sm" value={accountForm.email} onChange={(e) => setAccountForm({ ...accountForm, email: e.target.value })} placeholder="ornek@mail.com" />
+                                    <label className="form-label text-xs">{t('profile.emailAddress')}</label>
+                                    <input type="email" required className="form-input btn-sm" value={accountForm.email} onChange={(e) => setAccountForm({ ...accountForm, email: e.target.value })} placeholder={t('profile.exampleEmail')} />
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label text-xs">Telefon Numarası</label>
-                                    <input type="tel" className="form-input btn-sm" value={accountForm.phone} onChange={(e) => setAccountForm({ ...accountForm, phone: e.target.value })} placeholder="0555 555 55 55" />
+                                    <label className="form-label text-xs">{t('profile.phoneNumber')}</label>
+                                    <input type="tel" className="form-input btn-sm" value={accountForm.phone} onChange={(e) => setAccountForm({ ...accountForm, phone: e.target.value })} placeholder={t('profile.examplePhone')} />
                                 </div>
-                                <button type="submit" className="btn btn-primary btn-sm mt-xs">Güncelle</button>
+                                <button type="submit" className="btn btn-primary btn-sm mt-xs">{t('profile.update')}</button>
                             </form>
                         </div>
                     )}
@@ -273,9 +273,9 @@ export default function Profile() {
                         <div className="flex items-center gap-md">
                             <div className="icon-box amber"><Bell size={18} /></div>
                             <div className="flex flex-col">
-                                <span className="text-sm font-semibold">Bildirimler</span>
-                                <span className="text-xs text-muted">Borç Hatırlatıcı (
-                                    {reminderFrequency === 'daily' ? 'Her Gün' : reminderFrequency === 'weekly' ? 'Her Hafta' : 'Kapalı'}
+                                <span className="text-sm font-semibold">{t('profile.notifications')}</span>
+                                <span className="text-xs text-muted">{t('profile.debtReminder')} (
+                                    {reminderFrequency === 'daily' ? t('profile.everyDay') : reminderFrequency === 'weekly' ? t('profile.everyWeek') : t('profile.off')}
                                     )</span>
                             </div>
                         </div>
@@ -285,18 +285,18 @@ export default function Profile() {
                         <div className="animate-fade-in" style={expandableStyle}>
                             <div className="flex flex-col gap-sm">
                                 <div className="form-group">
-                                    <label className="form-label text-xs">Hatırlatma Sıklığı</label>
+                                    <label className="form-label text-xs">{t('profile.reminderFrequency')}</label>
                                     <select
                                         className="form-select btn-sm"
                                         value={reminderFrequency}
                                         onChange={handleFrequencyChange}
                                     >
-                                        <option value="never">Kapalı</option>
-                                        <option value="daily">Her Gün</option>
-                                        <option value="weekly">Her Hafta</option>
+                                        <option value="never">{t('profile.off')}</option>
+                                        <option value="daily">{t('profile.everyDay')}</option>
+                                        <option value="weekly">{t('profile.everyWeek')}</option>
                                     </select>
                                 </div>
-                                <span className="text-xs text-muted mt-xs">Ödenmemiş borçlarınız için size hatırlatma göndereceğiz.</span>
+                                <span className="text-xs text-muted mt-xs">{t('profile.reminderDesc')}</span>
                             </div>
                         </div>
                     )}
@@ -307,8 +307,8 @@ export default function Profile() {
                         <div className="flex items-center gap-md">
                             <div className="icon-box cyan"><Globe size={18} /></div>
                             <div className="flex flex-col">
-                                <span className="text-sm font-semibold">Uygulama Ayarları</span>
-                                <span className="text-xs text-muted">Dil ve Tema (<span style={{ fontFamily: 'monospace' }}>{language}</span>/Light)</span>
+                                <span className="text-sm font-semibold">{t('profile.appSettings')}</span>
+                                <span className="text-xs text-muted">{t('profile.languageAndTheme')} (<span style={{ fontFamily: 'monospace' }}>{language}</span>/Light)</span>
                             </div>
                         </div>
                         {expanded === 'settings' ? <ChevronDown size={16} className="text-muted" /> : <ChevronRight size={16} className="text-muted" />}
@@ -317,18 +317,18 @@ export default function Profile() {
                         <div className="animate-fade-in" style={expandableStyle}>
                             <form onSubmit={handleSaveSettings} className="flex flex-col gap-sm">
                                 <div className="form-group">
-                                    <label className="form-label text-xs">Dil Seçimi</label>
+                                    <label className="form-label text-xs">{t('profile.languageSelection')}</label>
                                     <select className="form-select btn-sm" value={language} onChange={e => setLanguage(e.target.value)}>
-                                        <option value="TR">Türkçe (TR)</option>
-                                        <option value="EN">English (EN)</option>
+                                        <option value="TR">{t('common.turkish')} (TR)</option>
+                                        <option value="EN">{t('common.english')} (EN)</option>
                                     </select>
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label text-xs">Arayüz Teması</label>
-                                    <input type="text" className="form-input btn-sm" value="Açık Tema (Minimalist)" disabled style={{ opacity: 0.7 }} />
-                                    <span className="text-xs text-muted mt-xs">CoBill, göz yorgunluğunu azaltan ve modern bir görünüm sunan açık tema kullanmaktadır. Tema sabittir.</span>
+                                    <label className="form-label text-xs">{t('profile.uiTheme')}</label>
+                                    <input type="text" className="form-input btn-sm" value={t('profile.lightThemeMin')} disabled style={{ opacity: 0.7 }} />
+                                    <span className="text-xs text-muted mt-xs">{t('profile.themeDesc')}</span>
                                 </div>
-                                <button type="submit" className="btn btn-primary btn-sm mt-xs">Ayarları Kaydet</button>
+                                <button type="submit" className="btn btn-primary btn-sm mt-xs">{t('profile.saveSettings')}</button>
                             </form>
                         </div>
                     )}
@@ -339,8 +339,8 @@ export default function Profile() {
                         <div className="flex items-center gap-md">
                             <div className="icon-box emerald"><Shield size={18} /></div>
                             <div className="flex flex-col">
-                                <span className="text-sm font-semibold">Güvenlik</span>
-                                <span className="text-xs text-muted">Şifre güncelle</span>
+                                <span className="text-sm font-semibold">{t('profile.security')}</span>
+                                <span className="text-xs text-muted">{t('profile.updatePasswordText')}</span>
                             </div>
                         </div>
                         {expanded === 'security' ? <ChevronDown size={16} className="text-muted" /> : <ChevronRight size={16} className="text-muted" />}
@@ -349,18 +349,18 @@ export default function Profile() {
                         <div className="animate-fade-in" style={expandableStyle}>
                             <form onSubmit={handleSaveSecurity} className="flex flex-col gap-sm">
                                 <div className="form-group">
-                                    <label className="form-label text-xs">Mevcut Şifre</label>
+                                    <label className="form-label text-xs">{t('profile.currentPass')}</label>
                                     <input type="password" required className="form-input btn-sm" value={securityForm.currentPass} onChange={(e) => setSecurityForm({ ...securityForm, currentPass: e.target.value })} placeholder="••••••••" />
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label text-xs">Yeni Şifre</label>
+                                    <label className="form-label text-xs">{t('profile.newPass')}</label>
                                     <input type="password" required className="form-input btn-sm" value={securityForm.newPass} onChange={(e) => setSecurityForm({ ...securityForm, newPass: e.target.value })} placeholder="••••••••" />
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label text-xs">Şifre Tekrar</label>
+                                    <label className="form-label text-xs">{t('profile.confirmPass')}</label>
                                     <input type="password" required className="form-input btn-sm" value={securityForm.confirmPass} onChange={(e) => setSecurityForm({ ...securityForm, confirmPass: e.target.value })} placeholder="••••••••" />
                                 </div>
-                                <button type="submit" className="btn btn-primary btn-sm mt-xs">Şifreyi Güncelle</button>
+                                <button type="submit" className="btn btn-primary btn-sm mt-xs">{t('profile.updatePasswordBtn')}</button>
                             </form>
                         </div>
                     )}
@@ -380,7 +380,7 @@ export default function Profile() {
                 }}
             >
                 <LogOut size={18} style={{ marginRight: '8px' }} />
-                Hesaptan Çıkış Yap
+                {t('profile.logout')}
             </button>
 
             {/* Inline Styles */}

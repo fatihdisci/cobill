@@ -1,0 +1,27 @@
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32m✓[39m 45 modules transformed.
+[31m✗[39m Build failed in 246ms
+[31merror during build:
+[31m[vite:esbuild] Transform failed with 1 error:
+C:/Users/fatih/Downloads/cobill/cobill/src/pages/AddPersonalExpense.jsx:8:9: ERROR: The symbol "addOneMonthSafely" has already been declared[31m
+file: [36mC:/Users/fatih/Downloads/cobill/cobill/src/pages/AddPersonalExpense.jsx:8:9[31m
+[33m
+[33mThe symbol "addOneMonthSafely" has already been declared[33m
+6  |  import { getSupportedCurrencies } from '../utils/currencyUtils';
+7  |  import { addOneMonthSafely } from '../utils/recurringUtils';
+8  |  import { addOneMonthSafely } from '../utils/recurringUtils';
+   |           ^
+9  |  import { useTranslation } from 'react-i18next';
+10 |  
+[31m
+    at failureErrorWithLog (C:\Users\fatih\Downloads\cobill\cobill\node_modules\esbuild\lib\main.js:1467:15)
+    at C:\Users\fatih\Downloads\cobill\cobill\node_modules\esbuild\lib\main.js:736:50
+    at responseCallbacks.<computed> (C:\Users\fatih\Downloads\cobill\cobill\node_modules\esbuild\lib\main.js:603:9)
+    at handleIncomingPacket (C:\Users\fatih\Downloads\cobill\cobill\node_modules\esbuild\lib\main.js:658:12)
+    at Socket.readFromStdout (C:\Users\fatih\Downloads\cobill\cobill\node_modules\esbuild\lib\main.js:581:7)
+    at Socket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)[39m

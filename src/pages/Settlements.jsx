@@ -6,9 +6,11 @@ import { formatCurrency } from '../utils/currencyUtils';
 import { getInitials, getAvatarColor, generateId } from '../utils/helpers';
 import { showInterstitialAd } from '../utils/adService';
 import NudgeButton from '../components/NudgeButton';
+import { useTranslation, Trans } from 'react-i18next';
 
 export default function Settlements() {
     const { state, dispatch } = useApp();
+    const { t } = useTranslation();
     const [filter, setFilter] = useState('pending'); // pending | all | paid
     const [pendingPayment, setPendingPayment] = useState(null);
 
@@ -79,8 +81,8 @@ export default function Settlements() {
         <div className="animate-fade-in">
             <div className="page-header">
                 <div>
-                    <h2>Ödemeler</h2>
-                    <p className="page-subtitle">Sadeleştirilmiş borç planı ve ödeme geçmişi</p>
+                    <h2>{t('settlements.pageTitle')}</h2>
+                    <p className="page-subtitle">{t('settlements.pageSubtitle')}</p>
                 </div>
             </div>
 
@@ -91,30 +93,30 @@ export default function Settlements() {
                         <Clock size={22} />
                     </div>
                     <div className="stat-value" style={{ color: 'var(--accent-amber-light)' }}>{pendingTx.length}</div>
-                    <div className="stat-label">Bekleyen Ödeme</div>
+                    <div className="stat-label">{t('settlements.pendingPayment')}</div>
                 </div>
                 <div className="stat-card animate-fade-in-up stagger-2">
                     <div className="stat-icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-emerald)' }}>
                         <CheckCircle2 size={22} />
                     </div>
                     <div className="stat-value" style={{ color: 'var(--accent-emerald-light)' }}>{history.length}</div>
-                    <div className="stat-label">Tamamlanan</div>
+                    <div className="stat-label">{t('settlements.completed')}</div>
                 </div>
                 <div className="stat-card animate-fade-in-up stagger-3">
                     <div className="stat-icon" style={{ background: 'rgba(139, 92, 246, 0.15)', color: 'var(--accent-purple)' }}>
                         <Zap size={22} />
                     </div>
                     <div className="stat-value text-gradient">{allTransactions.length}</div>
-                    <div className="stat-label">Toplam İşlem</div>
+                    <div className="stat-label">{t('settlements.totalTransactions')}</div>
                 </div>
             </div>
 
             {/* Filter Tabs */}
             <div className="flex gap-sm mb-xl">
                 {[
-                    { id: 'pending', label: 'Bekleyenler', count: pendingTx.length },
-                    { id: 'paid', label: 'Ödenmiş', count: history.length },
-                    { id: 'all', label: 'Tümü', count: allTransactions.length },
+                    { id: 'pending', label: t('settlements.pending'), count: pendingTx.length },
+                    { id: 'paid', label: t('settlements.paid'), count: history.length },
+                    { id: 'all', label: t('settlements.all'), count: allTransactions.length },
                 ].map(tab => (
                     <button
                         key={tab.id}
@@ -137,7 +139,7 @@ export default function Settlements() {
             {/* Pending Transactions */}
             {(filter === 'pending' || filter === 'all') && pendingTx.length > 0 && (
                 <div className="glass-card mb-xl">
-                    <h4 className="mb-lg">Bekleyen Ödemeler</h4>
+                    <h4 className="mb-lg">{t('settlements.pendingPayments')}</h4>
                     <div className="flex flex-col gap-md">
                         {pendingTx.map((tx, i) => {
                             const fromMember = state.members[tx.from];
@@ -178,7 +180,7 @@ export default function Settlements() {
                                                 {getInitials(fromMember?.name || '?')}
                                             </div>
                                             <div className="text-sm font-semibold truncate w-full text-center" title={fromMember?.name}>{fromMember?.name?.split(' ')[0]}</div>
-                                            <div className="text-xs text-muted">Ödeyecek</div>
+                                            <div className="text-xs text-muted">{t('settlements.willPay')}</div>
                                         </div>
 
                                         {/* Amount & Arrow */}
@@ -197,7 +199,7 @@ export default function Settlements() {
                                                 {getInitials(toMember?.name || '?')}
                                             </div>
                                             <div className="text-sm font-semibold truncate w-full text-center" title={toMember?.name}>{toMember?.name?.split(' ')[0]}</div>
-                                            <div className="text-xs text-muted">Alacaklı</div>
+                                            <div className="text-xs text-muted">{t('settlements.creditor')}</div>
                                         </div>
                                     </div>
 
@@ -207,9 +209,9 @@ export default function Settlements() {
                                             className="btn btn-success flex justify-center items-center gap-xs w-full"
                                             onClick={() => handleMarkPaid(tx)}
                                             style={{ padding: '12px', fontSize: '0.9rem', fontWeight: 600, borderRadius: 'var(--radius-md)' }}
-                                            title="Bu ödemenin yapıldığını onayla"
+                                            title={t('settlements.confirmPaymentTooltip')}
                                         >
-                                            <CheckCircle2 size={18} /> Ödemeyi Tamamla
+                                            <CheckCircle2 size={18} /> {t('settlements.completePayment')}
                                         </button>
                                         <div style={{ position: 'relative', width: '100%' }}>
                                             <NudgeButton
@@ -230,7 +232,7 @@ export default function Settlements() {
             {/* Paid History */}
             {(filter === 'paid' || filter === 'all') && history.length > 0 && (
                 <div className="glass-card">
-                    <h4 className="mb-lg">Ödeme Geçmişi</h4>
+                    <h4 className="mb-lg">{t('settlements.paymentHistory')}</h4>
                     <div className="flex flex-col gap-sm">
                         {history.map((s, i) => {
                             const fromMember = state.members[s.from];
@@ -265,8 +267,8 @@ export default function Settlements() {
             {filter === 'pending' && pendingTx.length === 0 && (
                 <div className="empty-state glass-card">
                     <div className="empty-icon">🎉</div>
-                    <h3>Tüm borçlar ödendi!</h3>
-                    <p className="text-sm">Bekleyen ödeme bulunmuyor</p>
+                    <h3>{t('settlements.allDebtsPaid')}</h3>
+                    <p className="text-sm">{t('settlements.noPendingPayment')}</p>
                 </div>
             )}
 
@@ -277,16 +279,22 @@ export default function Settlements() {
                         <div className="flex items-center justify-center mx-auto mb-lg" style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-emerald)', width: 64, height: 64, borderRadius: '50%' }}>
                             <CheckCircle2 size={32} />
                         </div>
-                        <h3 className="mb-sm text-lg font-bold">Ödemeyi Onayla</h3>
+                        <h3 className="mb-sm text-lg font-bold">{t('settlements.confirmPaymentModalTitle')}</h3>
                         <p className="text-muted mb-xl text-sm" style={{ lineHeight: 1.5 }}>
-                            <strong>{state.members[pendingPayment.from]?.name?.split(' ')[0]}</strong> adlı kullanıcının <strong>{formatCurrency(pendingPayment.amount, pendingPayment.currency)}</strong> tutarındaki borcunu ödendi olarak işaretlemek istediğinize emin misiniz?
+                            <Trans
+                                i18nKey="settlements.confirmPaymentMessage"
+                                values={{
+                                    name: state.members[pendingPayment.from]?.name?.split(' ')[0],
+                                    amount: formatCurrency(pendingPayment.amount, pendingPayment.currency)
+                                }}
+                            />
                         </p>
                         <div className="flex gap-md w-full">
                             <button className="btn btn-secondary flex-1" onClick={() => setPendingPayment(null)}>
-                                Vazgeç
+                                {t('settlements.cancel')}
                             </button>
                             <button className="btn btn-success flex-1" onClick={confirmPayment}>
-                                Evet, Tamamla
+                                {t('settlements.yesComplete')}
                             </button>
                         </div>
                     </div>

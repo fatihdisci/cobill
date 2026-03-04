@@ -4,10 +4,12 @@ import { useApp } from '../context/AppContext';
 import { getInitials, getAvatarColor } from '../utils/helpers';
 import { formatCurrency } from '../utils/currencyUtils';
 import { calculateBalances } from '../utils/debtSimplification';
+import { useTranslation } from 'react-i18next';
 
 export default function GroupCard({ group, index }) {
     const navigate = useNavigate();
     const { state } = useApp();
+    const { t } = useTranslation();
 
     const groupMembers = group.members.map(id => state.members[id]).filter(Boolean);
     const groupExpenses = state.expenses.filter(e => e.groupId === group.id);
@@ -61,7 +63,7 @@ export default function GroupCard({ group, index }) {
                     )}
                 </div>
                 <span className="badge badge-purple">
-                    <Users size={10} /> {groupMembers.length} kişi
+                    <Users size={10} /> {groupMembers.length} {t('groupCard.members')}
                 </span>
             </div>
 
@@ -74,13 +76,13 @@ export default function GroupCard({ group, index }) {
                 borderRadius: 'var(--radius-md)',
             }}>
                 <div>
-                    <div className="text-xs text-muted">Toplam Harcama</div>
+                    <div className="text-xs text-muted">{t('groupCard.totalExpense')}</div>
                     <div className="font-bold" style={{ color: 'var(--text-primary)', fontSize: 'var(--font-base)' }}>
                         {formatCurrency(totalSpent, group.currency)}
                     </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                    <div className="text-xs text-muted">Senin Bakiyen</div>
+                    <div className="text-xs text-muted">{t('groupCard.yourBalance')}</div>
                     <div className="font-bold flex items-center justify-end gap-xs" style={{
                         color: myBalance >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)',
                         fontSize: 'var(--font-base)',
