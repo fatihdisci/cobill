@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Copy, MessageCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { X, Sparkles, Copy, MessageCircle, CheckCircle2, Loader2, BrainCircuit } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -16,6 +16,26 @@ export default function AIReportModal({ isOpen, onClose, reportHtml, isLoading, 
     const { t } = useTranslation();
     const [copied, setCopied] = useState(false);
     const contentRef = useRef(null);
+    const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
+
+    const loadingMessages = [
+        t('aiReport.analyzing', { defaultValue: 'Yapay zeka bütçenizi inceliyor...' }),
+        t('aiReport.loadingMessages.insights', { defaultValue: 'Harcama alışkanlıklarınız analiz ediliyor...' }),
+        t('aiReport.loadingMessages.opportunities', { defaultValue: 'Tasarruf fırsatları değerlendiriliyor...' }),
+        t('aiReport.loadingMessages.finalizing', { defaultValue: 'Raporunuz hazırlanıyor...' })
+    ];
+
+    useEffect(() => {
+        let interval;
+        if (isLoading) {
+            interval = setInterval(() => {
+                setLoadingMsgIdx((prev) => (prev + 1) % loadingMessages.length);
+            }, 2500);
+        } else {
+            setLoadingMsgIdx(0);
+        }
+        return () => clearInterval(interval);
+    }, [isLoading, loadingMessages.length]);
 
     if (!isOpen) return null;
 
@@ -80,22 +100,44 @@ export default function AIReportModal({ isOpen, onClose, reportHtml, isLoading, 
                     <div className="ai-report-body">
                         {isLoading && (
                             <div className="ai-report-loading">
-                                <div className="ai-report-loading-icon">
-                                    <Loader2 size={32} className="magic-draft-spinner" />
+                                <motion.div
+                                    className="ai-report-loading-icon"
+                                    animate={{ scale: [1, 1.1, 1], rotate: [0, 360] }}
+                                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                                >
+                                    <BrainCircuit size={32} style={{ color: 'var(--accent-purple)' }} />
+                                </motion.div>
+
+                                <div style={{ height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginTop: 'var(--space-sm)' }}>
+                                    <AnimatePresence mode="wait">
+                                        <motion.h4
+                                            key={loadingMsgIdx}
+                                            initial={{ opacity: 0, y: 15 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -15 }}
+                                            transition={{ duration: 0.4 }}
+                                            style={{ fontSize: 'var(--font-md)', fontWeight: 700, color: 'var(--text-primary)', margin: 0, textAlign: 'center' }}
+                                        >
+                                            {loadingMessages[loadingMsgIdx]}
+                                        </motion.h4>
+                                    </AnimatePresence>
                                 </div>
-                                <h4 style={{ fontSize: 'var(--font-md)', fontWeight: 700, color: 'var(--text-primary)' }}>
-                                    {t('aiReport.analyzing')}
-                                </h4>
-                                <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                                    {t('aiReport.analyzingDesc')}
+
+                                <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', lineHeight: 1.5, marginTop: 'var(--space-xs)' }}>
+                                    {t('aiReport.analyzingDesc', { defaultValue: 'Lütfen bekleyin, bu işlem biraz sürebilir.' })}
                                 </p>
-                                {/* Skeleton bars */}
-                                <div className="ai-report-skeleton">
-                                    <div className="skeleton-line skeleton-line-lg" />
-                                    <div className="skeleton-line skeleton-line-md" />
-                                    <div className="skeleton-line skeleton-line-sm" />
-                                    <div className="skeleton-line skeleton-line-lg" />
-                                    <div className="skeleton-line skeleton-line-md" />
+
+                                {/* Premium Skeleton bars */}
+                                <div className="ai-report-skeleton mt-lg">
+                                    {[1, 2, 3, 4, 5].map((i) => (
+                                        <motion.div
+                                            key={i}
+                                            className={`skeleton-line skeleton-line-${i % 2 === 0 ? 'md' : i === 3 ? 'sm' : 'lg'} premium-shimmer`}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: i * 0.1, duration: 0.4 }}
+                                        />
+                                    ))}
                                 </div>
                             </div>
                         )}
