@@ -44,6 +44,16 @@
         "saveError": "Kaydetme sırasında bir hata oluştu.",
         "selectGroupFirst": "Lütfen önce bir grup seçin."
     },
+    "aiReport": {
+        "title": "AI Bütçe Analizi",
+        "generateButton": "✨ AI Analizi Üret",
+        "analyzing": "Yapay zeka harcamalarınızı analiz ediyor...",
+        "analyzingDesc": "Harcama verileriniz işleniyor, kişiselleştirilmiş finansal öneriler hazırlanıyor.",
+        "error": "Analiz sırasında bir hata oluştu.",
+        "shareWhatsapp": "WhatsApp ile Paylaş",
+        "copyText": "Metni Kopyala",
+        "copied": "Kopyalandı!"
+    },
     "paywall": {
         "title": "CoBill deneyiminizi sınırların ötesine taşıyın.",
         "feature1": "Tüm ekran reklamlarını sonsuza dek kaldırın.",
@@ -301,6 +311,10 @@
             "personalStatement": {
                 "title": "Bireysel Ekstre",
                 "desc": "Aylık bireysel masraflarınızı PDF olarak indirin"
+            },
+            "aiAnalysis": {
+                "title": "AI Bütçe Analizi",
+                "desc": "Yapay zeka ile harcama alışkanlıklarınızı analiz edin"
             },
             "pdfExport": {
                 "title": "PDF Dışa Aktarma",

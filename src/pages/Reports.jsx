@@ -3,28 +3,32 @@ import { useApp } from '../context/AppContext';
 import { SpendingByCategory, MemberBalanceChart } from '../components/BalanceChart';
 import { formatCurrency } from '../utils/currencyUtils';
 import { CATEGORIES, formatDate } from '../utils/helpers';
-import { FileText, Download, Mail, Copy, Lock, MessageCircle, X, CheckCircle2, ArrowRight, Star, TrendingUp, PieChart, Users, Receipt, Bell, Zap } from 'lucide-react';
+import { FileText, Lock, X, CheckCircle2, ArrowRight, Star, PieChart, Users, Download, Sparkles } from 'lucide-react';
 import ProUpgradeModal from '../components/ProUpgradeModal';
-import { generateGroupPDF, generatePersonalStatementPDF } from '../utils/pdfGenerator';
-import { sharePDF } from '../utils/fileService';
+import AIReportModal from '../components/AIReportModal';
+import { generateAIReport } from '../services/aiService';
 import { calculateBalances, simplifyDebts } from '../utils/debtSimplification';
 import { SlidersHorizontal, RotateCcw } from 'lucide-react';
 import DateFilterBar from '../components/DateFilterBar';
 import { filterByDateRange, getDateRange } from '../utils/dateFilterUtils';
 import { createPortal } from 'react-dom';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 export default function Reports() {
     const { state } = useApp();
     const { t } = useTranslation();
     const [selectedGroup, setSelectedGroup] = useState(state.groups[0]?.id || '');
     const [showProModal, setShowProModal] = useState(false);
-    const [showExportModal, setShowExportModal] = useState(false);
-    const [isGenerating, setIsGenerating] = useState(false);
     const [reportTab, setReportTab] = useState('group'); // 'group' | 'personal'
 
     const [showFilterModal, setShowFilterModal] = useState(false);
     const [dateFilter, setDateFilter] = useState(getDateRange('all'));
+
+    // AI Report state
+    const [showAIReport, setShowAIReport] = useState(false);
+    const [aiReportHtml, setAiReportHtml] = useState(null);
+    const [aiReportLoading, setAiReportLoading] = useState(false);
+    const [aiReportError, setAiReportError] = useState(null);
 
     const isPro = state.members[state.currentUser]?.isPro;
     const group = state.groups.find(g => g.id === selectedGroup);
@@ -53,7 +57,7 @@ export default function Reports() {
         );
     }
 
-    // PRO CONTENT BELOW (Untouched structure)
+    // PRO CONTENT BELOW
     let expenses = state.expenses.filter(e => e.groupId === selectedGroup);
     let groupSettlements = state.settlements.filter(s => s.groupId === selectedGroup && s.status === 'paid');
 
@@ -82,6 +86,43 @@ export default function Reports() {
         personalCategoryBreakdown[e.category] = (personalCategoryBreakdown[e.category] || 0) + e.amount;
     });
 
+    // AI Rapor Üret
+    const handleGenerateAIReport = async () => {
+        setShowAIReport(true);
+        setAiReportHtml(null);
+        setAiReportError(null);
+        setAiReportLoading(true);
+
+        try {
+            let reportExpenses, contextData;
+
+            if (reportTab === 'group' && group) {
+                reportExpenses = expenses;
+                const memberNames = {};
+                group.members.forEach(id => {
+                    const m = state.members[id];
+                    if (m) memberNames[id] = m.name;
+                });
+                contextData = {
+                    groupName: group.name,
+                    memberCount: group.members.length,
+                    currency: group.currency,
+                    memberNames,
+                };
+            } else {
+                reportExpenses = personalFilteredExpenses;
+                contextData = {};
+            }
+
+            const html = await generateAIReport(reportExpenses, reportTab, contextData);
+            setAiReportHtml(html);
+        } catch (err) {
+            setAiReportError(err.message || t('aiReport.error'));
+        } finally {
+            setAiReportLoading(false);
+        }
+    };
+
     return (
         <div className="animate-fade-in relative">
             <div className="page-header">
@@ -91,11 +132,11 @@ export default function Reports() {
                 </div>
                 <div className="flex gap-sm">
                     <button
-                        className="btn btn-pro-active"
-                        onClick={() => setShowExportModal(true)}
+                        className="btn ai-report-generate-btn"
+                        onClick={handleGenerateAIReport}
                         disabled={reportTab === 'group' && !group}
                     >
-                        <Download size={14} /> {t('reports.export')}
+                        <Sparkles size={14} /> {t('aiReport.generateButton')}
                     </button>
                 </div>
             </div>
@@ -305,20 +346,15 @@ export default function Reports() {
                 </div>
             )}
 
-            {showExportModal && (
-                <ExportModal
-                    onClose={() => setShowExportModal(false)}
-                    group={group}
-                    state={state}
-                    expenses={expenses}
-                    groupSettlements={groupSettlements}
-                    setIsGenerating={setIsGenerating}
-                    isGenerating={isGenerating}
-                    reportTab={reportTab}
-                    personalCategories={PERSONAL_CATS}
-                    t={t}
-                />
-            )}
+            {/* AI Report Modal */}
+            <AIReportModal
+                isOpen={showAIReport}
+                onClose={() => setShowAIReport(false)}
+                reportHtml={aiReportHtml}
+                isLoading={aiReportLoading}
+                error={aiReportError}
+            />
+
             {showProModal && <ProUpgradeModal onClose={() => setShowProModal(false)} />}
 
             {/* Filter Modal */}
@@ -374,7 +410,7 @@ function NonProReportsView({ groups, selectedGroup, setSelectedGroup, setShowPro
     const features = [
         { icon: <PieChart size={18} />, color: 'var(--accent-purple)', title: t('reports.features.categoryAnalysis.title'), desc: t('reports.features.categoryAnalysis.desc') },
         { icon: <Users size={18} />, color: 'var(--accent-cyan)', title: t('reports.features.personBased.title'), desc: t('reports.features.personBased.desc') },
-        { icon: <FileText size={18} />, color: 'var(--accent-amber)', title: t('reports.features.personalStatement.title'), desc: t('reports.features.personalStatement.desc') },
+        { icon: <Sparkles size={18} />, color: 'var(--accent-amber)', title: t('reports.features.aiAnalysis.title'), desc: t('reports.features.aiAnalysis.desc') },
         { icon: <Download size={18} />, color: 'var(--accent-emerald)', title: t('reports.features.pdfExport.title'), desc: t('reports.features.pdfExport.desc') },
     ];
 
@@ -444,78 +480,6 @@ function NonProReportsView({ groups, selectedGroup, setSelectedGroup, setShowPro
                         <Lock size={14} style={{ color: 'var(--text-muted)', flexShrink: 0, opacity: 0.4 }} />
                     </div>
                 ))}
-            </div>
-        </div>
-    );
-}
-
-// Sub-components for better readability
-function ExportModal({ onClose, group, state, expenses, groupSettlements, setIsGenerating, isGenerating, reportTab, personalCategories, t }) {
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 400 }}>
-                <div className="modal-header mb-md">
-                    <h3 className="flex items-center gap-xs"><Download size={18} /> {reportTab === 'group' ? t('reports.exportGroupReport') : t('reports.exportPersonalStatement')}</h3>
-                    <button className="btn btn-ghost btn-icon" onClick={onClose}><X size={18} /></button>
-                </div>
-                <div className="flex flex-col gap-sm">
-                    <button className="btn btn-secondary w-full flex justify-start items-center gap-md" onClick={async () => {
-                        if (reportTab === 'group' && !group) return;
-                        try {
-                            setIsGenerating(true);
-                            if (reportTab === 'group') {
-                                const groupMembers = group.members.map(id => state.members[id]).filter(Boolean);
-                                const balances = calculateBalances(expenses, groupMembers);
-                                const simplifiedDebts = simplifyDebts(balances);
-                                const base64PDF = await generateGroupPDF(group, groupMembers, expenses, balances, simplifiedDebts, groupSettlements);
-                                await sharePDF(base64PDF, `CoBill_${group.name.replace(/\s+/g, '_')}_Rapor.pdf`);
-                            } else {
-                                const now = new Date();
-                                const currentMonth = now.getMonth();
-                                const currentYear = now.getFullYear();
-                                const thisMonthExpenses = state.personalExpenses.filter(e => {
-                                    const d = new Date(e.date);
-                                    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-                                });
-
-                                if (thisMonthExpenses.length === 0) {
-                                    alert(t('reports.noExpensesThisMonth'));
-                                    setIsGenerating(false);
-                                    onClose();
-                                    return;
-                                }
-
-                                const monthName = now.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
-                                const user = state.members[state.currentUser];
-                                const base64 = await generatePersonalStatementPDF(
-                                    thisMonthExpenses,
-                                    user,
-                                    monthName,
-                                    personalCategories
-                                );
-                                await sharePDF(base64, `CoBill_Ekstre_${monthName.replace(/\s+/g, '_')}.pdf`);
-                            }
-                        } catch (error) {
-                            console.error('PDF Export Error:', error);
-                            alert(t('reports.pdfError'));
-                        } finally {
-                            setIsGenerating(false);
-                            onClose();
-                        }
-                    }} disabled={isGenerating}>
-                        <FileText size={18} style={{ color: 'var(--accent-cyan)' }} />
-                        {isGenerating ? t('reports.preparingPdf') : t('reports.downloadSharePdf')}
-                    </button>
-                    <button className="btn btn-secondary w-full flex justify-start items-center gap-md" onClick={() => onClose()}>
-                        <MessageCircle size={18} style={{ color: 'var(--accent-emerald)' }} /> {t('reports.sendViaWhatsapp')}
-                    </button>
-                    <button className="btn btn-secondary w-full flex justify-start items-center gap-md" onClick={() => onClose()}>
-                        <Mail size={18} style={{ color: 'var(--accent-purple)' }} /> {t('reports.sendViaEmail')}
-                    </button>
-                    <button className="btn btn-secondary w-full flex justify-start items-center gap-md" onClick={() => onClose()}>
-                        <Copy size={18} style={{ color: 'var(--text-secondary)' }} /> {t('reports.copyAsText')}
-                    </button>
-                </div>
             </div>
         </div>
     );

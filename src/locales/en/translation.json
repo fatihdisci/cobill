@@ -44,6 +44,16 @@
         "saveError": "An error occurred while saving.",
         "selectGroupFirst": "Please select a group first."
     },
+    "aiReport": {
+        "title": "AI Budget Analysis",
+        "generateButton": "✨ Generate AI Analysis",
+        "analyzing": "AI is analyzing your expenses...",
+        "analyzingDesc": "Your spending data is being processed, personalized financial insights are being prepared.",
+        "error": "An error occurred during analysis.",
+        "shareWhatsapp": "Share via WhatsApp",
+        "copyText": "Copy Text",
+        "copied": "Copied!"
+    },
     "paywall": {
         "title": "Take your CoBill experience beyond limits.",
         "feature1": "Remove all fullscreen ads forever.",
@@ -301,6 +311,10 @@
             "personalStatement": {
                 "title": "Personal Statement",
                 "desc": "Download your monthly personal expenses as PDF"
+            },
+            "aiAnalysis": {
+                "title": "AI Budget Analysis",
+                "desc": "Analyze your spending habits with artificial intelligence"
             },
             "pdfExport": {
                 "title": "PDF Export",

@@ -1,6 +1,7 @@
 /**
  * CoBill — AI Service (OpenRouter API)
  * Sihirli Taslak: Serbest metinden harcama ayrıştırma
+ * AI Rapor: Harcama verilerinden akıllı analiz üretme
  */
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -40,6 +41,31 @@ function cleanJsonResponse(raw) {
 }
 
 /**
+ * AI yanıtından HTML string'ini güvenli şekilde çıkarır.
+ * Markdown ```html bloklarını ve fazla boşlukları temizler.
+ */
+function cleanHtmlResponse(raw) {
+    if (!raw || typeof raw !== 'string') return null;
+
+    let cleaned = raw.trim();
+
+    // Markdown code block temizliği: ```html ... ``` veya ``` ... ```
+    const codeBlockRegex = /```(?:html)?\s*([\s\S]*?)```/;
+    const match = cleaned.match(codeBlockRegex);
+    if (match) {
+        cleaned = match[1].trim();
+    }
+
+    // Eğer <h3> veya <p> ile başlamıyorsa, ilk HTML tag'ine kadar kes
+    const firstTag = cleaned.indexOf('<');
+    if (firstTag > 0) {
+        cleaned = cleaned.substring(firstTag);
+    }
+
+    return cleaned;
+}
+
+/**
  * Serbest metni OpenRouter API ile ayrıştırır.
  * @param {string} text - Kullanıcının girdiği serbest metin
  * @returns {Promise<Array<{amount: number, title: string, category: string, date: string}>>}
@@ -68,6 +94,7 @@ KURALLAR:
 4. Eğer tarih belirtilmemişse bugünün tarihi (${today}) kullan.
 5. Eğer kategori net değilse "Diğer" kullan.
 6. Tutarı her zaman pozitif sayı olarak yaz.
+7. Bugünün tarihi: ${today}. Kullanıcının 'dün', 'geçen hafta', '3 gün önce' gibi ifadelerini bu tarihe göre matematiksel olarak hesapla ve o tarihi (YYYY-MM-DD) kullan.
 
 ÖRNEK ÇIKTI:
 [{"amount": 500, "title": "Market alışverişi", "category": "Market", "date": "${today}"}]`;
@@ -139,3 +166,103 @@ function isValidDate(dateStr) {
     const d = new Date(dateStr);
     return !isNaN(d.getTime());
 }
+
+/**
+ * Harcama verilerinden yapay zeka destekli bütçe analizi üretir.
+ * @param {Array} expenses - Harcama dizisi
+ * @param {'personal'|'group'} reportType - Rapor tipi
+ * @param {Object} contextData - Ek bağlam (grup adı, üye sayısı vb.)
+ * @returns {Promise<string>} HTML formatında rapor
+ */
+export async function generateAIReport(expenses, reportType, contextData = {}) {
+    const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+    if (!apiKey) {
+        throw new Error('API anahtarı bulunamadı. Lütfen .env dosyasına VITE_OPENROUTER_API_KEY ekleyin.');
+    }
+
+    // Throttle kontrolü
+    const now = Date.now();
+    if (now - lastRequestTime < THROTTLE_MS) {
+        throw new Error('Lütfen birkaç saniye bekleyip tekrar deneyin.');
+    }
+    lastRequestTime = now;
+
+    if (!expenses || expenses.length === 0) {
+        throw new Error('Analiz edilecek harcama bulunamadı.');
+    }
+
+    // Token tasarrufu: Sadece gerekli alanları map'le
+    const lightExpenses = expenses.map(e => ({
+        tutar: e.amount,
+        kategori: e.category || 'Diğer',
+        tarih: e.date ? new Date(e.date).toISOString().split('T')[0] : 'Bilinmiyor',
+        baslik: e.title || e.description || 'Belirtilmemiş',
+        ...(reportType === 'group' && e.paidBy ? { odeyen: contextData.memberNames?.[e.paidBy] || e.paidBy } : {}),
+    }));
+
+    const totalAmount = expenses.reduce((s, e) => s + (e.amount || 0), 0);
+    const contextInfo = reportType === 'group'
+        ? `Bu bir GRUP harcama raporu. Grup adı: "${contextData.groupName || 'Grup'}". Üye sayısı: ${contextData.memberCount || '?'}. Toplam harcama: ${totalAmount.toFixed(2)} ${contextData.currency || 'TRY'}.`
+        : `Bu bir BİREYSEL harcama raporu. Toplam harcama: ${totalAmount.toFixed(2)} TRY.`;
+
+    const systemPrompt = `Sen elit, zeki ve empatik bir finansal danışmansın. Sana gönderilen JSON formatındaki harcama verilerini analiz et ve kullanıcıya HTML formatında şık bir rapor sun.
+
+KURALLAR:
+1. Sadece <h3>, <p>, <ul>, <li>, <strong> etiketlerini kullan. Başka hiçbir HTML etiketi kullanma.
+2. Markdown veya \`\`\`html blokları KULLANMA, direkt HTML string döndür.
+3. Bolca uygun emoji kullan (📊, 💡, ⚠️, ✅, 💰, 🎯, 📉, 🔍 gibi).
+4. Türkçe yaz.
+5. Samimi, profesyonel ve motive edici bir ton kullan.
+
+RAPOR YAPISI (tam olarak bu 3 bölümden oluşsun):
+
+<h3>📊 Genel Bakış</h3>
+Harcamaların genel tonunu, öne çıkan eğilimleri ve toplam durumu özetle.
+
+<h3>🔍 Dikkat Çekenler & Anomaliler</h3>
+En çok para harcanan yerler, olağandışı harcama kalıpları, iyi yönetilmiş bütçe kalemleri.
+
+<h3>🎯 Aksiyon Planı & Tavsiyeler</h3>
+Önümüzdeki ay için 2-3 adet uygulanabilir, somut ve nokta atışı tavsiye. (Örn: "Dışarıda yemeği %10 azaltırsanız X TL tasarruf edebilirsiniz")
+
+${contextInfo}`;
+
+    const response = await fetch(OPENROUTER_API_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'HTTP-Referer': window.location.origin,
+            'X-Title': 'CoBill AI Report',
+        },
+        body: JSON.stringify({
+            model: MODEL,
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: JSON.stringify(lightExpenses) },
+            ],
+            temperature: 0.4, // Biraz yaratıcılık ama tutarlı
+            max_tokens: 2048,
+        }),
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.text().catch(() => '');
+        throw new Error(`API hatası (${response.status}): ${errorBody || 'Bilinmeyen hata'}`);
+    }
+
+    const data = await response.json();
+    const rawContent = data?.choices?.[0]?.message?.content;
+
+    if (!rawContent) {
+        throw new Error('API boş yanıt döndü.');
+    }
+
+    const cleanedHtml = cleanHtmlResponse(rawContent);
+    if (!cleanedHtml) {
+        throw new Error('AI rapor yanıtı ayrıştırılamadı.');
+    }
+
+    return cleanedHtml;
+}
+
