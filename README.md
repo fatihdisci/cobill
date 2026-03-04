@@ -15,10 +15,16 @@
 - **Tekrarlayan Masraflar (Abonelikler & Kiralar):** Her ay yenilenen fatura, kira veya Netflix gibi abonelikleri yapılandırma.
 - **WhatsApp ve E-Posta Hatırlatıcıları:** Kişiye özel hesaplanmış borç miktarlarını tek bir tuşla kopyalama, doğrudan WhatsApp üzerinden hatırlatıcı gönderebilme.
 
-### 🤖 Sihirli Taslak (Magic Draft) — **YENİ ✨**
-- **AI Destekli Harcama Ekleme:** "Dün markete 500 TL, sinemaya 120 TL ödedim" gibi serbest metinleri OpenRouter API (Qwen modeli) aracılığıyla analiz edip otomatik harcama taslaklarına dönüştürür.
-- **Akıllı Form:** Çıkarılan tutar, başlık, kategori ve tarihi önceden doldurulmuş düzenlenebilir kartlar (Bireysel/Grup masrafı seçeneği ile) olarak sunar.
-- **Gelişmiş Güvenlik:** Throttle (hız sınırı) ve regex tabanlı JSON temizleme mekanizmalarıyla stabilite sağlar.
+### 🤖 AI Destekli Bütçe Analizleri (Grok 4.1 Fast) — **YENİ ✨**
+- **VIP Bireysel Finans Analisti:** Bireysel raporlarınız için, banka VIP portföy yöneticisi kimliğiyle çalışan yapay zeka. Harcamalarınızı analiz eder, nerede savurganlık yaptığınızı objektif bir şekilde açıklayıp tasarruf fırsatları sunar.
+- **Akıllı Grup Raporları:** Grup içindeki kimin ne kadar ödediğini, ortak bütçenin nerede şiştiğini detaylı ve kurumsal düzeyde analiz eden raporlama.
+- **Şık Rapor Modalı:** Camsı ekran tasarımı (Glassmorphism), hiyerarşik format (başlıklar, maddeleme), önemli rakamlarda vurgular ve konuya özel emojilerle zenginleştirilmiş etkileyici HTML çıktısı.
+- **Aksiyon Butonları:** Çıkarılan analiz ve raporları doğrudan panoya kopyalama ve tek tuşla **WhatsApp üzerinden paylaşım** imkanı.
+
+### 🤖 Sihirli Taslak (Magic Draft) — **GELİŞTİRİLDİ ✨**
+- **AI Destekli Harcama Ekleme:** "Dün markete 1500 TL, sinemaya 120 TL ödedim" gibi serbest metinleri OpenRouter API (Qwen modeli) aracılığıyla saniyeler içinde analiz edip yapılandırılmış formlara dönüştürür.
+- **Akıllı Tarih ve Yazım Düzeltme (Typo Correction):** Hatalı ve devrik metin girişlerini algılar, harf (typo) hatalarını düzeltir. "Dün", "3 gün önce" gibi ifadeleri matematiksel olarak geçerli tarihlere çevirir.
+- **Kusursuz Veri Ayrıştırma (Robust Parsing):** Yapay zekanın fazla gevezelik ettiği veya `<think>` gibi bloklar (örn. `fim_middle`) koyduğu zamanlarda bile metinden doğrudan saf JSON'ı ayıklar ve stabil bir deneyim sunar.
 
 ### 💰 Bireysel Masraf Takibi (Personal Finance Tracker)
 - **Kişisel Cüzdan:** Aylık toplam harcama özeti, kategoriye göre filtreleme ve silme işlemleri.
@@ -31,14 +37,17 @@
 ### 📊 Raporlar ve Analitikler
 - **Segmented Control:** "Grup Raporları" ve "Bireysel Raporlar" arasında tek tıkla geçiş.
 - **Görsel Analitikler:** Harcama dağılımı donut chart (tüm kullanıcılar için ücretsiz), kişi başı bar chart, kategori breakdown.
-- **PDF ve Excel Dışa Aktarma:** Profesyonel dizayn edilmiş şeffaf bilançolar ve ektre indirme imkanı. (Pro)
+- **PDF ve Excel Dışa Aktarma:** Profesyonel dizayn edilmiş şeffaf bilançolar ve ekstre indirme imkanı.
 - **Evrensel Filtreleme:** Uygulama genelinde standartlaşan, her sayfadan erişilebilen zaman bazlı gelişmiş filtreleme modülü.
+
+### 🌎 Çoklu Dil Desteği (i18n)
+- **Türkçe ve İngilizce (TR/EN):** Uygulamanın tüm yönleri, Login/Register sayfaları dahil olmak üzere çoklu dil desteğine kavuşturuldu.
 
 ### 🎨 Navigasyon ve UI
 - **Yüzen Buton (FAB):** Mobil arayüzde ekranın sağ altına sabitlenmiş, kolay erişimli animasyonlu "+" butonu.
-- **Floating Action Menu:** FAB'a basınca "Bireysel Harcama" veya "Grup Masrafı" seçeneklerinin iç içe akıcı şekilde açılması.
+- **Floating Action Menu:** FAB'a basınca "Bireysel Harcama", "Grup Masrafı" ve "Sihirli Taslak" seçeneklerinin akıcı şekilde açılması.
 - **Mobil Tab Bar:** `[ 💳 Cüzdan | 👥 Gruplar | 💸 Ödemeler | 📊 Raporlar | 👤 Profil ]` yapısı.
-- **Glassmorphism UI:** Modern buzlu cam efekti premium arayüz tasarımı, akıcı geçişler ve yaylı (spring) animasyonlar.
+- **Glassmorphism UI:** Modern buzlu cam efekti premium arayüz tasarımı, akıcı geçişler ve gradient butonlar.
 
 ### 🔐 Güvenlik ve Senkronizasyon
 - **🔄 Gerçek Zamanlı Senkronizasyon:** Firebase Firestore `onSnapshot` dinleyicileri ile anlık güncelleme.
@@ -59,9 +68,9 @@
 | Cüzdan | `/wallet` | Bireysel harcamalar, aylık özet, filtreleme |
 | Bireysel Harcama Ekle | `/add-personal` | Bireysel masraf formu |
 | Ödemeler | `/settlements` | Borç ödeme takibi |
-| Raporlar | `/reports` | Grup ve bireysel raporlar (Pro) |
-| Profil | `/profile` | Kullanıcı ayarları |
-| Ayarlar | `/settings` | Uygulama ayarları |
+| Raporlar | `/reports` | Grup ve bireysel AI Analizler ve görsel rapor verileri |
+| Profil | `/profile` | Kullanıcı ayarları, şifre sıfırlama, çıkış |
+| Ayarlar | `/settings` | Uygulama ayarları, dil (Language) seçimi, bildirim tercihleri |
 
 ---
 
@@ -71,23 +80,24 @@
 - **Framework:** React 18 & Vite
 - **Routing:** React Router DOM (v6)
 - **Stil & UI:** Vanilla CSS (Glassmorphism mimarisi, CSS Custom Properties), Lucide Icons
+- **Çoklu Dil (i18n):** `react-i18next`
 - **Chart:** Recharts
 - **PDF:** jspdf & html2canvas
 
 ### Backend & Veri Yapısı (Serverless)
 - **Database:** Firebase Firestore (Real-time)
 - **Auth:** Firebase Authentication (Email/Password)
-- **State Management:** React Context API + useReducer
+- **AI Integrasyonu:** OpenRouter API (Grok, Qwen)
 
 ### Firestore Koleksiyonları
 | Koleksiyon | Açıklama |
 |------------|----------|
-| `users` | Kullanıcı profil bilgileri |
+| `users` | Kullanıcı profil bilgileri ve ayarları |
 | `groups` | Grup meta verisi ve üye listesi |
 | `expenses` | Grup masrafları |
 | `settlements` | Borç ödemeleri |
 | `invitations` | Grup davetleri (pending/accepted/rejected) |
-| `personal_expenses` | **YENİ** — Bireysel harcamalar |
+| `personal_expenses` | Bireysel harcamalar |
 
 ### Native Entegrasyon
 - **Platform:** Capacitor (iOS / Android)
@@ -118,6 +128,7 @@ VITE_FIREBASE_PROJECT_ID="your-project"
 VITE_FIREBASE_STORAGE_BUCKET="your-bucket.appspot.com"
 VITE_FIREBASE_MESSAGING_SENDER_ID="123456789"
 VITE_FIREBASE_APP_ID="1:12345...:web:abcde..."
+VITE_OPENROUTER_API_KEY="sk-or-v1-..."
 ```
 
 ### 4. Geliştirme Sunucusunu Başlatma
@@ -142,35 +153,30 @@ npx cap open android
 | Kavram | Çözüm |
 |--------|-------|
 | **Borç Sadeleştirme** | Greedy Approach: tüm alacak/verecekler havuzlanıp en az işleme indirgenir |
-| **Premium Modeli** | UI'dan gelen `isPro` bayrağı ile feature gating; ProUpgradeModal ile upsell |
+| **Premium Modeli** | UI'dan gelen `isPro` bayrağı ile feature gating; AI raporları ve PDF dışa aktarım erişimi |
 | **Reklam Stratejisi** | Interstitial reklamlar sayfa geçişlerinde; Pro kullanıcılar muaf |
 | **Real-Time Sync** | Firestore `onSnapshot` dinleyicileri + cleanup; bellek sızıntısı önlemi |
 | **Yetkilendirme** | `expense.paidBy === currentUser || group.createdBy === currentUser` kuralı |
-| **Davet Sistemi** | Firestore `invitations` koleksiyonu + pending/accepted/rejected durum makinesi |
-| **Bireysel Masraf** | Ayrı `personal_expenses` koleksiyonu, userId bazlı real-time dinleyici |
 
 ---
 
 ## 🚧 Tamamlanması Gereken Özellikler
 
-Aşağıdaki özellikler temel altyapısı hazır ancak henüz tam olarak implement edilmemiş veya placeholder olarak bırakılmıştır:
-
 ### Yakında Gelecek
 | Özellik | Durum | Açıklama |
 |---------|-------|----------|
-| **Bireysel Ekstre PDF** | ✅ Tamamlandı | İstediğiniz aya ait bireysel harcama dökümleri kategorize edilmiş şekilde PDF olarak indirilip paylaşılabilir |
-| **Tekrarlayan Masraf Otomasyonu** | ✅ Tamamlandı | Uygulama açılışında tarih kontrolü yapılarak vadesi gelen tekrarlayan masraflar otomatik olarak listeye dahil edilir |
+| **Bireysel Ekstre PDF** | ✅ Tamamlandı | Bireysel harcama dökümleri PDF olarak indirilip paylaşılabilir |
+| **Tekrarlayan Masraf Otomasyonu** | ✅ Tamamlandı | Vadesi gelen tekrarlayan masraflar otomatik olarak listeye dahil edilir |
+| **🤖 AI Harcama Analizi** | ✅ Tamamlandı | Harcama patternlerini analiz ederek tasarruf önerileri ve grup dengesi raporlama (Grok ile) |
+| **Çoklu Dil Desteği (i18n)** | ✅ Tamamlandı | Uygulama geneli Türkçe/İngilizce destekli altyapı oluşturuldu |
 | **Bildirim Tercihleri** | 🔘 UI Var | Ayarlar sayfasında bildirim toggle'ları mevcut, backend bağlantısı yapılacak |
 | **Tema/Dark Mode Geçişi** | 🔘 CSS Hazır | CSS değişken altyapısı dark mode'a uygun, toggle mekanizması eklenecek |
 | **Gerçek Ödeme Entegrasyonu** | 🔲 Planlandı | Borç ödemelerinde gerçek para transferi (Stripe/İyzico) entegrasyonu |
-| **Çoklu Dil Desteği (i18n)** | 🔲 Planlandı | Şu an sadece Türkçe, İngilizce ve diğer diller eklenecek |
-| **Pro Abonelik Satın Alma** | 🔘 Demo Aktif | Gelecek olan gerçek ödeme altyapısına kadar Pro deneme/mock modülüyle çalışmaktadır |
 
 ### Gelecek Planları
 - **📈 Bütçe Limitleri:** Kategoriye göre aylık bütçe belirleme ve aşım uyarısı
-- **🤖 AI Harcama Analizi:** Harcama patternlerini analiz ederek tasarruf önerileri
 - **📱 Push Notification Backend:** Firebase Cloud Messaging ile gerçek push bildirim altyapısı
-- **📸 Fiş/Fatura Fotoğrafı:** OCR ile otomatik masraf oluşturma
+- **📸 Fiş/Fatura Fotoğrafı:** OCR kullanımıyla doğrudan faturadan otomatik masraf oluşturma
 - **🌍 Çoklu Para Birimi Dönüşümü:** Gerçek zamanlı kur ile otomatik çevrim
 
 ---
