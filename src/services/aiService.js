@@ -236,7 +236,7 @@ ${contextInfo}`;
                 { role: 'user', content: JSON.stringify(lightExpenses) },
             ],
             temperature: 0.7,
-            max_tokens: 800,
+            max_tokens: 2048,
             presence_penalty: 0.3,
         }),
     });
@@ -247,15 +247,29 @@ ${contextInfo}`;
     }
 
     const data = await response.json();
-    const rawContent = data?.choices?.[0]?.message?.content;
+
+    if (data.error) {
+        console.error('OpenRouter Hata Detayı:', data.error);
+        throw new Error(`OpenRouter Hatası: ${data.error.message || 'Bilinmeyen hata'}`);
+    }
+
+    if (!data.choices || data.choices.length === 0) {
+        console.error('OpenRouter boş choices döndü:', data);
+        throw new Error('API geçerli bir sonuç (choices) döndürmedi. Lütfen konsolu kontrol edin.');
+    }
+
+    const rawContent = data.choices[0]?.message?.content;
 
     if (!rawContent) {
-        throw new Error('API boş yanıt döndü.');
+        const finishReason = data.choices[0]?.finish_reason || 'Bilinmiyor';
+        console.error('OpenRouter boş içerik döndü:', data.choices[0]);
+        throw new Error(`API içi boş bir mesaj döndürdü. Sebep (finish_reason): ${finishReason}`);
     }
 
     const cleanedHtml = cleanHtmlResponse(rawContent);
     if (!cleanedHtml) {
-        throw new Error('AI rapor yanıtı ayrıştırılamadı.');
+        console.error('Temizlenmiş HTML boş:', rawContent);
+        throw new Error('AI rapor yanıtı HTML olarak ayrıştırılamadı.');
     }
 
     return cleanedHtml;
