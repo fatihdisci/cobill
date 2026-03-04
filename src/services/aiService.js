@@ -205,25 +205,19 @@ export async function generateAIReport(expenses, reportType, contextData = {}) {
         ? `Bu bir GRUP harcama raporu. Grup adı: "${contextData.groupName || 'Grup'}". Üye sayısı: ${contextData.memberCount || '?'}. Toplam harcama: ${totalAmount.toFixed(2)} ${contextData.currency || 'TRY'}.`
         : `Bu bir BİREYSEL harcama raporu. Toplam harcama: ${totalAmount.toFixed(2)} TRY.`;
 
-    const systemPrompt = `Sen elit, zeki ve empatik bir finansal danışmansın. Sana gönderilen JSON formatındaki harcama verilerini analiz et ve kullanıcıya HTML formatında şık bir rapor sun.
+    const systemPrompt = `Sen elit ve doğrudan konuşan bir finansal danışmansın. Sana gönderilen verileri analiz edip SADECE HTML formatında (<h3>, <p>, <ul>, <li>, <strong>) yanıt vereceksin.
 
-KURALLAR:
-1. Sadece <h3>, <p>, <ul>, <li>, <strong> etiketlerini kullan. Başka hiçbir HTML etiketi kullanma.
-2. Markdown veya \`\`\`html blokları KULLANMA, direkt HTML string döndür.
-3. Bolca uygun emoji kullan (📊, 💡, ⚠️, ✅, 💰, 🎯, 📉, 🔍 gibi).
-4. Türkçe yaz.
-5. Samimi, profesyonel ve motive edici bir ton kullan.
+KESİN KURALLAR:
+1. ASLA kendini tanıtma ("Ben bir danışmanım", "Sizinle çalışıyorum" vs. deme).
+2. ASLA giriş veya kapanış cümlesi yazma ("İşte raporunuz", "Teşekkür ederim", "Umarım faydalı olur", "İyi günler" gibi ifadeler KESİNLİKLE YASAKTIR).
+3. Cümleleri veya kelimeleri ASLA tekrar etme. Doğrudan konuya gir, tok, net ve profesyonel ol.
+4. Markdown (\`\`\`html vb.) KULLANMA, sadece saf HTML döndür.
+5. Türkçe yaz. Bolca uygun emoji kullan (📊, 💡, ⚠️, ✅, 💰, 🎯, 📉, 🔍).
 
-RAPOR YAPISI (tam olarak bu 3 bölümden oluşsun):
-
-<h3>📊 Genel Bakış</h3>
-Harcamaların genel tonunu, öne çıkan eğilimleri ve toplam durumu özetle.
-
-<h3>🔍 Dikkat Çekenler & Anomaliler</h3>
-En çok para harcanan yerler, olağandışı harcama kalıpları, iyi yönetilmiş bütçe kalemleri.
-
-<h3>🎯 Aksiyon Planı & Tavsiyeler</h3>
-Önümüzdeki ay için 2-3 adet uygulanabilir, somut ve nokta atışı tavsiye. (Örn: "Dışarıda yemeği %10 azaltırsanız X TL tasarruf edebilirsiniz")
+Rapor 3 bölümden oluşacak:
+<h3>📊 Genel Bakış</h3> (Kısa ve net bir özet)
+<h3>🔍 Dikkat Çekenler & Anomaliler</h3> (En çok harcanan yerler veya mantıklı masraflar)
+<h3>🎯 Aksiyon Planı & Tavsiyeler</h3> (Tasarruf için 2-3 adet nokta atışı, kısa tavsiye)
 
 ${contextInfo}`;
 
@@ -236,13 +230,14 @@ ${contextInfo}`;
             'X-Title': 'CoBill AI Report',
         },
         body: JSON.stringify({
-            model: MODEL,
+            model: 'openai/gpt-5-nano',
             messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: JSON.stringify(lightExpenses) },
             ],
-            temperature: 0.4, // Biraz yaratıcılık ama tutarlı
-            max_tokens: 2048,
+            temperature: 0.7,
+            max_tokens: 800,
+            presence_penalty: 0.3,
         }),
     });
 
