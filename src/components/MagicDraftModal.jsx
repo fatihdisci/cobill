@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Check, ChevronDown, Loader2, Users, User, AlertCircle } from 'lucide-react';
+import { Sparkles, X, Check, Loader2, Users, User, AlertCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { parseMagicDraft, AI_CATEGORIES } from '../services/aiService';
 import { generateId } from '../utils/helpers';
@@ -274,7 +274,6 @@ export default function MagicDraftModal({ onClose }) {
 
 // ─── Draft Card Sub-component ───
 function DraftCard({ draft, state, t, onUpdate, onGroupChange, onSave, isSaving }) {
-    const [showGroupDropdown, setShowGroupDropdown] = useState(false);
 
     const selectedGroup = state.groups.find(g => g.id === draft.groupId);
     const groupMembers = selectedGroup
@@ -393,55 +392,30 @@ function DraftCard({ draft, state, t, onUpdate, onGroupChange, onSave, isSaving 
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        style={{ marginBottom: 'var(--space-md)', overflow: 'hidden' }}
+                        style={{ marginBottom: 'var(--space-md)' }}
                     >
                         <label className="form-label" style={{ fontSize: '0.65rem', marginBottom: 4 }}>
                             {t('magicDraft.selectGroup')}
                         </label>
-                        <div style={{ position: 'relative' }}>
-                            <button
-                                type="button"
-                                className="form-input flex items-center justify-between"
-                                onClick={() => setShowGroupDropdown(!showGroupDropdown)}
-                                style={{
-                                    cursor: 'pointer',
-                                    padding: 'var(--space-sm) var(--space-md)',
-                                    minHeight: 40,
-                                    textAlign: 'left',
-                                    border: !draft.groupId ? '1px solid var(--accent-amber)' : '1px solid var(--border-primary)',
-                                }}
-                            >
-                                <span style={{ fontSize: 'var(--font-sm)' }}>
-                                    {selectedGroup ? selectedGroup.name : t('magicDraft.chooseGroup')}
-                                </span>
-                                <ChevronDown size={14} />
-                            </button>
-
-                            {showGroupDropdown && (
-                                <div className="magic-draft-dropdown">
-                                    {state.groups.length === 0 ? (
-                                        <div className="text-sm text-muted" style={{ padding: 'var(--space-md)' }}>
-                                            {t('magicDraft.noGroups')}
-                                        </div>
-                                    ) : (
-                                        state.groups.map(g => (
-                                            <button
-                                                key={g.id}
-                                                type="button"
-                                                className="magic-draft-dropdown-item"
-                                                onClick={() => {
-                                                    onGroupChange(draft._draftId, g.id);
-                                                    setShowGroupDropdown(false);
-                                                }}
-                                            >
-                                                <span>{g.name}</span>
-                                                <span className="text-xs text-muted">{g.members.length} {t('magicDraft.members')}</span>
-                                            </button>
-                                        ))
-                                    )}
-                                </div>
-                            )}
-                        </div>
+                        <select
+                            className="form-select"
+                            value={draft.groupId}
+                            onChange={e => {
+                                onGroupChange(draft._draftId, e.target.value);
+                            }}
+                            style={{
+                                minHeight: 40,
+                                padding: 'var(--space-sm) var(--space-md)',
+                                border: !draft.groupId ? '1px solid var(--accent-amber)' : '1px solid var(--border-primary)',
+                            }}
+                        >
+                            <option value="">{t('magicDraft.chooseGroup')}</option>
+                            {state.groups.map(g => (
+                                <option key={g.id} value={g.id}>
+                                    {g.name} ({g.members.length} {t('magicDraft.members')})
+                                </option>
+                            ))}
+                        </select>
 
                         {/* Kim Ödedi — sadece grup seçildiyse */}
                         {draft.groupId && groupMembers.length > 0 && (
