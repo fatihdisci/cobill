@@ -24,6 +24,7 @@ export default function MagicDraftModal({ onClose }) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [savingId, setSavingId] = useState(null);
+    const [isComplete, setIsComplete] = useState(false);
 
     // Ayrıştır butonu
     const handleParse = async () => {
@@ -136,7 +137,16 @@ export default function MagicDraftModal({ onClose }) {
                 d._draftId === draft._draftId ? { ...d, saved: true } : d
             ));
             setTimeout(() => {
-                setDrafts(prev => prev.filter(d => d._draftId !== draft._draftId));
+                setDrafts(prev => {
+                    const remaining = prev.filter(d => d._draftId !== draft._draftId);
+                    if (remaining.length === 0 && prev.length > 0) {
+                        setIsComplete(true);
+                        setTimeout(() => {
+                            onClose();
+                        }, 1500);
+                    }
+                    return remaining;
+                });
             }, 600);
         } catch (err) {
             setError(err.message || t('magicDraft.saveError'));
@@ -236,9 +246,31 @@ export default function MagicDraftModal({ onClose }) {
                     </div>
                 )}
 
+                {/* Success State */}
+                <AnimatePresence>
+                    {isComplete && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="flex flex-col items-center justify-center p-2xl gap-md text-center"
+                        >
+                            <div style={{
+                                width: 64, height: 64, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-emerald)'
+                            }}>
+                                <Check size={32} />
+                            </div>
+                            <h4 style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                Tümü Eklendi!
+                            </h4>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 {/* Draft Cards */}
                 <AnimatePresence>
-                    {activeDrafts.length > 0 && (
+                    {!isComplete && activeDrafts.length > 0 && (
                         <motion.div
                             className="magic-draft-cards"
                             initial={{ opacity: 0 }}

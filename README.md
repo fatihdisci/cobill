@@ -15,7 +15,12 @@
 - **Tekrarlayan Masraflar (Abonelikler & Kiralar):** Her ay yenilenen fatura, kira veya Netflix gibi abonelikleri yapılandırma.
 - **WhatsApp ve E-Posta Hatırlatıcıları:** Kişiye özel hesaplanmış borç miktarlarını tek bir tuşla kopyalama, doğrudan WhatsApp üzerinden hatırlatıcı gönderebilme.
 
-### 💰 Bireysel Masraf Takibi (Personal Finance Tracker) — **YENİ ✨**
+### 🤖 Sihirli Taslak (Magic Draft) — **YENİ ✨**
+- **AI Destekli Harcama Ekleme:** "Dün markete 500 TL, sinemaya 120 TL ödedim" gibi serbest metinleri OpenRouter API (Qwen modeli) aracılığıyla analiz edip otomatik harcama taslaklarına dönüştürür.
+- **Akıllı Form:** Çıkarılan tutar, başlık, kategori ve tarihi önceden doldurulmuş düzenlenebilir kartlar (Bireysel/Grup masrafı seçeneği ile) olarak sunar.
+- **Gelişmiş Güvenlik:** Throttle (hız sınırı) ve regex tabanlı JSON temizleme mekanizmalarıyla stabilite sağlar.
+
+### 💰 Bireysel Masraf Takibi (Personal Finance Tracker)
 - **Kişisel Cüzdan:** Aylık toplam harcama özeti, kategoriye göre filtreleme ve silme işlemleri.
 - **Bireysel Harcama Formu:** Para birimi seçimi, büyük tutar giriş alanı, kategori chip butonları ve tarih seçici ile hızlı veri girişi.
 - **Tekrarlayan Bireysel Masraf:** Her ay otomatik eklenmesi için gün seçici ile tekrarlayan harcama tanımlama.

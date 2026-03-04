@@ -30,12 +30,12 @@ export default function Reports() {
     const group = state.groups.find(g => g.id === selectedGroup);
 
     const PERSONAL_CATS = {
-        Market: { icon: '🛒', color: '#10b981' },
-        Fatura: { icon: '📋', color: '#06b6d4' },
-        'Eğitim': { icon: '📚', color: '#3b82f6' },
-        'Eğlence': { icon: '🎬', color: '#8b5cf6' },
-        'Ulaşım': { icon: '🚕', color: '#f59e0b' },
-        'Diğer': { icon: '📦', color: '#6b7280' },
+        Market: { icon: '🛒', color: '#10b981', key: 'market' },
+        Fatura: { icon: '📋', color: '#06b6d4', key: 'bill' },
+        'Eğitim': { icon: '📚', color: '#3b82f6', key: 'education' },
+        'Eğlence': { icon: '🎬', color: '#8b5cf6', key: 'entertainment' },
+        'Ulaşım': { icon: '🚕', color: '#f59e0b', key: 'transport' },
+        'Diğer': { icon: '📦', color: '#6b7280', key: 'other' },
     };
 
     if (!isPro) {
@@ -202,7 +202,7 @@ export default function Reports() {
                                             const pct = totalSpent > 0 ? (amount / totalSpent * 100) : 0;
                                             return (
                                                 <tr key={cat}>
-                                                    <td><span className="flex items-center gap-sm"><span>{c.icon}</span>{t(`wallet.categories.${cat}`) || c.label}</span></td>
+                                                    <td><span className="flex items-center gap-sm"><span>{c.icon}</span>{t(`wallet.categories.${cat === 'shopping' ? 'market' : cat === 'bills' ? 'bill' : cat}`, { defaultValue: c.label })}</span></td>
                                                     <td style={{ textAlign: 'right' }}>{formatCurrency(amount, group.currency)}</td>
                                                     <td style={{ textAlign: 'right' }}>{pct.toFixed(1)}%</td>
                                                     <td><div className="progress-bar" style={{ width: 120 }}><div className="progress-fill" style={{ width: `${pct}%` }} /></div></td>
@@ -282,7 +282,7 @@ export default function Reports() {
                                                 </div>
                                                 <div style={{ flex: 1 }}>
                                                     <div className="flex justify-between mb-xs">
-                                                        <span className="text-sm font-semibold">{t(`wallet.categories.${cat}`) || cat}</span>
+                                                        <span className="text-sm font-semibold">{t(`wallet.categories.${catInfo.key}`, { defaultValue: cat })}</span>
                                                         <span className="text-sm font-bold">{pct.toFixed(1)}%</span>
                                                     </div>
                                                     <div className="progress-bar" style={{ height: 8, borderRadius: 'var(--radius-full)', background: 'var(--bg-glass)' }}>
