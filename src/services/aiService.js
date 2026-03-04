@@ -113,6 +113,7 @@ KURALLAR:
 5. Eğer kategori net değilse "Diğer" kullan.
 6. Tutarı her zaman pozitif sayı olarak yaz.
 7. Bugünün tarihi: ${today}. Kullanıcının 'dün', 'geçen hafta', '3 gün önce' gibi ifadelerini bu tarihe göre matematiksel olarak hesapla ve o tarihi (YYYY-MM-DD) kullan.
+8. Kullanıcının girdiği metindeki olası harf hatalarını, devrik cümleleri ve yazım yanlışlarını (typo) otomatik olarak DÜZELT. Çıktıdaki "title" alanı her zaman düzgün, anlamlı ve kurallı bir Türkçe ile yazılmalıdır
 
 ÖRNEK YAPI:
 {
