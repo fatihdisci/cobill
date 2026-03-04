@@ -64,14 +64,14 @@ export default function AIReportModal({ isOpen, onClose, reportHtml, isLoading, 
                     transition={{ type: 'spring', damping: 28, stiffness: 300 }}
                 >
                     {/* Header */}
-                    <div className="ai-report-header">
+                    <div className="ai-report-header" style={{ background: 'var(--gradient-primary)', borderBottom: 'none', borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0' }}>
                         <div className="flex items-center gap-sm">
-                            <Sparkles size={20} style={{ color: 'var(--accent-purple)' }} />
-                            <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 700 }}>
+                            <Sparkles size={20} style={{ color: 'white' }} />
+                            <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: 'white' }}>
                                 {t('aiReport.title')}
                             </h3>
                         </div>
-                        <button className="btn btn-ghost btn-icon" onClick={onClose} style={{ minHeight: 36, width: 36, height: 36 }}>
+                        <button className="btn btn-ghost btn-icon" onClick={onClose} style={{ minHeight: 36, width: 36, height: 36, color: 'white' }}>
                             <X size={18} />
                         </button>
                     </div>
@@ -119,21 +119,21 @@ export default function AIReportModal({ isOpen, onClose, reportHtml, isLoading, 
                     {reportHtml && !isLoading && (
                         <div className="ai-report-actions">
                             <button
-                                className="btn btn-secondary flex items-center gap-sm"
+                                className="btn btn-primary flex items-center gap-sm"
                                 onClick={handleWhatsApp}
                                 style={{ flex: 1, minHeight: 42, borderRadius: 'var(--radius-md)' }}
                             >
-                                <MessageCircle size={16} style={{ color: 'var(--accent-emerald)' }} />
+                                <MessageCircle size={16} />
                                 {t('aiReport.shareWhatsapp')}
                             </button>
                             <button
-                                className="btn btn-secondary flex items-center gap-sm"
+                                className="btn btn-primary flex items-center gap-sm"
                                 onClick={handleCopyText}
                                 style={{ flex: 1, minHeight: 42, borderRadius: 'var(--radius-md)' }}
                             >
                                 {copied ? (
                                     <>
-                                        <CheckCircle2 size={16} style={{ color: 'var(--accent-emerald)' }} />
+                                        <CheckCircle2 size={16} />
                                         {t('aiReport.copied')}
                                     </>
                                 ) : (

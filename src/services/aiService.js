@@ -22,6 +22,7 @@ function cleanJsonResponse(raw) {
     if (!raw || typeof raw !== 'string') return null;
 
     let cleaned = raw.trim();
+    cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
     // Markdown code block temizliği: ```json ... ``` veya ``` ... ```
     const codeBlockRegex = /```(?:json)?\s*([\s\S]*?)```/;
@@ -30,11 +31,18 @@ function cleanJsonResponse(raw) {
         cleaned = match[1].trim();
     }
 
+    // İlk '{' ile son '}' arasını çek (Eğer AI dizi değil nesne döndürdüyse)
+    const firstBrace = cleaned.indexOf('{');
+    const lastBrace = cleaned.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        return cleaned.substring(firstBrace, lastBrace + 1);
+    }
+
     // İlk '[' ile son ']' arasını çek (AI'ın eklediği açıklama metinlerini at)
     const firstBracket = cleaned.indexOf('[');
     const lastBracket = cleaned.lastIndexOf(']');
     if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
-        cleaned = cleaned.substring(firstBracket, lastBracket + 1);
+        return cleaned.substring(firstBracket, lastBracket + 1);
     }
 
     return cleaned;
@@ -88,7 +96,7 @@ export async function parseMagicDraft(text) {
     const systemPrompt = `Sen bir harcama ayrıştırıcısın. Kullanıcının serbest metin olarak girdiği harcamaları JSON dizisine dönüştür.
 
 KURALLAR:
-1. SADECE JSON dizisi döndür, başka hiçbir şey yazma.
+1. SADECE bir JSON nesnesi (object) döndür, başka hiçbir şey yazma. JSON kök elementi "expenses" dizisi olmalıdır.
 2. Her harcama şu alanlara sahip olmalı: "amount" (sayı), "title" (string), "category" (string), "date" (YYYY-MM-DD string)
 3. Kategori SADECE şu değerlerden biri olabilir: ${JSON.stringify(AI_CATEGORIES)}
 4. Eğer tarih belirtilmemişse bugünün tarihi (${today}) kullan.
@@ -96,8 +104,12 @@ KURALLAR:
 6. Tutarı her zaman pozitif sayı olarak yaz.
 7. Bugünün tarihi: ${today}. Kullanıcının 'dün', 'geçen hafta', '3 gün önce' gibi ifadelerini bu tarihe göre matematiksel olarak hesapla ve o tarihi (YYYY-MM-DD) kullan.
 
-ÖRNEK ÇIKTI:
-[{"amount": 500, "title": "Market alışverişi", "category": "Market", "date": "${today}"}]`;
+ÖRNEK YAPI:
+{
+  "expenses": [
+    { "amount": 0, "title": "...", "category": "Diğer", "date": "YYYY-MM-DD" }
+  ]
+}`;
 
     const response = await fetch(OPENROUTER_API_URL, {
         method: 'POST',
@@ -138,8 +150,13 @@ KURALLAR:
     let parsed;
     try {
         parsed = JSON.parse(cleanedJson);
+        if (parsed.expenses) {
+            parsed = parsed.expenses;
+        }
     } catch {
-        throw new Error('AI yanıtı geçerli JSON değil. Lütfen tekrar deneyin.');
+        console.error("RAW AI OUTPUT:", rawContent);
+        console.error("CLEANED JSON:", cleanedJson);
+        throw new Error('AI yanıtı geçerli JSON değil. (Konsola bakınız)');
     }
 
     if (!Array.isArray(parsed)) {
@@ -207,14 +224,18 @@ export async function generateAIReport(expenses, reportType, contextData = {}) {
         : `BİREYSEL rapor. Toplam: ${totalAmount.toFixed(0)} TRY.`;
 
     const systemPrompt = reportType === 'personal'
-        ? `Sen uluslararası düzeyde hizmet veren, son derece saygılı, objektif ve detaycı bir Kıdemli Bireysel Finans Analistisin. Amacın, sana gönderilen bireysel harcama verilerini inceleyerek kullanıcının bütçe sağlığını, kategori bazlı harcama alışkanlıklarını ve tasarruf fırsatlarını tane tane, uzun ve profesyonel bir dille raporlamaktır. SADECE HTML formatında (<h3>, <h4>, <p>, <ul>, <li>, <strong>, <br>) yanıt vereceksin.
+        ? `Sen bir bankanın VIP portföy yöneticisisin. Sana gönderilen kullanıcının harcamalarını analiz et, bütçeyi domine eden kategorileri ve savurganlık yerine tasarruf potansiyeli olan alanları son derece ağırbaşlı bir dille uzun uzun açıkla. SADECE HTML formatında yanıt vereceksin.
 
 KESİN KURALLAR:
-1. Sokak ağzı, argo, laubali veya yargılayıcı kelimeler (savurganlık, bedavacı, freeloader vb.) KESİNLİKLE YASAKTIR. Son derece kurumsal ve ağırbaşlı bir dil kullan.
-2. ASLA kendini tanıtma ("Ben bir danışmanım" vs. deme) ve giriş/kapanış cümleleri yazma.
-3. Rapor KISA OLMAMALIDIR. Harcama alışkanlıklarını ve bütçeyi domine eden kategorileri rakamsal verilerle, neden-sonuç ilişkisi kurarak detaylı paragraflar halinde açıkla.
-4. Markdown (\`\`\`html vb.) KULLANMA, sadece saf HTML string döndür.
-5. Türkçe yaz.
+1. Sokak ağzı, argo, laubali veya yargılayıcı kelimeler KESİNLİKLE YASAKTIR. Son derece kurumsal ve ağırbaşlı bir dil kullan.
+2. ASLA kendini tanıtma ve giriş/kapanış cümleleri (Teşekkürler vb.) yazma.
+3. Rapor KISA OLMAMALIDIR. Harcama alışkanlıklarını neden-sonuç ilişkisi kurarak detaylı paragraflar halinde açıkla.
+4. Metni düz paragraflar yerine; <h4> alt başlıkları, <ul> ve <li> maddelemeleriyle parçala.
+5. Önemli rakamların ve kritik tespitlerin etrafına <strong> etiketi koy.
+6. Her ana bölümün altına (<h3> başlıklarının temsil ettiği alan bittikten sonra) tam olarak şu kodu ekle: <hr style='border: 0; height: 1px; background: var(--border-primary); margin: 20px 0;'>
+7. İçgörülerin/paragrafların başına konuya uygun emojiler (🚀, 💡, ⚠️, 💰 vb.) ekleyerek görsel bir hiyerarşi oluştur.
+8. Markdown (\`\`\`html vb.) KULLANMA, sadece saf HTML string döndür.
+9. Türkçe yaz.
 
 Rapor tam olarak şu 3 ana bölümden oluşacak:
 
@@ -228,15 +249,19 @@ Bütçeyi domine eden kategorilerin, rutin giderlerin ve büyük ölçekli harca
 Yaşam standardını koruyarak uygulanabilecek 3-4 adet stratejik ve yapıcı tasarruf hamlesi.
 
 ${contextInfo}`
-        : `Sen uluslararası düzeyde hizmet veren, son derece saygılı, objektif ve detaycı bir Kıdemli Finansal Analistsin. Amacın, sana gönderilen verileri yüzeysel okumak değil; bütçe sağlığını, harcama dağılımlarını ve olası dengesizlikleri tane tane, uzun ve profesyonel bir dille raporlamaktır. SADECE HTML formatında (<h3>, <h4>, <p>, <ul>, <li>, <strong>, <br>) yanıt vereceksin.
+        : `Sen uluslararası düzeyde hizmet veren, son derece saygılı, objektif ve detaycı bir Kıdemli Finansal Analistsin. Amacın, sana gönderilen verileri yüzeysel okumak değil; bütçe sağlığını, harcama dağılımlarını ve olası dengesizlikleri tane tane, uzun ve profesyonel bir dille raporlamaktır. SADECE HTML formatında yanıt vereceksin.
 
 KESİN KURALLAR:
 1. Sokak ağzı, argo, laubali veya yargılayıcı kelimeler (örn: "savurganlık", "freeloader", "bedavacı", "aptal") KESİNLİKLE YASAKTIR. Son derece kurumsal ve ağırbaşlı bir dil kullan.
 2. ASLA kendini tanıtma ("Ben bir danışmanım", "Size yardımcı olayım" vs. deme).
 3. ASLA giriş veya kapanış cümlesi yazma ("İşte raporunuz", "Teşekkür ederim", "Saygılarımla" YASAKTIR).
 4. Rapor KISA OLMAMALIDIR. Her bir durumu, harcama kalemini ve kişi bazlı dengesizliği neden-sonuç ilişkisiyle, tane tane ve detaylı paragraflar halinde açıkla.
-5. Markdown (\`\`\`html vb.) KULLANMA, sadece saf HTML string döndür.
-6. Türkçe yaz.
+5. Metni düz paragraflar yerine; <h4> alt başlıkları, <ul> ve <li> maddelemeleriyle parçala.
+6. Önemli rakamların ve kritik tespitlerin etrafına <strong> etiketi koy.
+7. Her ana bölümün altına (<h3> başlıklarının temsil ettiği alan bittikten sonra) tam olarak şu kodu ekle: <hr style='border: 0; height: 1px; background: var(--border-primary); margin: 20px 0;'>
+8. İçgörülerin/paragrafların başına konuya uygun emojiler (🚀, 💡, ⚠️, 💰 vb.) ekleyerek görsel bir hiyerarşi oluştur.
+9. Markdown (\`\`\`html vb.) KULLANMA, sadece saf HTML string döndür.
+10. Türkçe yaz.
 
 Rapor tam olarak şu 3 ana bölümden oluşacak:
 
@@ -309,4 +334,3 @@ ${contextInfo}`;
 
     return cleanedHtml;
 }
-
