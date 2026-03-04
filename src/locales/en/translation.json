@@ -47,8 +47,13 @@
     "aiReport": {
         "title": "AI Budget Analysis",
         "generateButton": "✨ Generate AI Analysis",
-        "analyzing": "AI is analyzing your expenses...",
+        "analyzing": "AI is analyzing your budget...",
         "analyzingDesc": "Your spending data is being processed, personalized financial insights are being prepared.",
+        "loadingMessages": {
+            "insights": "Analyzing your spending habits...",
+            "opportunities": "Evaluating saving opportunities...",
+            "finalizing": "Preparing your report..."
+        },
         "error": "An error occurred during analysis.",
         "shareWhatsapp": "Share via WhatsApp",
         "copyText": "Copy Text",

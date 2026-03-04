@@ -47,8 +47,13 @@
     "aiReport": {
         "title": "AI Bütçe Analizi",
         "generateButton": "✨ AI Analizi Üret",
-        "analyzing": "Yapay zeka harcamalarınızı analiz ediyor...",
+        "analyzing": "Yapay zeka bütçenizi inceliyor...",
         "analyzingDesc": "Harcama verileriniz işleniyor, kişiselleştirilmiş finansal öneriler hazırlanıyor.",
+        "loadingMessages": {
+            "insights": "Harcama alışkanlıklarınız analiz ediliyor...",
+            "opportunities": "Tasarruf fırsatları değerlendiriliyor...",
+            "finalizing": "Raporunuz hazırlanıyor..."
+        },
         "error": "Analiz sırasında bir hata oluştu.",
         "shareWhatsapp": "WhatsApp ile Paylaş",
         "copyText": "Metni Kopyala",
