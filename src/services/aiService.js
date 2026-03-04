@@ -24,6 +24,16 @@ function cleanJsonResponse(raw) {
     let cleaned = raw.trim();
     cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
+    // Qwen ve benzeri modellerin sona eklediği "Fill-in-the-middle" veya kod tamamlama kalıntılarını kes
+    const fimIndex = cleaned.indexOf('<|fim_middle|>');
+    if (fimIndex !== -1) {
+        cleaned = cleaned.substring(0, fimIndex).trim();
+    }
+    const eofIndex = cleaned.indexOf('<|endoftext|>');
+    if (eofIndex !== -1) {
+        cleaned = cleaned.substring(0, eofIndex).trim();
+    }
+
     // Markdown code block temizliği: ```json ... ``` veya ``` ... ```
     const codeBlockRegex = /```(?:json)?\s*([\s\S]*?)```/;
     const match = cleaned.match(codeBlockRegex);
