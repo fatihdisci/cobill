@@ -4,7 +4,7 @@ import { NavLink, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import {
     LayoutDashboard, Users, PlusCircle, ArrowLeftRight,
     BarChart3, Settings, Receipt, Bell, LogOut, CircleUser,
-    Wallet, Plus, User, X
+    Wallet, Plus, User, X, Sparkles
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import appIconImg from '../../assets/icon.png';
@@ -16,6 +16,7 @@ import { Star } from 'lucide-react';
 import { showInterstitialAd } from '../utils/adService';
 import FloatingActionMenu from './ui/FloatingActionMenu';
 import RecurringPromptModal from './RecurringPromptModal';
+import MagicDraftModal from './MagicDraftModal';
 import { getPendingRecurringExpenses } from '../utils/recurringUtils';
 
 export default function Layout() {
@@ -31,6 +32,7 @@ export default function Layout() {
     // Recurring expenses
     const [showRecurringModal, setShowRecurringModal] = useState(false);
     const [pendingRecurring, setPendingRecurring] = useState([]);
+    const [showMagicDraft, setShowMagicDraft] = useState(false);
 
     const isPro = state.members[state.currentUser]?.isPro;
 
@@ -251,6 +253,13 @@ export default function Layout() {
                 <FloatingActionMenu
                     options={[
                         {
+                            label: t('fab.magicDraft'),
+                            description: t('fab.magicDraftDesc'),
+                            onClick: () => setShowMagicDraft(true),
+                            Icon: <Sparkles size={22} />,
+                            color: 'var(--accent-amber)'
+                        },
+                        {
                             label: t('fab.personalExpense'),
                             description: t('fab.personalExpenseDesc'),
                             onClick: () => navigate('/add-personal'),
@@ -313,6 +322,9 @@ export default function Layout() {
             {/* Modals */}
             {showProModal && (
                 <ProUpgradeModal onClose={() => setShowProModal(false)} />
+            )}
+            {showMagicDraft && (
+                <MagicDraftModal onClose={() => setShowMagicDraft(false)} />
             )}
         </div>
     );

@@ -1526,3 +1526,210 @@ a:hover {
     opacity: 1;
   }
 }
+
+/* ===== Magic Draft (Sihirli Taslak) ===== */
+.magic-draft-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.magic-draft-sheet {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-bottom: none;
+  border-radius: 24px 24px 0 0;
+  padding: var(--space-lg) var(--space-xl) var(--space-2xl);
+  width: 100%;
+  max-width: 560px;
+  max-height: 85vh;
+  max-height: 85dvh;
+  overflow-y: auto;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+
+.magic-draft-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+}
+
+.magic-draft-input-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.magic-draft-textarea {
+  min-height: 80px;
+  resize: vertical;
+  border-radius: var(--radius-md) !important;
+  font-size: var(--font-base);
+  line-height: 1.5;
+  padding: var(--space-md) var(--space-lg) !important;
+}
+
+.magic-draft-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Spinner */
+.magic-draft-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Error banner */
+.magic-draft-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  background: rgba(225, 29, 72, 0.08);
+  border: 1px solid rgba(225, 29, 72, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--accent-rose);
+  font-size: var(--font-sm);
+  margin-bottom: var(--space-md);
+}
+
+/* Skeleton Loading */
+.magic-draft-skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.magic-draft-skeleton-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.skeleton-line {
+  height: 14px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg,
+      var(--bg-tertiary) 25%,
+      var(--bg-secondary) 50%,
+      var(--bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-line-sm {
+  width: 40%;
+}
+
+.skeleton-line-md {
+  width: 65%;
+}
+
+.skeleton-line-lg {
+  width: 90%;
+}
+
+/* Draft Cards Container */
+.magic-draft-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Individual Draft Card */
+.magic-draft-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  padding: var(--space-lg);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+.magic-draft-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-primary);
+  opacity: 0.6;
+}
+
+.magic-draft-card.saved {
+  border-color: var(--accent-emerald);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+/* Group Dropdown */
+.magic-draft-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 4px;
+  animation: fadeIn 150ms ease-out;
+}
+
+.magic-draft-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-md) var(--space-lg);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-primary);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: var(--font-sm);
+  color: var(--text-primary);
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.magic-draft-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.magic-draft-dropdown-item:hover {
+  background: var(--bg-glass);
+}
+
+/* Desktop adjustments */
+@media (min-width: 769px) {
+  .magic-draft-overlay {
+    align-items: center;
+  }
+
+  .magic-draft-sheet {
+    border-radius: var(--radius-xl);
+    border-bottom: 1px solid var(--border-primary);
+    max-height: 80vh;
+  }
+}
