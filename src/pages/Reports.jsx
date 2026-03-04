@@ -13,6 +13,7 @@ import DateFilterBar from '../components/DateFilterBar';
 import { filterByDateRange, getDateRange } from '../utils/dateFilterUtils';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Reports() {
     const { state } = useApp();
@@ -86,36 +87,99 @@ export default function Reports() {
         personalCategoryBreakdown[e.category] = (personalCategoryBreakdown[e.category] || 0) + e.amount;
     });
 
+    // Toast / Feedback state
+    const [toast, setToast] = useState(null); // { message: string, type: 'success' | 'error' }
+
+    const showToast = (message, type = 'success') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3000);
+    };
+
     // AI Rapor Üret
     const handleGenerateAIReport = async () => {
+        let reportExpenses, contextData;
+        const limitKey = 'cobill_ai_limits';
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        if (reportTab === 'group' && group) {
+            reportExpenses = expenses;
+            const memberNames = {};
+            group.members.forEach(id => {
+                const m = state.members[id];
+                if (m) memberNames[id] = m.name;
+            });
+            contextData = {
+                groupName: group.name,
+                memberCount: group.members.length,
+                currency: group.currency,
+                memberNames,
+            };
+        } else {
+            reportExpenses = personalFilteredExpenses;
+            contextData = {};
+        }
+
+        // Adım 1: Daha "Zor" Bir Veri İmzası (Signature) Oluşturma
+        const expenseSum = reportExpenses.reduce((sum, e) => sum + e.amount, 0);
+        const lastExpenseId = reportExpenses.length > 0 ? reportExpenses[reportExpenses.length - 1].id : 'none';
+        const signature = `${reportExpenses.length}_${expenseSum}_${lastExpenseId}`;
+
+        // Adım 2: Günlük Limit Mantığı
+        let aiLimits = JSON.parse(localStorage.getItem(limitKey) || '{"date":"","group":0,"personal":0}');
+        if (aiLimits.date !== todayStr) {
+            aiLimits = { date: todayStr, group: 0, personal: 0 };
+        }
+
+        // Adım 3: Akıllı Önbellek (Cache) ve Karar Mekanizması
+        const cacheKey = `cobill_ai_cache_${reportTab}_${selectedGroup || 'personal'}`;
+        const cachedData = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+
         setShowAIReport(true);
+
+        // Adım B (İmzalar Aynıysa - API'YE GİTME)
+        if (cachedData && cachedData.signature === signature && cachedData.html) {
+            setAiReportHtml(cachedData.html);
+            setAiReportError(null);
+
+            const invisibleToasts = [
+                "Finansal verileriniz kontrol edildi, analiziniz hazır.",
+                "Bütçe asistanınız güncel durumu başarıyla inceledi.",
+                "Analizleriniz en son verilerinize göre optimize edildi."
+            ];
+            const randomMsg = invisibleToasts[Math.floor(Math.random() * invisibleToasts.length)];
+            showToast(randomMsg, 'success');
+            return; // Cache kullanıldı, fonksiyondan çık
+        }
+
+        // Adım C (İmzalar Farklıysa - YENİ RAPOR)
+        if (aiLimits[reportTab] >= 3) {
+            setAiReportHtml(null);
+            setAiReportLoading(false);
+            setAiReportError(`Günlük yapay zeka analiz limitinize (3/3) ulaştınız. Lütfen yarın tekrar deneyin.`);
+            showToast(`Günlük limit (3/3) doldu.`, 'error');
+            return;
+        }
+
+        // API'den yeni rapor çek
         setAiReportHtml(null);
         setAiReportError(null);
         setAiReportLoading(true);
 
         try {
-            let reportExpenses, contextData;
-
-            if (reportTab === 'group' && group) {
-                reportExpenses = expenses;
-                const memberNames = {};
-                group.members.forEach(id => {
-                    const m = state.members[id];
-                    if (m) memberNames[id] = m.name;
-                });
-                contextData = {
-                    groupName: group.name,
-                    memberCount: group.members.length,
-                    currency: group.currency,
-                    memberNames,
-                };
-            } else {
-                reportExpenses = personalFilteredExpenses;
-                contextData = {};
-            }
-
             const html = await generateAIReport(reportExpenses, reportTab, contextData);
             setAiReportHtml(html);
+
+            // Limiti artır ve kaydet
+            aiLimits[reportTab] += 1;
+            localStorage.setItem(limitKey, JSON.stringify(aiLimits));
+
+            // Yeni signature ve html'i önbelleğe al
+            localStorage.setItem(cacheKey, JSON.stringify({
+                signature: signature,
+                html: html
+            }));
+
+            showToast('Yapay zeka analiziniz başarıyla oluşturuldu.', 'success');
         } catch (err) {
             setAiReportError(err.message || t('aiReport.error'));
         } finally {
@@ -400,6 +464,44 @@ export default function Reports() {
                         </button>
                     </div>
                 </div>,
+                document.body
+            )}
+
+            {/* Toast Notification */}
+            {createPortal(
+                <AnimatePresence>
+                    {toast && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                            style={{
+                                position: 'fixed',
+                                bottom: 'calc(var(--space-2xl) + 60px)', // Above bottom bar
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                zIndex: 99999,
+                                background: toast.type === 'error' ? 'var(--accent-red)' : 'var(--bg-glass)',
+                                border: `1px solid ${toast.type === 'error' ? 'rgba(255,0,0,0.3)' : 'var(--border-primary)'}`,
+                                color: toast.type === 'error' ? 'white' : 'var(--text-primary)',
+                                WebkitBackdropFilter: 'blur(20px)',
+                                backdropFilter: 'blur(20px)',
+                                padding: '12px 24px',
+                                borderRadius: 'var(--radius-full)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                fontWeight: 600,
+                                fontSize: '0.9rem',
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
+                            {toast.type === 'success' ? '✨' : '⚠️'} {toast.message}
+                        </motion.div>
+                    )}
+                </AnimatePresence>,
                 document.body
             )}
         </div>
