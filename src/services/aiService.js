@@ -191,33 +191,41 @@ export async function generateAIReport(expenses, reportType, contextData = {}) {
         throw new Error('Analiz edilecek harcama bulunamadı.');
     }
 
-    // Token tasarrufu: Sadece gerekli alanları map'le
-    const lightExpenses = expenses.map(e => ({
+    // Token tasarrufu: Sadece gerekli alanları map'le, en fazla 30 harcama gönder
+    const slicedExpenses = expenses.slice(0, 30);
+    const lightExpenses = slicedExpenses.map(e => ({
         tutar: e.amount,
         kategori: e.category || 'Diğer',
-        tarih: e.date ? new Date(e.date).toISOString().split('T')[0] : 'Bilinmiyor',
-        baslik: e.title || e.description || 'Belirtilmemiş',
+        tarih: e.date ? new Date(e.date).toISOString().split('T')[0] : '?',
+        baslik: e.title || e.description || '?',
         ...(reportType === 'group' && e.paidBy ? { odeyen: contextData.memberNames?.[e.paidBy] || e.paidBy } : {}),
     }));
 
     const totalAmount = expenses.reduce((s, e) => s + (e.amount || 0), 0);
     const contextInfo = reportType === 'group'
-        ? `Bu bir GRUP harcama raporu. Grup adı: "${contextData.groupName || 'Grup'}". Üye sayısı: ${contextData.memberCount || '?'}. Toplam harcama: ${totalAmount.toFixed(2)} ${contextData.currency || 'TRY'}.`
-        : `Bu bir BİREYSEL harcama raporu. Toplam harcama: ${totalAmount.toFixed(2)} TRY.`;
+        ? `GRUP raporu. Grup: "${contextData.groupName || 'Grup'}". ${contextData.memberCount || '?'} üye. Toplam: ${totalAmount.toFixed(0)} ${contextData.currency || 'TRY'}.`
+        : `BİREYSEL rapor. Toplam: ${totalAmount.toFixed(0)} TRY.`;
 
-    const systemPrompt = `Sen elit ve doğrudan konuşan bir finansal danışmansın. Sana gönderilen verileri analiz edip SADECE HTML formatında (<h3>, <p>, <ul>, <li>, <strong>) yanıt vereceksin.
+    const systemPrompt = `Sen elit, zeki, doğrudan konuşan ve biraz da acımasız bir Wall Street finansal danışmanısın. Amacın kullanıcıya sadece veriyi okumak değil, verinin arkasındaki hikayeyi, savurganlıkları ve fırsatları tokat gibi çarpmaktır. Sana gönderilen verileri analiz edip SADECE HTML formatında (<h3>, <p>, <ul>, <li>, <strong>, <br>) yanıt vereceksin.
 
 KESİN KURALLAR:
-1. ASLA kendini tanıtma ("Ben bir danışmanım", "Sizinle çalışıyorum" vs. deme).
-2. ASLA giriş veya kapanış cümlesi yazma ("İşte raporunuz", "Teşekkür ederim", "Umarım faydalı olur", "İyi günler" gibi ifadeler KESİNLİKLE YASAKTIR).
-3. Cümleleri veya kelimeleri ASLA tekrar etme. Doğrudan konuya gir, tok, net ve profesyonel ol.
-4. Markdown (\`\`\`html vb.) KULLANMA, sadece saf HTML döndür.
-5. Türkçe yaz. Bolca uygun emoji kullan (📊, 💡, ⚠️, ✅, 💰, 🎯, 📉, 🔍).
+1. ASLA kendini tanıtma ("Ben bir danışmanım", "Size yardımcı olayım" vs. deme).
+2. ASLA giriş veya kapanış cümlesi yazma ("İşte raporunuz", "Teşekkür ederim", "Umarım faydalı olur" YASAKTIR).
+3. Robotik madde işaretlerinden (bullet points) kaçın, paragraflar halinde akıcı, eleştirel ve tok bir dil kullan.
+4. Harcamaları veya kişileri ismen değerlendir (Örn: "Ahmet bu ay resmen grubu sırtlamış", "Dışarıda yemeğe harcanan para inanılmaz" gibi).
+5. Markdown (\`\`\`html vb.) KULLANMA, sadece saf HTML string döndür.
+6. Türkçe yaz.
 
-Rapor 3 bölümden oluşacak:
-<h3>📊 Genel Bakış</h3> (Kısa ve net bir özet)
-<h3>🔍 Dikkat Çekenler & Anomaliler</h3> (En çok harcanan yerler veya mantıklı masraflar)
-<h3>🎯 Aksiyon Planı & Tavsiyeler</h3> (Tasarruf için 2-3 adet nokta atışı, kısa tavsiye)
+Rapor tam olarak şu 3 bölümden oluşacak:
+
+<h3>📊 Genel Bakış</h3>
+Sıkıcı rakamlar yerine, bu ayki/gruptaki harcama karakterini özetleyen çarpıcı bir paragraf.
+
+<h3>🔍 Finansal Röntgen (Anomaliler)</h3>
+Kimin freeloader (bedavacı) olduğu, en saçma veya en ağır harcama kalemleri, bütçeyi delen unsurlar hakkında acımasız bir analiz.
+
+<h3>🎯 Taktiksel Hamleler</h3>
+Tasarruf etmek veya grubu dengelemek için 2-3 adet çok net, kısa, emredici tavsiye. (Örn: "Taksi kullanımını kesin, internet faturasını bölüşün")
 
 ${contextInfo}`;
 
@@ -230,13 +238,13 @@ ${contextInfo}`;
             'X-Title': 'CoBill AI Report',
         },
         body: JSON.stringify({
-            model: 'openai/gpt-5-nano',
+            model: 'x-ai/grok-4.1-fast',
             messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: JSON.stringify(lightExpenses) },
             ],
             temperature: 0.7,
-            max_tokens: 2048,
+            max_tokens: 2500,
             presence_penalty: 0.3,
         }),
     });
@@ -255,15 +263,20 @@ ${contextInfo}`;
 
     if (!data.choices || data.choices.length === 0) {
         console.error('OpenRouter boş choices döndü:', data);
-        throw new Error('API geçerli bir sonuç (choices) döndürmedi. Lütfen konsolu kontrol edin.');
+        throw new Error('API geçerli bir sonuç döndürmedi.');
     }
 
     const rawContent = data.choices[0]?.message?.content;
+    const finishReason = data.choices[0]?.finish_reason;
 
-    if (!rawContent) {
-        const finishReason = data.choices[0]?.finish_reason || 'Bilinmiyor';
+    // finish_reason 'length' olsa bile gelen kısmi içeriği kabul et (graceful degradation)
+    if (!rawContent || rawContent.trim().length === 0) {
         console.error('OpenRouter boş içerik döndü:', data.choices[0]);
-        throw new Error(`API içi boş bir mesaj döndürdü. Sebep (finish_reason): ${finishReason}`);
+        throw new Error(`API boş yanıt döndü. (finish_reason: ${finishReason || 'Bilinmiyor'})`);
+    }
+
+    if (finishReason === 'length') {
+        console.warn('AI raporu token limitine takıldı, kısmi içerik kullanılacak.');
     }
 
     const cleanedHtml = cleanHtmlResponse(rawContent);
