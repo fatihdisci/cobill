@@ -46,7 +46,7 @@ export default function MagicDraftModal({ onClose }) {
                 title: item.title,
                 category: item.category,
                 date: item.date,
-                currency: state.settings?.defaultCurrency || 'TRY',
+                currency: item.currency || state.settings?.defaultCurrency || 'TRY',
                 expenseType: 'personal', // 'personal' | 'group'
                 groupId: '',
                 paidBy: state.currentUser,
@@ -325,24 +325,44 @@ function DraftCard({ draft, state, t, onUpdate, onGroupChange, onSave, isSaving 
         >
             {/* Tutar + Başlık */}
             <div className="flex gap-md" style={{ marginBottom: 'var(--space-md)' }}>
-                <div style={{ flex: '0 0 100px' }}>
+                <div style={{ flex: '0 0 140px' }}>
                     <label className="form-label" style={{ fontSize: '0.65rem', marginBottom: 2 }}>
                         {t('magicDraft.amount')}
                     </label>
-                    <input
-                        type="number"
-                        className="form-input"
-                        value={draft.amount}
-                        onChange={e => onUpdate(draft._draftId, 'amount', e.target.value)}
-                        min="0"
-                        step="0.01"
-                        style={{
-                            fontWeight: 700,
-                            fontSize: 'var(--font-md)',
-                            padding: 'var(--space-sm)',
-                            minHeight: 40,
-                        }}
-                    />
+                    <div className="flex gap-xs">
+                        <input
+                            type="number"
+                            className="form-input"
+                            value={draft.amount}
+                            onChange={e => onUpdate(draft._draftId, 'amount', e.target.value)}
+                            min="0"
+                            step="0.01"
+                            style={{
+                                fontWeight: 700,
+                                fontSize: 'var(--font-md)',
+                                padding: 'var(--space-sm)',
+                                minHeight: 40,
+                                width: '100%'
+                            }}
+                        />
+                        <select
+                            className="form-select"
+                            value={draft.currency}
+                            onChange={e => onUpdate(draft._draftId, 'currency', e.target.value)}
+                            style={{
+                                padding: '0 6px',
+                                minHeight: 40,
+                                width: 'auto',
+                                fontWeight: 600,
+                                fontSize: 'var(--font-sm)'
+                            }}
+                        >
+                            <option value="TRY">₺</option>
+                            <option value="USD">$</option>
+                            <option value="EUR">€</option>
+                            <option value="GBP">£</option>
+                        </select>
+                    </div>
                 </div>
                 <div style={{ flex: 1 }}>
                     <label className="form-label" style={{ fontSize: '0.65rem', marginBottom: 2 }}>

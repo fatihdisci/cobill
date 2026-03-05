@@ -96,7 +96,13 @@
         "resetConfirm": "Are you sure you want to reset all data? This action cannot be undone.",
         "appInfo": "CoBill v1.0.0 — Smart Expense Sharing Platform",
         "hide": "Hide",
-        "show": "Show"
+        "show": "Show",
+        "pushNotifications": "Push Notifications",
+        "pushDesc": "Get notified about payment reminders and group updates",
+        "emailNotifications": "Email Notifications",
+        "emailDesc": "Receive weekly and monthly summaries via email",
+        "notificationsUpdated": "Your notification preferences have been updated.",
+        "notificationsError": "There was an issue saving notification settings."
     },
     "profile": {
         "userIdentity": "User Identity",

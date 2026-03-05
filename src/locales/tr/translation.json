@@ -96,7 +96,13 @@
         "resetConfirm": "Tüm verileri sıfırlamak istediğinize emin misiniz? Bu işlem geri alınamaz.",
         "appInfo": "CoBill v1.0.0 — Akıllı Masraf Paylaşım Platformu",
         "hide": "Gizle",
-        "show": "Göster"
+        "show": "Göster",
+        "pushNotifications": "Anlık Bildirimler",
+        "pushDesc": "Ödeme hatırlatmaları ve grup güncellemeleri için bildirim al",
+        "emailNotifications": "E-posta Bildirimleri",
+        "emailDesc": "Haftalık ve aylık özetleri e-posta ile al",
+        "notificationsUpdated": "Bildirim tercihleriniz güncellendi.",
+        "notificationsError": "Bildirim ayarları kaydedilirken bir sorun oluştu."
     },
     "profile": {
         "userIdentity": "Kullanıcı Kimliği",

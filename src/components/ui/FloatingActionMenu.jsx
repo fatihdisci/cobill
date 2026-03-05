@@ -13,7 +13,7 @@ const FloatingActionMenu = ({ options, className = "" }) => {
     return (
         <div className={`global-fab-wrapper ${className}`} style={{
             position: 'fixed',
-            bottom: '86px', // strictly above tab bar
+            bottom: '110px', // Lifted higher to not overlap with the new interactive tab bar
             right: '20px',
             zIndex: 100
         }}>

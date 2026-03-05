@@ -18,6 +18,7 @@ import FloatingActionMenu from './ui/FloatingActionMenu';
 import RecurringPromptModal from './RecurringPromptModal';
 import MagicDraftModal from './MagicDraftModal';
 import { getPendingRecurringExpenses } from '../utils/recurringUtils';
+import InteractiveMenu from './ui/InteractiveMenu';
 
 export default function Layout() {
     const { t } = useTranslation();
@@ -93,14 +94,12 @@ export default function Layout() {
         { to: '/profile', icon: CircleUser, label: t('nav.profile') },
     ];
 
-    const mobileNavLeftItems = [
-        { to: '/wallet', icon: Wallet, label: t('nav.wallet') },
-        { to: '/groups', icon: Users, label: t('nav.groups') },
-    ];
-    const mobileNavRightItems = [
-        { to: '/settlements', icon: ArrowLeftRight, label: t('nav.settlements'), badge: pendingCount || null },
-        { to: '/reports', icon: BarChart3, label: t('nav.reports') },
-        { to: '/profile', icon: CircleUser, label: t('nav.profile') },
+    const interactiveMenuItems = [
+        { to: '/wallet', icon: Wallet, label: 'nav.wallet' },
+        { to: '/groups', icon: Users, label: 'nav.groups' },
+        { to: '/settlements', icon: ArrowLeftRight, label: 'nav.settlements' },
+        { to: '/reports', icon: BarChart3, label: 'nav.reports' },
+        { to: '/profile', icon: CircleUser, label: 'nav.profile' },
     ];
 
     return (
@@ -279,32 +278,10 @@ export default function Layout() {
 
             {/* Mobile Bottom Tab Bar */}
             <div className="mobile-tab-bar">
-                <nav>
-                    {mobileNavLeftItems.map(item => {
-                        const isGroupActive = item.to === '/groups' && location.pathname.startsWith('/group');
-                        return (
-                            <NavLink
-                                key={item.to}
-                                to={item.to}
-                                className={({ isActive }) => `tab-item ${isActive || isGroupActive ? 'active' : ''}`}
-                            >
-                                <item.icon size={22} />
-                                <span>{item.label}</span>
-                            </NavLink>
-                        );
-                    })}
-
-                    {mobileNavRightItems.map(item => (
-                        <NavLink
-                            key={item.to}
-                            to={item.to}
-                            className={({ isActive }) => `tab-item ${isActive ? 'active' : ''}`}
-                        >
-                            <item.icon size={22} />
-                            <span>{item.label}</span>
-                        </NavLink>
-                    ))}
-                </nav>
+                <InteractiveMenu
+                    items={interactiveMenuItems}
+                    accentColor="var(--accent-purple)"
+                />
             </div>
 
             {/* Upgrade Banner for Pro Features */}

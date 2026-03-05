@@ -46,7 +46,7 @@
 ### 🎨 Navigasyon ve UI
 - **Yüzen Buton (FAB):** Mobil arayüzde ekranın sağ altına sabitlenmiş, kolay erişimli animasyonlu "+" butonu.
 - **Floating Action Menu:** FAB'a basınca "Bireysel Harcama", "Grup Masrafı" ve "Sihirli Taslak" seçeneklerinin akıcı şekilde açılması.
-- **Mobil Tab Bar:** `[ 💳 Cüzdan | 👥 Gruplar | 💸 Ödemeler | 📊 Raporlar | 👤 Profil ]` yapısı.
+- **Interactive Mobil Tab Bar — YENİ ✨:** Aktif menü sekmesinin organik bir şekilde genişlediği `[ O Cüzdan | 👥 | 💸 | 📊 | 👤 ]` şeklinde akıcı geçişleri ve esnek genişlikleri olan premium alt menü altyapısı (21st.dev tasarımı).
 - **Glassmorphism UI:** Modern buzlu cam efekti premium arayüz tasarımı, akıcı geçişler ve gradient butonlar.
 
 ### 🔐 Güvenlik ve Senkronizasyon
@@ -169,7 +169,7 @@ npx cap open android
 | **Tekrarlayan Masraf Otomasyonu** | ✅ Tamamlandı | Vadesi gelen tekrarlayan masraflar otomatik olarak listeye dahil edilir |
 | **🤖 AI Harcama Analizi** | ✅ Tamamlandı | Harcama patternlerini analiz ederek tasarruf önerileri ve grup dengesi raporlama (Grok ile) |
 | **Çoklu Dil Desteği (i18n)** | ✅ Tamamlandı | Uygulama geneli Türkçe/İngilizce destekli altyapı oluşturuldu |
-| **Bildirim Tercihleri** | 🔘 UI Var | Ayarlar sayfasında bildirim toggle'ları mevcut, backend bağlantısı yapılacak |
+| **Bildirim Tercihleri** | ✅ Tamamlandı | Ayarlar sayfasında bildirim (Push/Email) toggle'ları AppContext ve Firebase'e bağlandı |
 | **Tema/Dark Mode Geçişi** | 🔘 CSS Hazır | CSS değişken altyapısı dark mode'a uygun, toggle mekanizması eklenecek |
 | **Gerçek Ödeme Entegrasyonu** | 🔲 Planlandı | Borç ödemelerinde gerçek para transferi (Stripe/İyzico) entegrasyonu |
 

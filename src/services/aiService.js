@@ -114,11 +114,12 @@ KURALLAR:
 6. Tutarı her zaman pozitif sayı olarak yaz.
 7. Bugünün tarihi: ${today}. Kullanıcının 'dün', 'geçen hafta', '3 gün önce' gibi ifadelerini bu tarihe göre matematiksel olarak hesapla ve o tarihi (YYYY-MM-DD) kullan.
 8. Kullanıcının girdiği metindeki olası harf hatalarını, devrik cümleleri ve yazım yanlışlarını (typo) otomatik olarak DÜZELT. Çıktıdaki "title" alanı her zaman düzgün, anlamlı ve kurallı bir Türkçe ile yazılmalıdır
+9. Kullanıcının metin içinde belirttiği para birimini algıla ve "currency" alanına uluslararası kod (TRY, USD, EUR, GBP) olarak yaz. Eğer hiçbir para birimi belirtilmemişse varsayılan olarak "TRY" kullan (Örn: "50 dolar" -> "USD", "100 lira" -> "TRY", "20 euro" -> "EUR").
 
 ÖRNEK YAPI:
 {
   "expenses": [
-    { "amount": 0, "title": "...", "category": "Diğer", "date": "YYYY-MM-DD" }
+    { "amount": 0, "currency": "TRY", "title": "...", "category": "Diğer", "date": "YYYY-MM-DD" }
   ]
 }`;
 
@@ -178,6 +179,7 @@ KURALLAR:
     // Her öğeyi doğrula ve normalize et
     return parsed.map(item => ({
         amount: Math.abs(parseFloat(item.amount)) || 0,
+        currency: item.currency || 'TRY',
         title: String(item.title || '').trim() || 'Harcama',
         category: AI_CATEGORIES.includes(item.category) ? item.category : 'Diğer',
         date: isValidDate(item.date) ? item.date : today,

@@ -42,6 +42,27 @@ export default function Profile() {
     const [reminderFrequency, setReminderFrequency] = useState(state.settings?.reminderFrequency || 'never');
     const [language, setLanguage] = useState(i18n.language?.toUpperCase() === 'EN' ? 'EN' : 'TR');
 
+    // Notification Preferences
+    const userPrefs = currentUser?.preferences || {};
+    const [pushEnabled, setPushEnabled] = useState(userPrefs.pushNotifications ?? true);
+    const [emailEnabled, setEmailEnabled] = useState(userPrefs.emailNotifications ?? false);
+
+    const handleToggleNotification = (type) => {
+        const newPush = type === 'push' ? !pushEnabled : pushEnabled;
+        const newEmail = type === 'email' ? !emailEnabled : emailEnabled;
+
+        if (type === 'push') setPushEnabled(newPush);
+        if (type === 'email') setEmailEnabled(newEmail);
+
+        const updatedPrefs = { pushNotifications: newPush, emailNotifications: newEmail };
+
+        // Optimistic UI — arka planda sessizce kaydet
+        dispatch({
+            type: 'UPDATE_MEMBER',
+            payload: { id: state.currentUser, preferences: updatedPrefs }
+        });
+    };
+
     const formatIBAN = (value) => {
         const cleaned = value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
         const limited = cleaned.slice(0, 26);
@@ -283,7 +304,42 @@ export default function Profile() {
                     </div>
                     {expanded === 'notifications' && (
                         <div className="animate-fade-in" style={expandableStyle}>
-                            <div className="flex flex-col gap-sm">
+                            <div className="flex flex-col gap-md">
+                                {/* Push Notifications Toggle */}
+                                <div className="flex justify-between items-center">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-semibold">{t('settings.pushNotifications')}</span>
+                                        <span className="text-xs text-muted" style={{ maxWidth: '220px' }}>{t('settings.pushDesc')}</span>
+                                    </div>
+                                    <label className="toggle-switch">
+                                        <input
+                                            type="checkbox"
+                                            checked={pushEnabled}
+                                            onChange={() => handleToggleNotification('push')}
+                                        />
+                                        <span className="toggle-slider"></span>
+                                    </label>
+                                </div>
+
+                                {/* Email Notifications Toggle */}
+                                <div className="flex justify-between items-center">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-semibold">{t('settings.emailNotifications')}</span>
+                                        <span className="text-xs text-muted" style={{ maxWidth: '220px' }}>{t('settings.emailDesc')}</span>
+                                    </div>
+                                    <label className="toggle-switch">
+                                        <input
+                                            type="checkbox"
+                                            checked={emailEnabled}
+                                            onChange={() => handleToggleNotification('email')}
+                                        />
+                                        <span className="toggle-slider"></span>
+                                    </label>
+                                </div>
+
+                                <div style={dividerStyle} />
+
+                                {/* Existing Reminder Frequency */}
                                 <div className="form-group">
                                     <label className="form-label text-xs">{t('profile.reminderFrequency')}</label>
                                     <select
