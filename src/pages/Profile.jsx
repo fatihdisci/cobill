@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { getAvatarColor, getInitials } from '../utils/helpers';
 import { auth } from '../config/firebase';
 import { updatePassword } from 'firebase/auth';
+import AvatarPicker from '../components/ui/AvatarPicker';
 
 export default function Profile() {
     const { state, dispatch } = useApp();
@@ -169,23 +170,23 @@ export default function Profile() {
         }
     };
 
+    const handleAvatarSelect = (avatarId) => {
+        dispatch({
+            type: 'UPDATE_MEMBER',
+            payload: { id: state.currentUser, avatarId }
+        });
+    };
+
     return (
         <div className="page-content animate-fade-in flex flex-col gap-xl" style={{ maxWidth: '600px', margin: '0 auto', width: '100%', minWidth: 0, paddingBottom: '100px' }}>
-            {/* 1. Header (Kimlik Bölümü) */}
+            {/* 1. Header (Avatar Picker) */}
             <div className="flex flex-col items-center gap-md text-center mt-md">
-                <div className="avatar avatar-xl" style={{
-                    background: getAvatarColor(state.currentUser),
-                    width: '100px',
-                    height: '100px',
-                    fontSize: '2.5rem',
-                    border: '4px solid var(--border-primary)',
-                    boxShadow: '0 0 30px rgba(139, 92, 246, 0.2)'
-                }}>
-                    {getInitials(currentUser?.name)}
-                </div>
-                <h2 style={{ fontSize: 'var(--font-2xl)', marginTop: 'var(--space-sm)' }}>
-                    {currentUser?.name || t('profile.userIdentity')}
-                </h2>
+                <AvatarPicker
+                    selectedId={currentUser?.avatarId || 1}
+                    onSelect={handleAvatarSelect}
+                    userName={currentUser?.name || t('profile.userIdentity')}
+                    subtitle={t('profile.selectAvatar')}
+                />
             </div>
 
             {/* 2. Kendi IBAN Kartın */}

@@ -144,7 +144,8 @@
         "newPass": "Yeni Şifre",
         "confirmPass": "Şifre Tekrar",
         "updatePasswordBtn": "Şifreyi Güncelle",
-        "saveSettings": "Ayarları Kaydet"
+        "saveSettings": "Ayarları Kaydet",
+        "selectAvatar": "Avatarını seç"
     },
     "dashboard": {
         "greeting": "Merhaba,",

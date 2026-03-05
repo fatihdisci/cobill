@@ -232,8 +232,18 @@ export default function Layout() {
                     </div>
 
                     <div style={{ position: 'absolute', right: 'var(--space-md)' }}>
-                        <button className="btn btn-ghost btn-icon" onClick={() => setShowNotifications(!showNotifications)}>
-                            <Bell size={22} />
+                        <button
+                            className="btn btn-ghost btn-icon"
+                            onClick={(e) => {
+                                setShowNotifications(!showNotifications);
+                                // Titreme animasyonu efekti
+                                const btn = e.currentTarget.querySelector('svg');
+                                btn.classList.remove('animate-ring');
+                                void btn.offsetWidth; // trigger reflow
+                                btn.classList.add('animate-ring');
+                            }}
+                        >
+                            <Bell size={22} className="bell-icon-svg" />
                             {/* NotificationMenu handles the red dot Badge logic internally if passed right */}
                         </button>
                         {showNotifications && (

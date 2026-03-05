@@ -144,7 +144,8 @@
         "newPass": "New Password",
         "confirmPass": "Confirm Password",
         "updatePasswordBtn": "Update Password",
-        "saveSettings": "Save Settings"
+        "saveSettings": "Save Settings",
+        "selectAvatar": "Select your avatar"
     },
     "dashboard": {
         "greeting": "Hello,",
