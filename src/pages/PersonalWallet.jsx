@@ -5,6 +5,7 @@ import { formatDate } from '../utils/helpers';
 import { Wallet, Trash2, Calendar } from 'lucide-react';
 import ProUpgradeModal from '../components/ProUpgradeModal';
 import ExpenseFilterSort from '../components/ExpenseFilterSort';
+import SubscriptionsDashboard from '../components/subscriptions/SubscriptionsDashboard';
 
 const PERSONAL_CATEGORIES = {
     Market: { icon: '🛒', label: 'Market', color: 'var(--accent-emerald)' },
@@ -21,7 +22,6 @@ export default function PersonalWallet() {
     const { state, dispatch } = useApp();
     const { t } = useTranslation();
     const [showProModal, setShowProModal] = useState(false);
-    const isPro = state.members[state.currentUser]?.isPro;
 
     const now = new Date();
     const currentMonth = now.getMonth();
@@ -73,6 +73,9 @@ export default function PersonalWallet() {
                     <p className="page-subtitle">{t('wallet.subtitle')}</p>
                 </div>
             </div>
+
+            {/* Subscriptions Dashboard (Fixed Monthly Costs) */}
+            <SubscriptionsDashboard />
 
             {/* Monthly Summary Card — always shows real total */}
             <div className="glass-card static-card" style={{

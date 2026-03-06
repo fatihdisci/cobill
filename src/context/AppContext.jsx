@@ -17,6 +17,7 @@ const INITIAL_STATE = {
     settlements: [],
     invitations: [],
     personalExpenses: [],
+    subscriptions: [],
     settings: { reminderFrequency: 'never', theme: 'light' }
 };
 
@@ -131,6 +132,19 @@ function appReducer(state, action) {
         case 'SYNC_PERSONAL_EXPENSES':
             return { ...state, personalExpenses: action.payload };
 
+        // Subscriptions
+        case 'ADD_SUBSCRIPTION':
+            return { ...state, subscriptions: [action.payload, ...state.subscriptions] };
+        case 'UPDATE_SUBSCRIPTION':
+            return {
+                ...state,
+                subscriptions: state.subscriptions.map(s => s.id === action.payload.id ? { ...s, ...action.payload } : s),
+            };
+        case 'DELETE_SUBSCRIPTION':
+            return { ...state, subscriptions: state.subscriptions.filter(s => s.id !== action.payload) };
+        case 'SYNC_SUBSCRIPTIONS':
+            return { ...state, subscriptions: action.payload };
+
         // Invitations
         case 'ACCEPT_INVITATION': {
             return {
@@ -166,6 +180,7 @@ export function AppProvider({ children, user }) {
         let unsubSettlements = null;
         let unsubInvitations = null;
         let unsubPersonalExpenses = null;
+        let unsubSubscriptions = null;
 
         const loadFirebaseData = async () => {
             if (!user) {
@@ -228,6 +243,11 @@ export function AppProvider({ children, user }) {
                                     { id: 'pe4', title: 'Sinema bileti', amount: 120, category: 'Eğlence', date: new Date(Date.now() - 259200000).toISOString(), userId: user.uid },
                                     { id: 'pe5', title: 'İstanbulkart', amount: 200, category: 'Ulaşım', date: new Date(Date.now() - 345600000).toISOString(), userId: user.uid },
                                     { id: 'pe6', title: 'Kitap', amount: 85, category: 'Diğer', date: new Date(Date.now() - 432000000).toISOString(), userId: user.uid },
+                                ],
+                                subscriptions: [
+                                    { id: 'sub1', title: 'Ev Kirası', amount: 5500, currency: 'TRY', cycle: 'monthly', startDate: new Date(Date.now() - 30 * 86400000).toISOString(), nextPaymentDate: new Date(Date.now() + 5 * 86400000).toISOString(), isActive: true, userId: user.uid },
+                                    { id: 'sub2', title: 'Netflix', amount: 200, currency: 'TRY', cycle: 'monthly', startDate: new Date(Date.now() - 60 * 86400000).toISOString(), nextPaymentDate: new Date(Date.now() + 2 * 86400000).toISOString(), isActive: true, userId: user.uid },
+                                    { id: 'sub3', title: 'Spotify Premium', amount: 60, currency: 'TRY', cycle: 'monthly', startDate: new Date(Date.now() - 15 * 86400000).toISOString(), nextPaymentDate: new Date(Date.now() + 15 * 86400000).toISOString(), isActive: true, userId: user.uid }
                                 ]
                             }
                         });
@@ -294,6 +314,7 @@ export function AppProvider({ children, user }) {
                             expenses,
                             settlements,
                             invitations,
+                            subscriptions: [],
                             settings: currentUserData.settings || { reminderFrequency: 'never', language: 'TR' }
                         }
                     });
@@ -352,6 +373,13 @@ export function AppProvider({ children, user }) {
                             defaultDispatch({ type: 'SYNC_PERSONAL_EXPENSES', payload: livePersonalExpenses });
                         }
                     });
+
+                    // Subscribe to subscriptions
+                    unsubSubscriptions = dbService.subscribeToSubscriptions(user.uid, (liveSubscriptions) => {
+                        if (isMounted) {
+                            defaultDispatch({ type: 'SYNC_SUBSCRIPTIONS', payload: liveSubscriptions });
+                        }
+                    });
                 }
             } catch (error) {
                 console.error("Error loading data from Firebase:", error);
@@ -370,6 +398,7 @@ export function AppProvider({ children, user }) {
             if (unsubSettlements) unsubSettlements();
             if (unsubInvitations) unsubInvitations();
             if (unsubPersonalExpenses) unsubPersonalExpenses();
+            if (unsubSubscriptions) unsubSubscriptions();
         };
     }, [user]);
 
@@ -471,6 +500,22 @@ export function AppProvider({ children, user }) {
                     break;
                 case 'DELETE_PERSONAL_EXPENSE':
                     await dbService.deletePersonalExpense(action.payload);
+                    break;
+
+                // Subscriptions
+                case 'ADD_SUBSCRIPTION': {
+                    const firestoreId = await dbService.addSubscription(action.payload);
+                    if (firestoreId) {
+                        defaultDispatch({ type: 'DELETE_SUBSCRIPTION', payload: action.payload.id });
+                        defaultDispatch({ type: 'ADD_SUBSCRIPTION', payload: { ...action.payload, id: firestoreId } });
+                    }
+                    break;
+                }
+                case 'UPDATE_SUBSCRIPTION':
+                    await dbService.saveSubscription(action.payload);
+                    break;
+                case 'DELETE_SUBSCRIPTION':
+                    await dbService.deleteSubscription(action.payload);
                     break;
 
                 default:

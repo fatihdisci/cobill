@@ -348,4 +348,48 @@ export const dbService = {
             callback(expenses);
         }, (error) => console.error('Personal expenses listener error:', error));
     },
+
+    // ═══════════════ Personal Subscriptions CRUD ═══════════════
+
+    addSubscription: async (subscriptionData) => {
+        try {
+            if (!subscriptionData) return null;
+            const docRef = await addDoc(collection(db, 'personal_subscriptions'), subscriptionData);
+            return docRef.id;
+        } catch (error) {
+            console.error('Error in addSubscription:', error);
+            return null;
+        }
+    },
+
+    saveSubscription: async (subscriptionData) => {
+        try {
+            if (!subscriptionData || !subscriptionData.id) return;
+            await setDoc(doc(db, 'personal_subscriptions', subscriptionData.id), subscriptionData, { merge: true });
+        } catch (error) {
+            console.error('Error in saveSubscription:', error);
+        }
+    },
+
+    deleteSubscription: async (id) => {
+        try {
+            if (!id) return;
+            await deleteDoc(doc(db, 'personal_subscriptions', id));
+        } catch (error) {
+            console.error('Error in deleteSubscription:', error);
+        }
+    },
+
+    subscribeToSubscriptions: (userId, callback) => {
+        if (!userId) return () => { };
+        const q = query(
+            collection(db, 'personal_subscriptions'),
+            where('userId', '==', userId)
+        );
+        return onSnapshot(q, (snapshot) => {
+            const subscriptions = [];
+            snapshot.forEach((d) => { subscriptions.push({ id: d.id, ...d.data() }); });
+            callback(subscriptions);
+        }, (error) => console.error('Subscriptions listener error:', error));
+    },
 };

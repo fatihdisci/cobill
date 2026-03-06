@@ -605,5 +605,24 @@
         "health": "Sağlık",
         "internet": "İnternet",
         "other": "Diğer"
+    },
+    "subscriptions": {
+        "title": "Abonelikler & Sabit Giderler",
+        "monthlyTotal": "Aylık Sabit Gider",
+        "addSubscription": "Abonelik Ekle",
+        "billingCycle": "Faturalama Döngüsü",
+        "monthly": "Aylık",
+        "yearly": "Yıllık",
+        "nextPayment": "Sonraki Ödeme",
+        "dueIn": "{{days}} gün sonra",
+        "dueTomorrow": "Yarın",
+        "dueToday": "Bugün",
+        "overdue": "Gecikmiş",
+        "noSubscriptions": "Henüz abonelik eklenmemiş",
+        "noSubscriptionsDesc": "Tekrarlayan giderlerinizi buradan takip edin",
+        "subscriptionName": "Abonelik Adı",
+        "amount": "Tutar",
+        "startDate": "İlk Ödeme Tarihi",
+        "deleteConfirm": "Bu aboneliği silmek istediğinize emin misiniz?"
     }
 }

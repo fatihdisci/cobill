@@ -606,5 +606,24 @@
         "health": "Health",
         "internet": "Internet",
         "other": "Other"
+    },
+    "subscriptions": {
+        "title": "Subscriptions & Fixed Costs",
+        "monthlyTotal": "Monthly Fixed Cost",
+        "addSubscription": "Add Subscription",
+        "billingCycle": "Billing Cycle",
+        "monthly": "Monthly",
+        "yearly": "Yearly",
+        "nextPayment": "Next Payment",
+        "dueIn": "In {{days}} days",
+        "dueTomorrow": "Tomorrow",
+        "dueToday": "Today",
+        "overdue": "Overdue",
+        "noSubscriptions": "No subscriptions yet",
+        "noSubscriptionsDesc": "Track your recurring expenses here",
+        "subscriptionName": "Subscription Name",
+        "amount": "Amount",
+        "startDate": "First Payment Date",
+        "deleteConfirm": "Are you sure you want to delete this subscription?"
     }
 }
