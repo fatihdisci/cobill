@@ -112,7 +112,7 @@ const AvatarPicker = ({ selectedId = 1, onSelect, userName = '', subtitle = '' }
 /** Helper: get avatar image src by ID */
 export const getAvatarSvg = (avatarId) => {
     const avatar = AVATARS.find(a => a.id === avatarId);
-    return avatar ? avatar.src : '/avatars/avatar-1.png';
+    return avatar ? avatar.src : `${import.meta.env.BASE_URL}avatars/avatar-1.png`;
 };
 
 export { AvatarPicker, AVATARS as avatars };

@@ -38,7 +38,7 @@ export default function Layout() {
     const isPro = state.members[state.currentUser]?.isPro;
 
     const currentTheme = state.settings?.theme || 'light';
-    const iconSrc = currentTheme === 'dark' ? '/icondark.png' : appIconImg;
+    const iconSrc = currentTheme === 'dark' ? `${import.meta.env.BASE_URL}icondark.png` : appIconImg;
     const iconBg = currentTheme === 'dark' ? 'transparent' : 'white';
 
     // Track route changes and show ad on the 2nd change

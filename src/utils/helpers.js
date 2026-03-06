@@ -36,16 +36,16 @@ export function getAvatarColor(id) {
  * Premium PNG Avatar System
  */
 export const AVATARS = [
-    { id: 1, src: '/avatars/avatar-1.png', name: 'Atlas' },
-    { id: 2, src: '/avatars/avatar-2.png', name: 'Sofia' },
-    { id: 3, src: '/avatars/avatar-3.png', name: 'Leo' },
-    { id: 4, src: '/avatars/avatar-4.png', name: 'Aria' },
-    { id: 5, src: '/avatars/avatar-5.png', name: 'Kai' }
+    { id: 1, src: `${import.meta.env.BASE_URL}avatars/avatar-1.png`, name: 'Atlas' },
+    { id: 2, src: `${import.meta.env.BASE_URL}avatars/avatar-2.png`, name: 'Sofia' },
+    { id: 3, src: `${import.meta.env.BASE_URL}avatars/avatar-3.png`, name: 'Leo' },
+    { id: 4, src: `${import.meta.env.BASE_URL}avatars/avatar-4.png`, name: 'Aria' },
+    { id: 5, src: `${import.meta.env.BASE_URL}avatars/avatar-5.png`, name: 'Kai' }
 ];
 
 export const getAvatarImage = (avatarId) => {
     const avatar = AVATARS.find(a => a.id === Number(avatarId));
-    return avatar ? avatar.src : '/avatars/avatar-1.png';
+    return avatar ? avatar.src : `${import.meta.env.BASE_URL}avatars/avatar-1.png`;
 };
 
 /**
