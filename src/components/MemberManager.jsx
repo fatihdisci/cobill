@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { Ghost, UserPlus, X, Mail, Edit2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { dbService } from '../utils/dbService';
-import { generateId, getAvatarImage } from '../utils/helpers';
+import { generateId } from '../utils/helpers';
+import UserAvatar from './UserAvatar';
+import { useTranslation } from 'react-i18next';
 
 export default function MemberManager({ groupId, onClose }) {
+    const { t } = useTranslation();
     const { state, dispatch } = useApp();
     const group = state.groups.find(g => g.id === groupId);
     const [name, setName] = useState('');
@@ -112,7 +115,7 @@ export default function MemberManager({ groupId, onClose }) {
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h3>Üyeleri Yönet</h3>
+                    <h3>{t('dashboard.memberManager.title')}</h3>
                     <button className="btn btn-ghost btn-icon" onClick={onClose}>
                         <X size={18} />
                     </button>
@@ -127,9 +130,8 @@ export default function MemberManager({ groupId, onClose }) {
                             borderRadius: 'var(--radius-md)',
                         }}>
                             <div className="flex items-center gap-md">
-                                <img
-                                    src={getAvatarImage(member.avatarId || 1)}
-                                    alt={member.name}
+                                <UserAvatar
+                                    member={member}
                                     className="avatar avatar-sm"
                                     style={{ objectFit: 'cover' }}
                                 />
@@ -138,7 +140,7 @@ export default function MemberManager({ groupId, onClose }) {
                                         {member.name}
                                         {member.isGhost && (
                                             <span className="badge badge-ghost">
-                                                <Ghost size={9} /> Hayalet
+                                                <Ghost size={9} /> {t('groups.ghost')}
                                             </span>
                                         )}
                                     </div>
@@ -205,7 +207,7 @@ export default function MemberManager({ groupId, onClose }) {
                 <div className="divider" />
 
                 {/* Add New Member */}
-                <h4 className="text-sm mb-md" style={{ color: 'var(--text-secondary)' }}>Yeni Üye Ekle</h4>
+                <h4 className="text-sm mb-md" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.memberManager.addNew')}</h4>
 
                 <div className="flex items-center justify-between mb-md" style={{
                     padding: 'var(--space-md)',
@@ -215,8 +217,8 @@ export default function MemberManager({ groupId, onClose }) {
                     <div className="flex items-center gap-sm">
                         <Ghost size={16} style={{ color: 'var(--text-tertiary)' }} />
                         <div>
-                            <div className="text-sm font-medium">Hayalet Kullanıcı</div>
-                            <div className="text-xs text-muted">Aksini seçerseniz e-posta ile aranır</div>
+                            <div className="text-sm font-medium">{t('dashboard.memberManager.ghostUser')}</div>
+                            <div className="text-xs text-muted">{t('dashboard.memberManager.ghostDesc')}</div>
                         </div>
                     </div>
                     <div
@@ -234,7 +236,7 @@ export default function MemberManager({ groupId, onClose }) {
                     {isGhost ? (
                         <>
                             <div className="form-group">
-                                <label className="form-label">İsim *</label>
+                                <label className="form-label">{t('dashboard.memberManager.nameLabel')}</label>
                                 <input
                                     className="form-input"
                                     placeholder="Örn: Ahmet, Ev Sahibi..."
@@ -268,7 +270,7 @@ export default function MemberManager({ groupId, onClose }) {
                         </>
                     ) : (
                         <div className="form-group">
-                            <label className="form-label">Kullanıcı E-postası *</label>
+                            <label className="form-label">{t('dashboard.memberManager.emailLabel')}</label>
                             <input
                                 className="form-input"
                                 type="email"

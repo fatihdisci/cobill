@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Calendar, ChevronDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { getDateRange, getMonthRange, MONTH_NAMES } from '../utils/dateFilterUtils';
-const PRESETS = [
-    { key: 'all', label: 'Tümü' },
-    { key: '1w', label: '1 Hafta' },
-    { key: '1m', label: '1 Ay' },
-    { key: '3m', label: '3 Ay' },
+const getPresets = (t) => [
+    { key: 'all', label: t('dashboard.filter.all') },
+    { key: '1w', label: t('dashboard.filter.week') },
+    { key: '1m', label: t('dashboard.filter.month') },
+    { key: '3m', label: t('dashboard.filter.threeMonths') },
 ];
 /**
  * DateFilterBar — shared filter strip for CoBill pages.
@@ -15,7 +16,9 @@ const PRESETS = [
  *  - defaultPreset — initial preset key (default: 'all')
  */
 export default function DateFilterBar({ onChange, defaultPreset = 'all' }) {
+    const { t } = useTranslation();
     const [activePreset, setActivePreset] = useState(defaultPreset);
+    const PRESETS = getPresets(t);
     const [showCustom, setShowCustom] = useState(false);
     const [customStart, setCustomStart] = useState('');
     const [customEnd, setCustomEnd] = useState('');
@@ -76,7 +79,7 @@ export default function DateFilterBar({ onChange, defaultPreset = 'all' }) {
                     }}
                     style={{ minWidth: '100px', fontSize: '0.78rem', padding: '5px 8px', minHeight: '32px', borderRadius: '20px' }}
                 >
-                    <option value="">Ay</option>
+                    <option value="">{t('dashboard.filter.monthSelect')}</option>
                     {MONTH_NAMES.map((name, i) => (
                         <option key={i} value={i}>{name}</option>
                     ))}
@@ -91,7 +94,7 @@ export default function DateFilterBar({ onChange, defaultPreset = 'all' }) {
                     }}
                     style={{ minWidth: '80px', fontSize: '0.78rem', padding: '5px 8px', minHeight: '32px', borderRadius: '20px' }}
                 >
-                    <option value="">Yıl</option>
+                    <option value="">{t('dashboard.filter.yearSelect')}</option>
                     {years.map(y => (
                         <option key={y} value={y}>{y}</option>
                     ))}
@@ -104,7 +107,7 @@ export default function DateFilterBar({ onChange, defaultPreset = 'all' }) {
                     onClick={() => setShowCustom(!showCustom)}
                     style={{ fontSize: '0.78rem', padding: '5px 12px', minHeight: '32px', borderRadius: '20px', gap: '4px' }}
                 >
-                    <Calendar size={14} /> Aralık
+                    <Calendar size={14} /> {t('dashboard.filter.customRange')}
                 </button>
             </div>
             {/* Custom date range row */}
@@ -131,7 +134,7 @@ export default function DateFilterBar({ onChange, defaultPreset = 'all' }) {
                         disabled={!customStart || !customEnd}
                         style={{ fontSize: '0.78rem', padding: '5px 14px', minHeight: '32px', borderRadius: '20px' }}
                     >
-                        Uygula
+                        {t('dashboard.filter.apply')}
                     </button>
                 </div>
             )}

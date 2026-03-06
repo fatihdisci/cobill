@@ -2,8 +2,10 @@ import { useApp } from '../context/AppContext';
 import { getInitials, formatRelativeDate, CATEGORIES } from '../utils/helpers';
 import { formatCurrency } from '../utils/currencyUtils';
 import { Receipt, ArrowLeftRight, UserPlus, CalendarClock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function ActivityFeed({ groupId, limit = 10 }) {
+    const { t } = useTranslation();
     const { state } = useApp();
 
     let activities = [];
@@ -24,7 +26,7 @@ export default function ActivityFeed({ groupId, limit = 10 }) {
             icon: cat.icon,
             iconBg: expense.isRecurring ? 'rgba(245, 158, 11, 0.15)' : 'rgba(139, 92, 246, 0.15)',
             title: expense.description,
-            subtitle: `${payer?.name || 'Bilinmeyen'} ödedi${group && !groupId ? ` • ${group.name}` : ''}`,
+            subtitle: `${payer?.name || t('common.someone')} ${t('groups.paid')}${group && !groupId ? ` • ${group.name}` : ''}`,
             amount: formatCurrency(expense.amount, expense.currency),
             amountColor: 'var(--text-primary)',
             date: expense.date,
@@ -47,7 +49,7 @@ export default function ActivityFeed({ groupId, limit = 10 }) {
             icon: '💸',
             iconBg: settlement.status === 'paid' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
             title: `${from?.name?.split(' ')[0] || '?'} → ${to?.name?.split(' ')[0] || '?'}`,
-            subtitle: settlement.status === 'paid' ? 'Ödendi ✓' : 'Bekliyor',
+            subtitle: settlement.status === 'paid' ? t('groups.settled') : t('groups.pending'),
             amount: formatCurrency(settlement.amount, settlement.currency),
             amountColor: settlement.status === 'paid' ? 'var(--accent-emerald)' : 'var(--accent-amber)',
             date: settlement.date,
@@ -56,12 +58,10 @@ export default function ActivityFeed({ groupId, limit = 10 }) {
 
     // Sort by date descending
     activities.sort((a, b) => new Date(b.date) - new Date(a.date));
-    activities = activities.slice(0, limit);
-
     if (activities.length === 0) {
         return (
             <div className="empty-state" style={{ padding: 'var(--space-xl)' }}>
-                <p className="text-sm text-muted">Henüz aktivite yok</p>
+                <p className="text-sm text-muted">{t('dashboard.noActivity')}</p>
             </div>
         );
     }

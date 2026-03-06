@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { getToken } from 'firebase/messaging';
 import { getMessagingInstance } from '../config/firebase';
+import i18n from '../i18n';
 
 // ═══════════════ FCM Web Push Token ═══════════════
 
@@ -56,8 +57,8 @@ export async function updateDebtReminder(frequency, totalDebtAmount) {
             await LocalNotifications.schedule({
                 notifications: [
                     {
-                        title: "Ödenmemiş Borç Hatırlatması",
-                        body: `Toplam ${totalDebtAmount.toLocaleString('tr-TR')} ₺ ödenmemiş borcun bulunuyor. Detaylar için CoBill'i açın.`,
+                        title: i18n.t('notifications.debtReminderTitle'),
+                        body: i18n.t('notifications.debtReminderBody', { amount: `${totalDebtAmount.toLocaleString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')} ₺` }),
                         id: 1,
                         schedule: schedule
                     }
@@ -85,7 +86,7 @@ export async function sendInviteNotification(groupName, inviterName) {
             notifications: [
                 {
                     title: '🔔 Yeni Grup Daveti!',
-                    body: `${inviterName || 'Birisi'} seni "${groupName}" grubuna davet etti. Kabul etmek için uygulamayı aç.`,
+                    body: i18n.t('notifications.groupInviteBody', { name: inviterName || i18n.t('common.someone'), groupName }),
                     id: Date.now() % 100000, // Unique ID per notification
                     schedule: { at: new Date(Date.now() + 1000) } // 1 second from now
                 }

@@ -1,6 +1,7 @@
 /**
  * CoBill — Helper Utilities
  */
+import i18n from '../i18n';
 
 /**
  * Generate a unique ID
@@ -72,18 +73,22 @@ export function formatRelativeDate(dateStr) {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Az önce';
-    if (diffMins < 60) return `${diffMins} dk önce`;
-    if (diffHours < 24) return `${diffHours} saat önce`;
-    if (diffDays < 7) return `${diffDays} gün önce`;
-    return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+    if (diffMins < 1) return i18n.t('common.justNow');
+    if (diffMins < 60) return i18n.t('common.minsAgo', { count: diffMins });
+    if (diffHours < 24) return i18n.t('common.hoursAgo', { count: diffHours });
+    if (diffDays < 7) return i18n.t('common.daysAgo', { count: diffDays });
+
+    return date.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
+        day: 'numeric',
+        month: 'short'
+    });
 }
 
 /**
  * Format date
  */
 export function formatDate(dateStr) {
-    return new Date(dateStr).toLocaleDateString('tr-TR', {
+    return new Date(dateStr).toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
         day: 'numeric',
         month: 'long',
         year: 'numeric'
@@ -94,7 +99,7 @@ export function formatDate(dateStr) {
  * Format short date
  */
 export function formatShortDate(dateStr) {
-    return new Date(dateStr).toLocaleDateString('tr-TR', {
+    return new Date(dateStr).toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
         day: 'numeric',
         month: 'short'
     });
@@ -104,15 +109,15 @@ export function formatShortDate(dateStr) {
  * Category icons and colors
  */
 export const CATEGORIES = {
-    food: { label: 'Yemek', icon: '🍽️', color: 'var(--accent-amber)' },
-    transport: { label: 'Ulaşım', icon: '🚕', color: 'var(--accent-blue)' },
-    shopping: { label: 'Alışveriş', icon: '🛒', color: 'var(--accent-rose)' },
-    bills: { label: 'Faturalar', icon: '📋', color: 'var(--accent-cyan)' },
-    rent: { label: 'Kira', icon: '🏠', color: 'var(--accent-emerald)' },
-    entertainment: { label: 'Eğlence', icon: '🎬', color: 'var(--accent-purple)' },
-    health: { label: 'Sağlık', icon: '💊', color: 'var(--accent-rose)' },
-    internet: { label: 'İnternet', icon: '📡', color: 'var(--accent-cyan)' },
-    other: { label: 'Diğer', icon: '📦', color: 'var(--text-tertiary)' },
+    food: { label: i18n.t('categories.food'), icon: '🍽️', color: 'var(--accent-amber)' },
+    transport: { label: i18n.t('categories.transport'), icon: '🚕', color: 'var(--accent-blue)' },
+    shopping: { label: i18n.t('categories.shopping'), icon: '🛒', color: 'var(--accent-rose)' },
+    bills: { label: i18n.t('categories.bills'), icon: '📋', color: 'var(--accent-cyan)' },
+    rent: { label: i18n.t('categories.rent'), icon: '🏠', color: 'var(--accent-emerald)' },
+    entertainment: { label: i18n.t('categories.entertainment'), icon: '🎬', color: 'var(--accent-purple)' },
+    health: { label: i18n.t('categories.health'), icon: '💊', color: 'var(--accent-rose)' },
+    internet: { label: i18n.t('categories.internet'), icon: '📡', color: 'var(--accent-cyan)' },
+    other: { label: i18n.t('categories.other'), icon: '📦', color: 'var(--text-tertiary)' },
 };
 
 /**
@@ -121,9 +126,12 @@ export const CATEGORIES = {
 export function generateNudgeMessage(memberName, groupName, amount, currency = 'TRY') {
     const symbols = { TRY: '₺', USD: '$', EUR: '€', GBP: '£' };
     const symbol = symbols[currency] || currency;
-    const formatted = `${symbol}${Math.abs(amount).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const formatted = `${symbol}${Math.abs(amount).toLocaleString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-    return `CoBill Hatırlatması 💰\n\n"${groupName}" grubu için güncel bakiyen: ${formatted}.\n\nMüsait olduğunda bakabilir misin? 🙏\n\n— CoBill ile gönderildi`;
+    return i18n.t('groups.nudgeMessage', {
+        groupName,
+        amount: formatted
+    });
 }
 
 /**

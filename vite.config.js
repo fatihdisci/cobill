@@ -7,5 +7,5 @@ import react from '@vitejs/plugin-react'
 //   Capacitor/Dev → ./        (default, no env needed)
 export default defineConfig({
   plugins: [react()],
-  base: process.env.VITE_BASE || './',
+  base: typeof process !== 'undefined' && process.env.VITE_BASE ? process.env.VITE_BASE : './',
 })

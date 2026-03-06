@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { ArrowRight, Zap, TrendingDown, ChevronDown, ChevronUp, FileText } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { calculateBalances, simplifyDebts, getNaiveTransactionCount } from '../utils/debtSimplification';
 import { formatCurrency } from '../utils/currencyUtils';
-import { getInitials, getAvatarImage } from '../utils/helpers';
+import { getInitials } from '../utils/helpers';
+import UserAvatar from './UserAvatar';
 
 export default function DebtSummary({ groupId }) {
+    const { t } = useTranslation();
     const { state } = useApp();
     const group = state.groups.find(g => g.id === groupId);
     if (!group) return null;
@@ -17,8 +20,8 @@ export default function DebtSummary({ groupId }) {
         return (
             <div className="empty-state">
                 <div className="empty-icon">🤝</div>
-                <h3>Henüz borç yok</h3>
-                <p className="text-sm">Masraf ekleyerek başlayın</p>
+                <h3>{t('dashboard.noDebtsYet')}</h3>
+                <p className="text-sm">{t('dashboard.noDebtsYetDesc')}</p>
             </div>
         );
     }
@@ -62,8 +65,8 @@ export default function DebtSummary({ groupId }) {
             }}>
                 <Zap size={18} style={{ color: 'var(--accent-emerald)' }} />
                 <div className="text-sm">
-                    <strong style={{ color: 'var(--accent-emerald-light)' }}>{naiveCount}</strong> olası işlem →{' '}
-                    <strong style={{ color: 'var(--accent-emerald-light)' }}>{transactions.length}</strong> işleme sadeleştirildi
+                    <strong style={{ color: 'var(--accent-emerald-light)' }}>{naiveCount}</strong> {t('groups.possibleTransactions')} →{' '}
+                    <strong style={{ color: 'var(--accent-emerald-light)' }}>{transactions.length}</strong> {t('groups.simplifiedTo')}
                     <TrendingDown size={14} style={{ display: 'inline', marginLeft: 4, color: 'var(--accent-emerald)' }} />
                 </div>
             </div>
@@ -74,7 +77,7 @@ export default function DebtSummary({ groupId }) {
                     onClick={() => setShowDetails(!showDetails)}
                     style={{ color: 'var(--text-secondary)' }}
                 >
-                    Detay Gör {showDetails ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    {t('common.showDetails')} {showDetails ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </button>
             </div>
 
@@ -88,7 +91,7 @@ export default function DebtSummary({ groupId }) {
                     marginBottom: 'var(--space-md)'
                 }}>
                     <h5 className="mb-md flex items-center gap-xs text-sm text-muted">
-                        <FileText size={14} /> Sadeleştirmeden Önceki Ham İşlemler ({rawTransactions.length})
+                        <FileText size={14} /> {t('groups.rawTransactionsBefore')} ({rawTransactions.length})
                     </h5>
                     <div className="flex flex-col gap-sm">
                         {rawTransactions.map((tx, idx) => {
@@ -121,7 +124,7 @@ export default function DebtSummary({ groupId }) {
                     <div key={i} className={`debt-arrow animate-fade-in-up stagger-${i + 1}`}>
                         {/* From */}
                         <div className="flex items-center gap-sm" style={{ minWidth: 0, flex: '0 0 auto' }}>
-                            <img src={getAvatarImage(fromMember.avatarId || 1)} alt={fromMember.name} className="avatar avatar-sm" style={{ objectFit: 'cover' }} />
+                            <UserAvatar member={fromMember} className="avatar avatar-sm" style={{ objectFit: 'cover' }} />
                             <span className="text-sm font-semibold truncate" style={{ maxWidth: 80 }}>
                                 {fromMember.name.split(' ')[0]}
                             </span>
@@ -153,7 +156,7 @@ export default function DebtSummary({ groupId }) {
 
                         {/* To */}
                         <div className="flex items-center gap-sm" style={{ minWidth: 0, flex: '0 0 auto' }}>
-                            <img src={getAvatarImage(toMember.avatarId || 1)} alt={toMember.name} className="avatar avatar-sm" style={{ objectFit: 'cover' }} />
+                            <UserAvatar member={toMember} className="avatar avatar-sm" style={{ objectFit: 'cover' }} />
                             <span className="text-sm font-semibold truncate" style={{ maxWidth: 80 }}>
                                 {toMember.name.split(' ')[0]}
                             </span>
@@ -165,8 +168,8 @@ export default function DebtSummary({ groupId }) {
             {transactions.length === 0 && (
                 <div className="empty-state">
                     <div className="empty-icon">✅</div>
-                    <h3>Tüm borçlar eşit!</h3>
-                    <p className="text-sm">Kimsenin kimseye borcu yok</p>
+                    <h3>{t('dashboard.allDebtsEqual')}</h3>
+                    <p className="text-sm">{t('groups.noDebtsDesc')}</p>
                 </div>
             )}
         </div>

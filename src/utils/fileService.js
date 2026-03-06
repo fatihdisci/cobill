@@ -22,10 +22,10 @@ export const sharePDF = async (base64Data, filename = 'rapor.pdf') => {
         // 2. Share the local file via native share sheet
         if (Capacitor.isNativePlatform()) {
             await Share.share({
-                title: 'Hesap Özeti',
-                text: 'CoBill grup finansal raporu ekte yer almaktadır.',
+                title: i18n.t('sharing.reportTitle'),
+                text: i18n.t('sharing.reportText'),
                 url: writeResult.uri,
-                dialogTitle: 'PDF Raporunu Paylaş',
+                dialogTitle: i18n.t('sharing.dialogTitle'),
             });
             console.log('[fileService] PDF shared successfully natively');
         } else {

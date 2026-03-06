@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { SlidersHorizontal, ArrowUpDown, Tag, User, X, Check, RotateCcw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import DateFilterBar from './DateFilterBar';
 import { getDateRange, filterByDateRange } from '../utils/dateFilterUtils';
 
@@ -16,6 +17,7 @@ export default function ExpenseFilterSort({
     amountKey = 'amount',
     enableDateFilter = false, // EKLENDI
 }) {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
 
     // Sıralama state
@@ -138,10 +140,10 @@ export default function ExpenseFilterSort({
     }, [expenses, selectedCategories, selectedMembers, sortBy, members, categoryKey, dateKey, amountKey, enableDateFilter, dateFilter]);
 
     const sortOptions = [
-        { value: 'date-desc', label: 'Yeni → Eski' },
-        { value: 'date-asc', label: 'Eski → Yeni' },
-        { value: 'amount-desc', label: 'Yüksek → Düşük' },
-        { value: 'amount-asc', label: 'Düşük → Yüksek' },
+        { value: 'date-desc', label: t('dashboard.filter.sortOptions.newToOld') },
+        { value: 'date-asc', label: t('dashboard.filter.sortOptions.oldToNew') },
+        { value: 'amount-desc', label: t('dashboard.filter.sortOptions.highToLow') },
+        { value: 'amount-asc', label: t('dashboard.filter.sortOptions.lowToHigh') },
     ];
 
     return {
@@ -163,7 +165,7 @@ export default function ExpenseFilterSort({
                     }}
                 >
                     <SlidersHorizontal size={14} />
-                    <span>Filtrele</span>
+                    <span>{t('dashboard.filter.title')}</span>
                     {activeFilterCount > 0 && (
                         <span style={{
                             background: 'var(--gradient-primary)',
@@ -225,7 +227,7 @@ export default function ExpenseFilterSort({
                             {/* Header */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
                                 <h4 style={{ fontWeight: 700, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <SlidersHorizontal size={18} /> Filtrele & Sırala
+                                    <SlidersHorizontal size={18} /> {t('dashboard.filter.titleFull')}
                                 </h4>
                                 <div style={{ display: 'flex', gap: '8px' }}>
                                     <button
@@ -233,7 +235,7 @@ export default function ExpenseFilterSort({
                                         onClick={resetAll}
                                         style={{ fontSize: '0.75rem', padding: '4px 10px', minHeight: '30px' }}
                                     >
-                                        <RotateCcw size={12} /> Sıfırla
+                                        <RotateCcw size={12} /> {t('dashboard.filter.reset')}
                                     </button>
                                     <button
                                         className="btn btn-ghost btn-icon"
@@ -254,7 +256,7 @@ export default function ExpenseFilterSort({
                             {/* Sort Section */}
                             <div style={{ marginBottom: 'var(--space-xl)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 'var(--space-md)', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    <ArrowUpDown size={14} /> Sıralama
+                                    <ArrowUpDown size={14} /> {t('dashboard.filter.sort')}
                                 </div>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                     {sortOptions.map(opt => (
@@ -285,7 +287,7 @@ export default function ExpenseFilterSort({
                             {enableDateFilter && (
                                 <div style={{ marginBottom: 'var(--space-xl)' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 'var(--space-md)', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                        Tarih Seçimi
+                                        {t('dashboard.filter.dateSelection')}
                                     </div>
                                     <DateFilterBar onChange={setDateFilter} defaultPreset="all" />
                                 </div>
@@ -295,12 +297,12 @@ export default function ExpenseFilterSort({
                             <div style={{ marginBottom: members ? 'var(--space-xl)' : 0 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                        <Tag size={14} /> Kategori
+                                        <Tag size={14} /> {t('dashboard.filter.category')}
                                     </div>
                                     <div style={{ display: 'flex', gap: '6px' }}>
-                                        <button onClick={selectAllCategories} style={{ fontSize: '0.72rem', color: 'var(--accent-purple)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Tümü</button>
+                                        <button onClick={selectAllCategories} style={{ fontSize: '0.72rem', color: 'var(--accent-purple)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>{t('dashboard.filter.all')}</button>
                                         <span style={{ color: 'var(--border-secondary)' }}>|</span>
-                                        <button onClick={clearCategories} style={{ fontSize: '0.72rem', color: 'var(--accent-rose)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Temizle</button>
+                                        <button onClick={clearCategories} style={{ fontSize: '0.72rem', color: 'var(--accent-rose)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>{t('dashboard.filter.clear')}</button>
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -342,12 +344,12 @@ export default function ExpenseFilterSort({
                                 <div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                            <User size={14} /> Kim Ödedi?
+                                            <User size={14} /> {t('dashboard.filter.whoPaid')}
                                         </div>
                                         <div style={{ display: 'flex', gap: '6px' }}>
-                                            <button onClick={selectAllMembers} style={{ fontSize: '0.72rem', color: 'var(--accent-purple)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Tümü</button>
+                                            <button onClick={selectAllMembers} style={{ fontSize: '0.72rem', color: 'var(--accent-purple)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>{t('dashboard.filter.all')}</button>
                                             <span style={{ color: 'var(--border-secondary)' }}>|</span>
-                                            <button onClick={clearMembers} style={{ fontSize: '0.72rem', color: 'var(--accent-rose)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Temizle</button>
+                                            <button onClick={clearMembers} style={{ fontSize: '0.72rem', color: 'var(--accent-rose)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>{t('dashboard.filter.clear')}</button>
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -396,7 +398,7 @@ export default function ExpenseFilterSort({
                                     fontWeight: 700,
                                 }}
                             >
-                                <Check size={16} /> Uygula ({filteredExpenses.length} sonuç)
+                                <Check size={16} /> {t('dashboard.filter.applyWithResults', { count: filteredExpenses.length })}
                             </button>
                         </div>
                     </div>,
@@ -413,10 +415,10 @@ export default function ExpenseFilterSort({
             }}>
                 <div style={{ fontSize: '2.5rem', marginBottom: 'var(--space-md)' }}>🔍</div>
                 <div style={{ fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 'var(--space-xs)', fontSize: '0.95rem' }}>
-                    Bu filtreye uygun masraf bulunamadı
+                    {t('dashboard.filter.noResultsFound')}
                 </div>
                 <div style={{ fontSize: '0.8rem' }}>
-                    Filtre ayarlarını değiştirmeyi deneyin.
+                    {t('dashboard.filter.changeFilters')}
                 </div>
             </div>
         ) : null,

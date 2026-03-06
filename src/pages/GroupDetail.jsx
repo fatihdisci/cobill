@@ -11,6 +11,7 @@ import ExpenseForm from '../components/ExpenseForm';
 import DebtSummary from '../components/DebtSummary';
 import NudgeButton from '../components/NudgeButton';
 import ActivityFeed from '../components/ActivityFeed';
+import UserAvatar from '../components/UserAvatar';
 import { MemberBalanceChart } from '../components/BalanceChart';
 import { calculateBalances, simplifyDebts } from '../utils/debtSimplification';
 import { formatCurrency } from '../utils/currencyUtils';
@@ -204,7 +205,7 @@ export default function GroupDetail() {
                                 background: 'var(--bg-glass)',
                                 borderRadius: 'var(--radius-md)',
                             }}>
-                                <img src={getAvatarImage(member.avatarId || 1)} alt={member.name} className="avatar" style={{ flexShrink: 0, objectFit: 'cover' }} />
+                                <UserAvatar member={member} style={{ flexShrink: 0, objectFit: 'cover' }} />
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                     <div className="flex justify-between items-start mb-sm gap-sm flex-wrap">
                                         <div>
@@ -308,7 +309,7 @@ export default function GroupDetail() {
                                             <td><span>{cat.icon} {cat.label}</span></td>
                                             <td>
                                                 <div className="flex items-center gap-sm">
-                                                    <img src={getAvatarImage(payer?.avatarId || 1)} alt={payer?.name || '?'} className="avatar avatar-sm" style={{ objectFit: 'cover' }} />
+                                                    <UserAvatar member={payer} className="avatar avatar-sm" style={{ objectFit: 'cover' }} iconSize={12} />
                                                     {payer?.name?.split(' ')[0]}
                                                 </div>
                                             </td>

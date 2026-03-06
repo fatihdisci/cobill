@@ -9,8 +9,8 @@ import { useTranslation } from 'react-i18next';
 
 export default function Login() {
     const { t } = useTranslation();
-    const [email, setEmail] = useState('test');
-    const [password, setPassword] = useState('test');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();

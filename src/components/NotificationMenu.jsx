@@ -3,11 +3,13 @@ import { useApp } from '../context/AppContext';
 import { formatCurrency } from '../utils/currencyUtils';
 import { getInitials, CATEGORIES } from '../utils/helpers';
 import { formatDistanceToNow } from 'date-fns';
-import { tr } from 'date-fns/locale';
+import { tr, enUS } from 'date-fns/locale';
 import { Receipt, HandCoins, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function NotificationMenu({ onClose, isMobile }) {
+    const { t, i18n } = useTranslation();
     const { state } = useApp();
     const menuRef = useRef();
     const navigate = useNavigate();
@@ -47,8 +49,8 @@ export default function NotificationMenu({ onClose, isMobile }) {
                     groupId: exp.groupId,
                     groupName: group.name,
                     title: isMePayer
-                        ? `"${exp.description}" masrafını ekledin`
-                        : `${payer?.name?.split(' ')[0] || 'Biri'} "${exp.description}" masrafını ekledi`,
+                        ? t('dashboard.notifications.expenseAddedMe', { description: exp.description })
+                        : t('dashboard.notifications.expenseAddedOther', { name: payer?.name?.split(' ')[0] || t('common.someone'), description: exp.description }),
                     amount: exp.amount,
                     currency: exp.currency,
                     categoryId: exp.category,
@@ -73,13 +75,13 @@ export default function NotificationMenu({ onClose, isMobile }) {
 
             if (set.status === 'paid') {
                 if (isMeFrom) {
-                    title = `${toUser?.name?.split(' ')[0] || 'Biri'} kişisine olan borcunu ödedin`;
+                    title = t('dashboard.notifications.settlementPaidMe', { name: toUser?.name?.split(' ')[0] || t('common.someone') });
                     show = true;
                 } else if (isMeTo) {
-                    title = `${fromUser?.name?.split(' ')[0] || 'Biri'} sana olan borcunu ödedi`;
+                    title = t('dashboard.notifications.settlementReceivedMe', { name: fromUser?.name?.split(' ')[0] || t('common.someone') });
                     show = true;
                 } else {
-                    title = `${fromUser?.name?.split(' ')[0]} -> ${toUser?.name?.split(' ')[0]} ödeme yaptı`;
+                    title = t('dashboard.notifications.settlementOther', { from: fromUser?.name?.split(' ')[0], to: toUser?.name?.split(' ')[0] });
                     show = true;
                 }
             }
@@ -134,15 +136,15 @@ export default function NotificationMenu({ onClose, isMobile }) {
                 justifyContent: 'space-between',
                 background: 'var(--gradient-card)'
             }}>
-                <h4 style={{ margin: 0, fontSize: 'var(--font-md)' }}>Bildirimler</h4>
-                <div className="badge badge-purple">{notifications.length} Yeni</div>
+                <h4 style={{ margin: 0, fontSize: 'var(--font-md)' }}>{t('dashboard.notifications.title')}</h4>
+                <div className="badge badge-purple">{t('dashboard.notifications.new', { count: notifications.length })}</div>
             </div>
 
             <div style={{ overflowY: 'auto', flex: 1 }}>
                 {notifications.length === 0 ? (
                     <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--text-muted)' }}>
                         <Info size={24} style={{ margin: '0 auto var(--space-sm)' }} />
-                        <p style={{ fontSize: 'var(--font-sm)' }}>Henüz bir bildirim yok.</p>
+                        <p style={{ fontSize: 'var(--font-sm)' }}>{t('dashboard.notifications.noNotifications')}</p>
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -178,7 +180,7 @@ export default function NotificationMenu({ onClose, isMobile }) {
                                         </p>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
                                             <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
-                                                {formatDistanceToNow(notif.date, { addSuffix: true, locale: tr })}
+                                                {formatDistanceToNow(notif.date, { addSuffix: true, locale: i18n.language === 'tr' ? tr : enUS })}
                                             </span>
                                             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: notif.color }}>
                                                 {formatCurrency(notif.amount, notif.currency)}
@@ -203,7 +205,7 @@ export default function NotificationMenu({ onClose, isMobile }) {
                 fontSize: '0.75rem',
                 color: 'var(--text-muted)'
             }}>
-                Sadece üyesi olduğun grupların son 15 olayı
+                {t('dashboard.notifications.footer')}
             </div>
         </div>
     );

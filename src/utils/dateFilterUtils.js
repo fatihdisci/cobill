@@ -4,10 +4,13 @@
  * Provides utility functions for filtering arrays by date ranges
  * and predefined preset date periods (e.g. '1w', '1m', '3m').
  */
+import i18n from '../i18n';
 
 export const MONTH_NAMES = [
-    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+    i18n.t('months.january'), i18n.t('months.february'), i18n.t('months.march'),
+    i18n.t('months.april'), i18n.t('months.may'), i18n.t('months.june'),
+    i18n.t('months.july'), i18n.t('months.august'), i18n.t('months.september'),
+    i18n.t('months.october'), i18n.t('months.november'), i18n.t('months.december')
 ];
 
 /**

@@ -1,6 +1,9 @@
 import html2pdf from 'html2pdf.js';
 import { formatDate } from './helpers';
 import { formatCurrency } from './currencyUtils';
+import i18n from '../i18n';
+
+const t = (key, options) => i18n.t(key, options);
 
 export const generateGroupPDF = async (group, members, expenses, balances, settlements, paymentHistory = []) => {
     const container = document.createElement('div');
@@ -11,21 +14,21 @@ export const generateGroupPDF = async (group, members, expenses, balances, settl
 
     let html = `
         <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #8b5cf6; margin: 0 0 10px 0; font-size: 26px; font-weight: 800;">CoBill Finansal Rapor</h1>
+            <h1 style="color: #8b5cf6; margin: 0 0 10px 0; font-size: 26px; font-weight: 800;">${t('reports.pdf.title')}</h1>
             <h2 style="color: #0f172a; margin: 0 0 5px 0; font-size: 20px;">${group.name}</h2>
-            <p style="color: #64748b; margin: 0; font-size: 14px;">Oluşturulma Tarihi: ${formatDate(new Date().toISOString())}</p>
+            <p style="color: #64748b; margin: 0; font-size: 14px;">${t('reports.pdf.createdDate')}: ${formatDate(new Date().toISOString())}</p>
             <div style="margin-top: 15px; padding: 10px; background: #f8fafc; border-radius: 8px; display: inline-block;">
-                <p style="color: #475569; margin: 0; font-size: 15px;">Toplam Harcama: <strong style="color: #0f172a; font-size: 18px;">${formatCurrency(expenses.reduce((s, e) => s + e.amount, 0), group.currency)}</strong></p>
+                <p style="color: #475569; margin: 0; font-size: 15px;">${t('groups.totalExpense')}: <strong style="color: #0f172a; font-size: 18px;">${formatCurrency(expenses.reduce((s, e) => s + e.amount, 0), group.currency)}</strong></p>
             </div>
         </div>
 
-        <h3 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 30px; font-size: 18px;">Hesap Özeti</h3>
+        <h3 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 30px; font-size: 18px;">${t('reports.pdf.summary')}</h3>
         <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px;">
             <thead>
                 <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
-                    <th style="padding: 12px; text-align: left; color: #475569;">Üye</th>
-                    <th style="padding: 12px; text-align: right; color: #475569;">Toplam Ödediği</th>
-                    <th style="padding: 12px; text-align: right; color: #475569;">Net Durum</th>
+                    <th style="padding: 12px; text-align: left; color: #475569;">${t('reports.pdf.member')}</th>
+                    <th style="padding: 12px; text-align: right; color: #475569;">${t('reports.pdf.totalPaid')}</th>
+                    <th style="padding: 12px; text-align: right; color: #475569;">${t('reports.pdf.netStatus')}</th>
                 </tr>
             </thead>
             <tbody>
@@ -38,7 +41,7 @@ export const generateGroupPDF = async (group, members, expenses, balances, settl
 
         html += `
                 <tr style="border-bottom: 1px solid #e2e8f0;">
-                    <td style="padding: 12px; font-weight: 600;">${m.name} ${m.isGhost ? `<span style="font-size: 10px; color: #94a3b8; background: #f8fafc; padding: 2px 6px; border-radius: 10px; font-weight: normal; margin-left: 6px;">Hayalet</span>` : ''}</td>
+                    <td style="padding: 12px; font-weight: 600;">${m.name} ${m.isGhost ? `<span style="font-size: 10px; color: #94a3b8; background: #f8fafc; padding: 2px 6px; border-radius: 10px; font-weight: normal; margin-left: 6px;">${t('reports.pdf.ghost')}</span>` : ''}</td>
                     <td style="padding: 12px; text-align: right; color: #475569;">${formatCurrency(totalPaid, group.currency)}</td>
                     <td style="padding: 12px; text-align: right; color: ${balanceColor}; font-weight: 700;">
                         ${balance >= 0 ? '+' : ''}${formatCurrency(balance, group.currency)}
@@ -51,20 +54,20 @@ export const generateGroupPDF = async (group, members, expenses, balances, settl
             </tbody>
         </table>
 
-        <h3 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 40px; font-size: 18px;">Sadeleştirilmiş Ödeme Planı</h3>
+        <h3 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 40px; font-size: 18px;">${t('reports.pdf.settlementPlan')}</h3>
     `;
 
     if (settlements.length === 0) {
-        html += `<p style="color: #64748b; margin-top: 15px; font-style: italic; padding: 16px; background: #f8fafc; border-radius: 8px; text-align: center;">Tüm hesaplar kapalı. Ödenecek borç bulunmamaktadır 🎉</p>`;
+        html += `<p style="color: #64748b; margin-top: 15px; font-style: italic; padding: 16px; background: #f8fafc; border-radius: 8px; text-align: center;">${t('reports.pdf.allSettled')}</p>`;
     } else {
         html += `
         <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px;">
             <thead>
                 <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
-                    <th style="padding: 12px; text-align: left; color: #475569;">Kimden</th>
+                    <th style="padding: 12px; text-align: left; color: #475569;">${t('reports.pdf.from')}</th>
                     <th style="padding: 12px; text-align: center; color: #475569;"></th>
-                    <th style="padding: 12px; text-align: left; color: #475569;">Kime</th>
-                    <th style="padding: 12px; text-align: right; color: #475569;">Tutar</th>
+                    <th style="padding: 12px; text-align: left; color: #475569;">${t('reports.pdf.to')}</th>
+                    <th style="padding: 12px; text-align: right; color: #475569;">${t('reports.pdf.amount')}</th>
                 </tr>
             </thead>
             <tbody>
@@ -95,13 +98,13 @@ export const generateGroupPDF = async (group, members, expenses, balances, settl
     // Payment History Section
     if (paymentHistory.length > 0) {
         html += `
-            <h3 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 40px; font-size: 18px;">Tamamlanan Ödemeler</h3>
+            <h3 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 40px; font-size: 18px;">${t('reports.pdf.completedPayments')}</h3>
             <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px;">
                 <thead>
                     <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
-                        <th style="padding: 12px; text-align: left; color: #475569;">Tarih</th>
-                        <th style="padding: 12px; text-align: left; color: #475569;">İşlem</th>
-                        <th style="padding: 12px; text-align: right; color: #475569;">Tutar</th>
+                        <th style="padding: 12px; text-align: left; color: #475569;">${t('reports.pdf.date')}</th>
+                        <th style="padding: 12px; text-align: left; color: #475569;">${t('reports.pdf.transaction')}</th>
+                        <th style="padding: 12px; text-align: right; color: #475569;">${t('reports.pdf.amount')}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -130,8 +133,8 @@ export const generateGroupPDF = async (group, members, expenses, balances, settl
 
     html += `
         <div style="margin-top: 60px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px dashed #e2e8f0; padding-top: 20px;">
-            <p style="margin: 0; font-weight: 600; color: #8b5cf6;">CoBill Hesaplayıcı</p>
-            <p style="margin: 4px 0 0 0;">Bu rapor CoBill uygulaması üzerinden otomatik üretilmiştir.</p>
+            <p style="margin: 0; font-weight: 600; color: #8b5cf6;">${t('reports.pdf.calculator')}</p>
+            <p style="margin: 4px 0 0 0;">${t('reports.pdf.autoGenerated')}</p>
         </div>
     `;
 
@@ -139,7 +142,7 @@ export const generateGroupPDF = async (group, members, expenses, balances, settl
 
     const opt = {
         margin: 10,
-        filename: `CoBill_${group.name.replace(/\s+/g, '_')}_Rapor.pdf`,
+        filename: `CoBill_${group.name.replace(/\s+/g, '_')}_${t('reports.pdf.title').replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, letterRendering: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -172,23 +175,23 @@ export const generatePersonalStatementPDF = async (expenses, user, monthName, ca
 
     let html = `
         <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #8b5cf6; margin: 0 0 10px 0; font-size: 26px; font-weight: 800;">CoBill Kişisel Ekstre</h1>
-            <h2 style="color: #0f172a; margin: 0 0 5px 0; font-size: 20px;">${user?.name || 'Kullanıcı'}</h2>
+            <h1 style="color: #8b5cf6; margin: 0 0 10px 0; font-size: 26px; font-weight: 800;">${t('reports.pdf.personalStatement')}</h1>
+            <h2 style="color: #0f172a; margin: 0 0 5px 0; font-size: 20px;">${user?.name || t('common.user')}</h2>
             <p style="color: #64748b; margin: 0; font-size: 14px;">
-                ${user?.email ? `${user.email} • ` : ''}${monthName} • Oluşturulma: ${formatDate(new Date().toISOString())}
+                ${user?.email ? `${user.email} • ` : ''}${monthName} • ${t('reports.pdf.createdDate')}: ${formatDate(new Date().toISOString())}
             </p>
             <div style="margin-top: 15px; padding: 10px; background: #f8fafc; border-radius: 8px; display: inline-block;">
-                <p style="color: #475569; margin: 0; font-size: 15px;">Toplam Harcama: <strong style="color: #0f172a; font-size: 18px;">${formatCurrency(total, 'TRY')}</strong></p>
+                <p style="color: #475569; margin: 0; font-size: 15px;">${t('groups.totalExpense')}: <strong style="color: #0f172a; font-size: 18px;">${formatCurrency(total, 'TRY')}</strong></p>
             </div>
         </div>
 
-        <h3 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 30px; font-size: 18px;">Kategori Dağılımı</h3>
+        <h3 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 30px; font-size: 18px;">${t('reports.pdf.categoryDistribution')}</h3>
         <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px;">
             <thead>
                 <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
-                    <th style="padding: 12px; text-align: left; color: #475569;">Kategori</th>
-                    <th style="padding: 12px; text-align: right; color: #475569;">Tutar</th>
-                    <th style="padding: 12px; text-align: right; color: #475569;">Oran</th>
+                    <th style="padding: 12px; text-align: left; color: #475569;">${t('reports.pdf.category')}</th>
+                    <th style="padding: 12px; text-align: right; color: #475569;">${t('reports.pdf.amount')}</th>
+                    <th style="padding: 12px; text-align: right; color: #475569;">${t('reports.pdf.ratio')}</th>
                 </tr>
             </thead>
             <tbody>
@@ -212,14 +215,14 @@ export const generatePersonalStatementPDF = async (expenses, user, monthName, ca
             </tbody>
         </table>
 
-        <h3 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 40px; font-size: 18px;">Harcama Detayları</h3>
+        <h3 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 40px; font-size: 18px;">${t('reports.pdf.expenseDetails')}</h3>
         <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px;">
             <thead>
                 <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
-                    <th style="padding: 12px; text-align: left; color: #475569;">Tarih</th>
-                    <th style="padding: 12px; text-align: left; color: #475569;">Başlık</th>
-                    <th style="padding: 12px; text-align: left; color: #475569;">Kategori</th>
-                    <th style="padding: 12px; text-align: right; color: #475569;">Tutar</th>
+                    <th style="padding: 12px; text-align: left; color: #475569;">${t('reports.pdf.date')}</th>
+                    <th style="padding: 12px; text-align: left; color: #475569;">${t('reports.pdf.titleText')}</th>
+                    <th style="padding: 12px; text-align: left; color: #475569;">${t('reports.pdf.category')}</th>
+                    <th style="padding: 12px; text-align: right; color: #475569;">${t('reports.pdf.amount')}</th>
                 </tr>
             </thead>
             <tbody>
@@ -242,8 +245,8 @@ export const generatePersonalStatementPDF = async (expenses, user, monthName, ca
         </table>
 
         <div style="margin-top: 60px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px dashed #e2e8f0; padding-top: 20px;">
-            <p style="margin: 0; font-weight: 600; color: #8b5cf6;">CoBill Hesaplayıcı</p>
-            <p style="margin: 4px 0 0 0;">Bu rapor CoBill uygulaması üzerinden otomatik üretilmiştir.</p>
+            <p style="margin: 0; font-weight: 600; color: #8b5cf6;">${t('reports.pdf.calculator')}</p>
+            <p style="margin: 4px 0 0 0;">${t('reports.pdf.autoGenerated')}</p>
         </div>
     `;
 
@@ -251,7 +254,7 @@ export const generatePersonalStatementPDF = async (expenses, user, monthName, ca
 
     const opt = {
         margin: 10,
-        filename: `CoBill_Ekstre_${monthName.replace(/\s+/g, '_')}.pdf`,
+        filename: `CoBill_${t('reports.pdf.personalStatement').replace(/\s+/g, '_')}_${monthName.replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, letterRendering: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }

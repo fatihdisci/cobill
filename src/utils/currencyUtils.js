@@ -3,6 +3,7 @@
  * 
  * Live exchange rates, caching, and currency formatting.
  */
+import i18n from '../i18n';
 
 const CACHE_KEY = 'cobill_exchange_rates';
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
@@ -21,14 +22,14 @@ const CURRENCY_SYMBOLS = {
 };
 
 const CURRENCY_NAMES = {
-    TRY: 'Türk Lirası',
-    USD: 'ABD Doları',
-    EUR: 'Euro',
-    GBP: 'İngiliz Sterlini',
-    JPY: 'Japon Yeni',
-    CHF: 'İsviçre Frangı',
-    CAD: 'Kanada Doları',
-    AUD: 'Avustralya Doları',
+    TRY: i18n.t('currencies.TRY'),
+    USD: i18n.t('currencies.USD'),
+    EUR: i18n.t('currencies.EUR'),
+    GBP: i18n.t('currencies.GBP'),
+    JPY: i18n.t('currencies.JPY'),
+    CHF: i18n.t('currencies.CHF'),
+    CAD: i18n.t('currencies.CAD'),
+    AUD: i18n.t('currencies.AUD'),
 };
 
 // Default fallback rates (approximate, used when API is unavailable)
@@ -97,7 +98,7 @@ export function convertCurrency(amount, fromCurrency, toCurrency, rates) {
  */
 export function formatCurrency(amount, currency = 'TRY') {
     const symbol = CURRENCY_SYMBOLS[currency] || currency;
-    const formatted = Math.abs(amount).toLocaleString('tr-TR', {
+    const formatted = Math.abs(amount).toLocaleString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });

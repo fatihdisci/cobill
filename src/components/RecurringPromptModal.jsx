@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { CalendarClock, X, CopyMinus, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { addOneMonthSafely } from '../utils/recurringUtils';
 import { formatCurrency } from '../utils/currencyUtils';
 
 export default function RecurringPromptModal({ pendingExpenses, onClose }) {
+    const { t } = useTranslation();
     const { dispatch } = useApp();
     const [isSaving, setIsSaving] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -74,7 +76,7 @@ export default function RecurringPromptModal({ pendingExpenses, onClose }) {
             <div className="modal-overlay animate-fade-in" style={{ zIndex: 9999 }}>
                 <div className="modal-content text-center flex flex-col items-center justify-center gap-md" style={{ maxWidth: 360, padding: 'var(--space-3xl) var(--space-xl)' }}>
                     <CheckCircle2 size={48} style={{ color: 'var(--accent-emerald)' }} className="animate-fade-in-up" />
-                    <h3 className="animate-fade-in-up" style={{ animationDelay: '100ms' }}>Başarıyla Tamamlandı!</h3>
+                    <h3 className="animate-fade-in-up" style={{ animationDelay: '100ms' }}>{t('dashboard.successfullyCompleted')}</h3>
                 </div>
             </div>
         );
@@ -86,7 +88,7 @@ export default function RecurringPromptModal({ pendingExpenses, onClose }) {
                 <div className="modal-header mb-md">
                     <h3 className="flex items-center gap-xs" style={{ color: 'var(--accent-amber)' }}>
                         <CalendarClock size={20} />
-                        Tekrarlayan Masraflarınız Geldi 📅
+                        {t('dashboard.recurring.title')}
                     </h3>
                     <button className="btn btn-ghost btn-icon" onClick={onClose} disabled={isSaving}>
                         <X size={18} />
@@ -94,7 +96,7 @@ export default function RecurringPromptModal({ pendingExpenses, onClose }) {
                 </div>
 
                 <p className="text-sm text-secondary mb-xl">
-                    Aşağıdaki otomatik harcamalarınızın günü geldi. Bu masrafları şimdi eklemek ister misiniz?
+                    {t('dashboard.recurring.desc')}
                 </p>
 
                 <div className="flex flex-col gap-sm mb-2xl" style={{ maxHeight: '40vh', overflowY: 'auto' }}>
@@ -102,7 +104,7 @@ export default function RecurringPromptModal({ pendingExpenses, onClose }) {
                         <div key={e.id} className="glass-card flex items-center justify-between" style={{ padding: 'var(--space-md) var(--space-lg)' }}>
                             <div className="flex flex-col">
                                 <span className="font-semibold text-sm">{e.title || e.description}</span>
-                                <span className="text-xs text-muted">{e.category} {e.groupId ? '(Grup)' : '(Bireysel)'}</span>
+                                <span className="text-xs text-muted">{e.category} {e.groupId ? t('dashboard.recurring.group') : t('dashboard.recurring.personal')}</span>
                             </div>
                             <div className="font-bold">
                                 {formatCurrency(e.amount, e.currency || 'TRY')}
@@ -117,14 +119,14 @@ export default function RecurringPromptModal({ pendingExpenses, onClose }) {
                         onClick={handleSkip}
                         disabled={isSaving}
                     >
-                        Bu Ay Atla
+                        {t('dashboard.recurring.skipMonth')}
                     </button>
                     <button
                         className="btn btn-primary flex-1"
                         onClick={handleAdd}
                         disabled={isSaving}
                     >
-                        {isSaving ? 'Bekleniyor...' : 'Evet, Ekle'}
+                        {isSaving ? t('dashboard.waiting') : t('dashboard.recurring.addNow')}
                     </button>
                 </div>
             </div>

@@ -192,7 +192,6 @@ export default function ExpenseForm({ groupId, onClose }) {
                 </select>
             </div>
 
-            {/* Category */}
             <div className="form-group">
                 <label className="form-label">{t('expenseForm.category')}</label>
                 <div className="flex flex-wrap gap-sm">
@@ -204,7 +203,7 @@ export default function ExpenseForm({ groupId, onClose }) {
                             onClick={() => setForm(prev => ({ ...prev, category: key }))}
                             style={{ fontSize: 'var(--font-sm)' }}
                         >
-                            {cat.icon} {t(`wallet.categories.${key}`) || cat.label}
+                            {cat.icon} {t(`categories.${key}`)}
                         </button>
                     ))}
                 </div>
