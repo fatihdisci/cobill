@@ -17,7 +17,7 @@ const INITIAL_STATE = {
     settlements: [],
     invitations: [],
     personalExpenses: [],
-    settings: { reminderFrequency: 'never' }
+    settings: { reminderFrequency: 'never', theme: 'light' }
 };
 
 function appReducer(state, action) {
@@ -490,6 +490,16 @@ export function AppProvider({ children, user }) {
         const frequency = state.settings?.reminderFrequency || 'never';
         updateDebtReminder(frequency, totalDebt);
     }, [state.expenses, state.settings?.reminderFrequency, isDataLoaded]);
+
+    // Theme Applicator
+    useEffect(() => {
+        const theme = state.settings?.theme || 'light';
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [state.settings?.theme]);
 
     const value = { state, dispatch, isDataLoaded };
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { formatCurrency } from '../utils/currencyUtils';
-import { getInitials, getAvatarColor, CATEGORIES } from '../utils/helpers';
+import { getInitials, CATEGORIES } from '../utils/helpers';
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { Receipt, HandCoins, Info } from 'lucide-react';

@@ -1,5 +1,5 @@
 import { useApp } from '../context/AppContext';
-import { getInitials, getAvatarColor, formatRelativeDate, CATEGORIES } from '../utils/helpers';
+import { getInitials, formatRelativeDate, CATEGORIES } from '../utils/helpers';
 import { formatCurrency } from '../utils/currencyUtils';
 import { Receipt, ArrowLeftRight, UserPlus, CalendarClock } from 'lucide-react';
 

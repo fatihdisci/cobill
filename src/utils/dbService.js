@@ -47,6 +47,21 @@ export const dbService = {
         await setDoc(doc(db, 'users', userObj.id), userObj, { merge: true });
     },
 
+    // Anonymize user (Ghost User) — App Store Compliance
+    anonymizeUser: async (userId) => {
+        if (!userId) return;
+        const ghostData = {
+            name: 'Silinmiş Kullanıcı',
+            email: 'deleted@cobill.app',
+            iban: '',
+            phone: '',
+            avatarId: 1,
+            isGhost: true,
+            preferences: {}
+        };
+        await setDoc(doc(db, 'users', userId), ghostData, { merge: true });
+    },
+
     // Groups
     getGroupsForUser: async (userId) => {
         if (!userId) return [];

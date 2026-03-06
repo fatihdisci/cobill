@@ -3,7 +3,7 @@ import { ArrowRight, Zap, TrendingDown, ChevronDown, ChevronUp, FileText } from 
 import { useApp } from '../context/AppContext';
 import { calculateBalances, simplifyDebts, getNaiveTransactionCount } from '../utils/debtSimplification';
 import { formatCurrency } from '../utils/currencyUtils';
-import { getInitials, getAvatarColor } from '../utils/helpers';
+import { getInitials, getAvatarImage } from '../utils/helpers';
 
 export default function DebtSummary({ groupId }) {
     const { state } = useApp();
@@ -121,9 +121,7 @@ export default function DebtSummary({ groupId }) {
                     <div key={i} className={`debt-arrow animate-fade-in-up stagger-${i + 1}`}>
                         {/* From */}
                         <div className="flex items-center gap-sm" style={{ minWidth: 0, flex: '0 0 auto' }}>
-                            <div className="avatar avatar-sm" style={{ background: getAvatarColor(fromMember.id) }}>
-                                {getInitials(fromMember.name)}
-                            </div>
+                            <img src={getAvatarImage(fromMember.avatarId || 1)} alt={fromMember.name} className="avatar avatar-sm" style={{ objectFit: 'cover' }} />
                             <span className="text-sm font-semibold truncate" style={{ maxWidth: 80 }}>
                                 {fromMember.name.split(' ')[0]}
                             </span>
@@ -155,9 +153,7 @@ export default function DebtSummary({ groupId }) {
 
                         {/* To */}
                         <div className="flex items-center gap-sm" style={{ minWidth: 0, flex: '0 0 auto' }}>
-                            <div className="avatar avatar-sm" style={{ background: getAvatarColor(toMember.id) }}>
-                                {getInitials(toMember.name)}
-                            </div>
+                            <img src={getAvatarImage(toMember.avatarId || 1)} alt={toMember.name} className="avatar avatar-sm" style={{ objectFit: 'cover' }} />
                             <span className="text-sm font-semibold truncate" style={{ maxWidth: 80 }}>
                                 {toMember.name.split(' ')[0]}
                             </span>

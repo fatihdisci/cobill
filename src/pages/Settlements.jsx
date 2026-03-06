@@ -3,7 +3,7 @@ import { CheckCircle2, Clock, ArrowRight, Zap } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { calculateBalances, simplifyDebts } from '../utils/debtSimplification';
 import { formatCurrency } from '../utils/currencyUtils';
-import { getInitials, getAvatarColor, generateId } from '../utils/helpers';
+import { getInitials, getAvatarImage, generateId } from '../utils/helpers';
 import { showInterstitialAd } from '../utils/adService';
 import NudgeButton from '../components/NudgeButton';
 import { useTranslation, Trans } from 'react-i18next';
@@ -176,9 +176,7 @@ export default function Settlements() {
                                     <div className="flex items-center justify-between w-full">
                                         {/* From */}
                                         <div className="flex flex-col items-center gap-xs" style={{ width: '80px' }}>
-                                            <div className="avatar" style={{ background: getAvatarColor(fromMember?.id || ''), width: 44, height: 44, fontSize: '1.1rem' }}>
-                                                {getInitials(fromMember?.name || '?')}
-                                            </div>
+                                            <img src={getAvatarImage(fromMember?.avatarId || 1)} alt={fromMember?.name || '?'} className="avatar" style={{ width: 44, height: 44, objectFit: 'cover' }} />
                                             <div className="text-sm font-semibold truncate w-full text-center" title={fromMember?.name}>{fromMember?.name?.split(' ')[0]}</div>
                                             <div className="text-xs text-muted">{t('settlements.willPay')}</div>
                                         </div>
@@ -195,9 +193,7 @@ export default function Settlements() {
 
                                         {/* To */}
                                         <div className="flex flex-col items-center gap-xs" style={{ width: '80px' }}>
-                                            <div className="avatar" style={{ background: getAvatarColor(toMember?.id || ''), width: 44, height: 44, fontSize: '1.1rem' }}>
-                                                {getInitials(toMember?.name || '?')}
-                                            </div>
+                                            <img src={getAvatarImage(toMember?.avatarId || 1)} alt={toMember?.name || '?'} className="avatar" style={{ width: 44, height: 44, objectFit: 'cover' }} />
                                             <div className="text-sm font-semibold truncate w-full text-center" title={toMember?.name}>{toMember?.name?.split(' ')[0]}</div>
                                             <div className="text-xs text-muted">{t('settlements.creditor')}</div>
                                         </div>

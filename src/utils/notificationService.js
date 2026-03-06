@@ -1,5 +1,28 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { getToken } from 'firebase/messaging';
+import { getMessagingInstance } from '../config/firebase';
+
+// ═══════════════ FCM Web Push Token ═══════════════
+
+export async function requestAndSaveFCMToken() {
+    const messaging = await getMessagingInstance();
+    if (!messaging) {
+        throw new Error('NOT_SUPPORTED');
+    }
+
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+        throw new Error('PERMISSION_DENIED');
+    }
+
+    const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY || '';
+    const token = await getToken(messaging, { vapidKey });
+    console.log('[FCM] Token acquired:', token);
+    return token;
+}
+
+// ═══════════════ Local Notifications (Capacitor) ═══════════════
 
 export async function updateDebtReminder(frequency, totalDebtAmount) {
     if (!Capacitor.isNativePlatform()) {

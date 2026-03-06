@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getMessaging, isSupported } from "firebase/messaging";
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "mock-api-key",
@@ -14,3 +15,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Firebase Cloud Messaging — lazy init
+let messaging = null;
+export const getMessagingInstance = async () => {
+    if (messaging) return messaging;
+    try {
+        const supported = await isSupported();
+        if (supported) {
+            messaging = getMessaging(app);
+        }
+    } catch (e) {
+        console.warn('[FCM] Messaging not supported:', e);
+    }
+    return messaging;
+};

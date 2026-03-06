@@ -10,7 +10,7 @@ export function generateId() {
 }
 
 /**
- * Get avatar color based on name/id
+ * Get avatar color based on name/id (Legacy — kept for backward compatibility)
  */
 const AVATAR_COLORS = [
     'linear-gradient(135deg, #8b5cf6, #6d28d9)',
@@ -31,6 +31,22 @@ export function getAvatarColor(id) {
     }
     return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
+
+/**
+ * Premium PNG Avatar System
+ */
+export const AVATARS = [
+    { id: 1, src: '/avatars/avatar-1.png', name: 'Atlas' },
+    { id: 2, src: '/avatars/avatar-2.png', name: 'Sofia' },
+    { id: 3, src: '/avatars/avatar-3.png', name: 'Leo' },
+    { id: 4, src: '/avatars/avatar-4.png', name: 'Aria' },
+    { id: 5, src: '/avatars/avatar-5.png', name: 'Kai' }
+];
+
+export const getAvatarImage = (avatarId) => {
+    const avatar = AVATARS.find(a => a.id === Number(avatarId));
+    return avatar ? avatar.src : '/avatars/avatar-1.png';
+};
 
 /**
  * Get initials from name

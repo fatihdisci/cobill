@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Users, ArrowRight, TrendingUp, TrendingDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { getInitials, getAvatarColor } from '../utils/helpers';
+import { getInitials, getAvatarImage } from '../utils/helpers';
 import { formatCurrency } from '../utils/currencyUtils';
 import { calculateBalances } from '../utils/debtSimplification';
 import { useTranslation } from 'react-i18next';
@@ -47,14 +47,14 @@ export default function GroupCard({ group, index }) {
             <div className="flex items-center justify-between mb-lg">
                 <div className="avatar-stack">
                     {groupMembers.slice(0, 4).map((member) => (
-                        <div
+                        <img
                             key={member.id}
+                            src={getAvatarImage(member.avatarId || 1)}
+                            alt={member.name}
                             className="avatar avatar-sm"
-                            style={{ background: getAvatarColor(member.id) }}
+                            style={{ objectFit: 'cover' }}
                             title={member.name}
-                        >
-                            {getInitials(member.name)}
-                        </div>
+                        />
                     ))}
                     {groupMembers.length > 4 && (
                         <div className="avatar avatar-sm" style={{ background: 'var(--bg-tertiary)', fontSize: '0.6rem' }}>

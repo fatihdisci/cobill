@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Ghost, UserPlus, X, Mail, Edit2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { dbService } from '../utils/dbService';
-import { generateId, getInitials, getAvatarColor } from '../utils/helpers';
+import { generateId, getAvatarImage } from '../utils/helpers';
 
 export default function MemberManager({ groupId, onClose }) {
     const { state, dispatch } = useApp();
@@ -127,9 +127,12 @@ export default function MemberManager({ groupId, onClose }) {
                             borderRadius: 'var(--radius-md)',
                         }}>
                             <div className="flex items-center gap-md">
-                                <div className="avatar avatar-sm" style={{ background: getAvatarColor(member.id) }}>
-                                    {getInitials(member.name)}
-                                </div>
+                                <img
+                                    src={getAvatarImage(member.avatarId || 1)}
+                                    alt={member.name}
+                                    className="avatar avatar-sm"
+                                    style={{ objectFit: 'cover' }}
+                                />
                                 <div style={{ flex: 1 }}>
                                     <div className="text-sm font-semibold flex items-center gap-sm">
                                         {member.name}

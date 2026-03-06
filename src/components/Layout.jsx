@@ -37,6 +37,10 @@ export default function Layout() {
 
     const isPro = state.members[state.currentUser]?.isPro;
 
+    const currentTheme = state.settings?.theme || 'light';
+    const iconSrc = currentTheme === 'dark' ? '/icondark.png' : appIconImg;
+    const iconBg = currentTheme === 'dark' ? 'transparent' : 'white';
+
     // Track route changes and show ad on the 2nd change
     useEffect(() => {
         // Skip ad check entirely for Pro users
@@ -108,7 +112,7 @@ export default function Layout() {
             <aside className="sidebar">
                 <div className="sidebar-header" style={{ padding: 'var(--space-md) var(--space-xl)' }}>
                     <div className="sidebar-logo" style={{ justifyContent: 'center' }}>
-                        <img src={appIconImg} alt="CoBill" style={{ width: 60, height: 60, borderRadius: '12px', objectFit: 'contain', background: 'white' }} />
+                        <img src={iconSrc} alt="CoBill" style={{ width: 60, height: 60, borderRadius: '12px', objectFit: 'contain', background: iconBg }} />
                     </div>
                 </div>
 
@@ -228,7 +232,7 @@ export default function Layout() {
                     )}
 
                     <div className="sidebar-logo">
-                        <img src={appIconImg} alt="CoBill" style={{ width: 96, height: 96, borderRadius: '14px', objectFit: 'contain', background: 'white' }} />
+                        <img src={iconSrc} alt="CoBill" style={{ width: 96, height: 96, borderRadius: '14px', objectFit: 'contain', background: iconBg }} />
                     </div>
 
                     <div style={{ position: 'absolute', right: 'var(--space-md)' }}>
