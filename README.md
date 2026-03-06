@@ -63,7 +63,7 @@
 - **Routing:** React Router DOM (v6)
 - **Stil & UI:** Vanilla CSS (Glassmorphism, CSS Custom Properties), Lucide Icons
 - **Çoklu Dil (i18n):** `react-i18next`
-- **Charting / Export:** Recharts, jspdf, html2canvas
+- **Charting / Export:** Chart.js, react-chartjs-2, jspdf, html2canvas
 
 ### Backend (Serverless)
 - **Database:** Firebase Firestore (Real-time updates & Complex Queries)

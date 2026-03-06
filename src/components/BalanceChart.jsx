@@ -1,14 +1,10 @@
-import { useRef, useEffect } from 'react';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
+import { Chart as ChartJS, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 import { Doughnut, Bar } from 'react-chartjs-2';
 import { useApp } from '../context/AppContext';
 import { CATEGORIES } from '../utils/helpers';
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
-
-// Override chart defaults for light theme
-ChartJS.defaults.color = '#475569';
-ChartJS.defaults.borderColor = 'rgba(0,0,0,0.06)';
+// Register Chart.js elements
+ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 export function SpendingByCategory({ groupId }) {
     const { state } = useApp();
@@ -22,63 +18,68 @@ export function SpendingByCategory({ groupId }) {
         categoryTotals[cat] = (categoryTotals[cat] || 0) + e.amount;
     });
 
-    const labels = Object.keys(categoryTotals).map(k => CATEGORIES[k]?.label || k);
-    const data = Object.values(categoryTotals);
     const colors = [
         '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b',
         '#f43f5e', '#3b82f6', '#ec4899', '#14b8a6', '#64748b'
     ];
 
-    if (data.length === 0) return null;
+    const rawData = Object.keys(categoryTotals).map((key, index) => ({
+        label: CATEGORIES[key]?.label || key,
+        value: categoryTotals[key],
+        color: colors[index % colors.length]
+    })).filter(item => item.value > 0);
+
+    if (rawData.length === 0) return null;
+
+    const chartData = {
+        labels: rawData.map(item => item.label),
+        datasets: [
+            {
+                data: rawData.map(item => item.value),
+                backgroundColor: rawData.map(item => item.color),
+                borderWidth: 0, // DİKKAT: Dilimler arası çizgiyi kaldırır (boşluk kalmaz)
+                hoverOffset: 6  // Üzerine gelince tatlı bir büyüme efekti verir
+            }
+        ]
+    };
+
+    const chartOptions = {
+        cutout: '75%', // İnce ve modern bir halka
+        plugins: {
+            legend: {
+                display: false // Görsel bütünlük adına kapalı 
+            },
+            tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.85)', // Glassmorphism Dark Mode background
+                titleColor: '#f8fafc',
+                bodyColor: '#e2e8f0',
+                titleFont: { family: 'Inter, sans-serif' },
+                bodyFont: { family: 'Inter, sans-serif' },
+                padding: 12,
+                cornerRadius: 8,
+                displayColors: true,
+                callbacks: {
+                    label: function (context) {
+                        let label = context.label || '';
+                        if (label) { label += ': '; }
+                        if (context.parsed !== null) {
+                            label += context.parsed.toLocaleString('tr-TR') + ' ₺'; // Projenin para formatı
+                        }
+
+                        // İsteğe bağlı yüzde ekleme
+                        const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                        const pct = ((context.parsed / total) * 100).toFixed(1);
+                        return `${label} (${pct}%)`;
+                    }
+                }
+            }
+        },
+        maintainAspectRatio: false
+    };
 
     return (
-        <div style={{ maxWidth: 280, margin: '0 auto' }}>
-            <Doughnut
-                data={{
-                    labels,
-                    datasets: [{
-                        data,
-                        backgroundColor: colors.slice(0, data.length),
-                        borderWidth: 0,
-                        hoverBorderWidth: 2,
-                        hoverBorderColor: 'white',
-                        spacing: 2,
-                    }],
-                }}
-                options={{
-                    responsive: true,
-                    cutout: '65%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 12,
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                font: { size: 11, family: 'Inter' },
-                            },
-                        },
-                        tooltip: {
-                            backgroundColor: '#ffffff',
-                            titleColor: '#0f172a',
-                            bodyColor: '#475569',
-                            titleFont: { family: 'Inter', weight: 600 },
-                            bodyFont: { family: 'Inter' },
-                            borderColor: 'rgba(0,0,0,0.1)',
-                            borderWidth: 1,
-                            padding: 10,
-                            cornerRadius: 8,
-                            callbacks: {
-                                label: (ctx) => {
-                                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                                    const pct = ((ctx.raw / total) * 100).toFixed(1);
-                                    return ` ${ctx.label}: ${ctx.raw.toLocaleString('tr-TR')} (${pct}%)`;
-                                }
-                            }
-                        },
-                    },
-                }}
-            />
+        <div style={{ height: 250, width: '100%', maxWidth: 280, margin: '0 auto' }}>
+            <Doughnut data={chartData} options={chartOptions} />
         </div>
     );
 }
@@ -98,74 +99,90 @@ export function MemberBalanceChart({ groupId }) {
         memberTotals[member.name.split(' ')[0]] = paid;
     });
 
-    const labels = Object.keys(memberTotals);
-    const data = Object.values(memberTotals);
+    const colors = [
+        'rgba(139, 92, 246, 0.8)',
+        'rgba(6, 182, 212, 0.8)',
+        'rgba(16, 185, 129, 0.8)',
+        'rgba(245, 158, 11, 0.8)',
+        'rgba(244, 63, 94, 0.8)',
+        'rgba(59, 130, 246, 0.8)',
+    ];
 
-    if (data.length === 0) return null;
+    const rawData = Object.keys(memberTotals).map((key, index) => ({
+        label: key,
+        value: memberTotals[key],
+        color: colors[index % colors.length]
+    })).filter(item => item.value > 0);
+
+    if (rawData.length === 0) return null;
+
+    const chartData = {
+        labels: rawData.map(item => item.label),
+        datasets: [
+            {
+                data: rawData.map(item => item.value),
+                backgroundColor: rawData.map(item => item.color),
+                borderRadius: 6, // Chart.js sütun köşelerini yumuşatma
+                borderWidth: 0,
+                barPercentage: 0.6, // Sütun kalınlıklarını modernize etme
+                hoverBackgroundColor: rawData.map((item, idx) => colors[idx % colors.length].replace('0.8', '1')), // Hover olunca koyu/tam renk
+            }
+        ]
+    };
+
+    const chartOptions = {
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                titleColor: '#f8fafc',
+                bodyColor: '#e2e8f0',
+                titleFont: { family: 'Inter, sans-serif' },
+                bodyFont: { family: 'Inter, sans-serif', size: 14, weight: 'bold' },
+                padding: 12,
+                cornerRadius: 8,
+                displayColors: true,
+                callbacks: {
+                    label: function (context) {
+                        return `${context.parsed.y.toLocaleString('tr-TR')} ₺`;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0,0,0,0.04)', // Tema border uyumu
+                    drawBorder: false,
+                },
+                ticks: {
+                    font: { family: 'Inter, sans-serif', size: 11 },
+                    color: '#475569',
+                    callback: function (value) {
+                        return value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value;
+                    }
+                }
+            },
+            x: {
+                grid: {
+                    display: false,
+                    drawBorder: false,
+                },
+                ticks: {
+                    font: { family: 'Inter, sans-serif', size: 11 },
+                    color: '#475569'
+                }
+            }
+        },
+        maintainAspectRatio: false
+    };
 
     return (
-        <Bar
-            data={{
-                labels,
-                datasets: [{
-                    label: 'Harcama',
-                    data,
-                    backgroundColor: data.map((_, i) => {
-                        const colors = [
-                            'rgba(139, 92, 246, 0.6)',
-                            'rgba(6, 182, 212, 0.6)',
-                            'rgba(16, 185, 129, 0.6)',
-                            'rgba(245, 158, 11, 0.6)',
-                            'rgba(244, 63, 94, 0.6)',
-                            'rgba(59, 130, 246, 0.6)',
-                        ];
-                        return colors[i % colors.length];
-                    }),
-                    borderColor: data.map((_, i) => {
-                        const colors = [
-                            'rgba(139, 92, 246, 0.9)',
-                            'rgba(6, 182, 212, 0.9)',
-                            'rgba(16, 185, 129, 0.9)',
-                            'rgba(245, 158, 11, 0.9)',
-                            'rgba(244, 63, 94, 0.9)',
-                            'rgba(59, 130, 246, 0.9)',
-                        ];
-                        return colors[i % colors.length];
-                    }),
-                    borderWidth: 1,
-                    borderRadius: 6,
-                }],
-            }}
-            options={{
-                responsive: true,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#ffffff',
-                        titleColor: '#0f172a',
-                        bodyColor: '#475569',
-                        titleFont: { family: 'Inter', weight: 600 },
-                        bodyFont: { family: 'Inter' },
-                        borderColor: 'rgba(0,0,0,0.1)',
-                        borderWidth: 1,
-                        padding: 10,
-                        cornerRadius: 8,
-                    },
-                },
-                scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: { font: { family: 'Inter', size: 11 } },
-                    },
-                    y: {
-                        grid: { color: 'rgba(0,0,0,0.04)' },
-                        ticks: {
-                            font: { family: 'Inter', size: 11 },
-                            callback: (v) => v.toLocaleString('tr-TR'),
-                        },
-                    },
-                },
-            }}
-        />
+        <div style={{ height: 250, width: '100%', maxWidth: 400, margin: '0 auto' }}>
+            <Bar data={chartData} options={chartOptions} />
+        </div>
     );
 }

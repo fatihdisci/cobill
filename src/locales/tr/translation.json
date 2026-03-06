@@ -307,6 +307,9 @@
         "expenses": "harcama",
         "noExpensesYet": "Henüz harcama yok",
         "addExpenseHint": "Alt menüdeki + butonuna basarak bireysel harcama ekleyin.",
+        "realizedExpenses": "Gerçekleşen Harcama",
+        "upcomingFixedCosts": "Sabit Giderler",
+        "estimatedTotal": "Tahmini Aylık Gider",
         "categories": {
             "market": "Market",
             "bill": "Fatura",
@@ -607,7 +610,7 @@
         "other": "Diğer"
     },
     "subscriptions": {
-        "title": "Abonelikler & Sabit Giderler",
+        "title": "Sabit Ödemeler",
         "monthlyTotal": "Aylık Sabit Gider",
         "addSubscription": "Abonelik Ekle",
         "billingCycle": "Faturalama Döngüsü",

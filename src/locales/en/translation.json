@@ -307,6 +307,9 @@
         "expenses": "expenses",
         "noExpensesYet": "No expenses yet",
         "addExpenseHint": "Press the + button in the bottom menu to add a personal expense.",
+        "realizedExpenses": "Realized Expenses",
+        "upcomingFixedCosts": "Fixed Costs",
+        "estimatedTotal": "Estimated Monthly Total",
         "categories": {
             "market": "Market",
             "bill": "Bill",
@@ -608,7 +611,7 @@
         "other": "Other"
     },
     "subscriptions": {
-        "title": "Subscriptions & Fixed Costs",
+        "title": "Fixed Payments",
         "monthlyTotal": "Monthly Fixed Cost",
         "addSubscription": "Add Subscription",
         "billingCycle": "Billing Cycle",

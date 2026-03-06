@@ -47,6 +47,17 @@ export default function PersonalWallet() {
         }
     };
 
+    // Calculate upcoming fixed costs from subscriptions
+    const subscriptions = state.subscriptions || [];
+    const monthlyFixedTotal = subscriptions.reduce((acc, sub) => {
+        if (!sub.isActive) return acc;
+        let amount = sub.amount;
+        if (sub.cycle === 'yearly') amount = amount / 12;
+        return acc + amount;
+    }, 0);
+
+    const estimatedTotal = totalThisMonth + monthlyFixedTotal;
+
     // Define categories inside component to use translations
     const PERSONAL_CATEGORIES = {
         Market: { icon: '🛒', label: t('wallet.categories.market'), color: 'var(--accent-emerald)' },
@@ -74,55 +85,105 @@ export default function PersonalWallet() {
                 </div>
             </div>
 
-            {/* Subscriptions Dashboard (Fixed Monthly Costs) */}
-            <SubscriptionsDashboard />
-
-            {/* Monthly Summary Card — always shows real total */}
+            {/* Monthly Summary Card — estimated total with breakdowns */}
             <div className="glass-card static-card" style={{
-                padding: 'var(--space-xl) var(--space-2xl)',
+                padding: 'var(--space-2xl) var(--space-xl)',
                 marginBottom: 'var(--space-xl)',
                 position: 'relative', overflow: 'hidden',
-                background: 'var(--bg-card)',
+                background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(139, 92, 246, 0.05) 100%)',
             }}>
-                <div style={{ position: 'absolute', top: -40, right: -40, width: 120, height: 120, borderRadius: '50%', background: 'rgba(139, 92, 246, 0.08)', filter: 'blur(40px)', pointerEvents: 'none' }} />
-                <div className="flex items-center gap-md mb-md" style={{ color: 'var(--text-tertiary)' }}>
-                    <Calendar size={16} />
-                    <span className="text-sm font-semibold">
+                <div style={{ position: 'absolute', top: -60, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'rgba(139, 92, 246, 0.1)', filter: 'blur(50px)', pointerEvents: 'none' }} />
+
+                {/* Header Context */}
+                <div className="flex items-center gap-sm mb-lg" style={{ color: 'var(--text-secondary)' }}>
+                    <Calendar size={18} />
+                    <span className="text-md font-medium">
                         {now.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}
                     </span>
                 </div>
-                <div style={{ fontSize: 'var(--font-3xl)', fontWeight: 900, marginBottom: 'var(--space-xs)' }} className="text-gradient">
-                    {formatCurrency(totalThisMonth, 'TRY')}
-                </div>
-                <div className="text-sm text-muted">{t('wallet.totalThisMonth')} {thisMonthExpenses.length} {t('wallet.expenses')}</div>
 
-                {/* Mini category bars */}
+                {/* Main Estimated Total */}
+                <div className="mb-xs text-sm text-muted">{t('wallet.estimatedTotal')}</div>
+                <div style={{ fontSize: '2.5rem', fontWeight: 900, lineHeight: 1, letterSpacing: '-1px' }} className="text-gradient">
+                    {formatCurrency(estimatedTotal, 'TRY')}
+                </div>
+
+                {/* Breakdowns */}
+                <div className="flex flex-col sm:flex-row gap-md mt-xl pt-lg" style={{ borderTop: '1px solid var(--border-primary)' }}>
+                    <div className="flex-1" style={{ padding: 'var(--space-md)', background: 'var(--bg-glass)', borderRadius: 'var(--radius-lg)' }}>
+                        <div className="text-xs text-muted mb-xs">{t('wallet.realizedExpenses')}</div>
+                        <div className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
+                            {formatCurrency(totalThisMonth, 'TRY')}
+                        </div>
+                        <div className="text-xs mt-xs opacity-70" style={{ color: 'var(--text-tertiary)' }}>
+                            {thisMonthExpenses.length} {t('wallet.expenses')}
+                        </div>
+                    </div>
+
+                    <div className="flex-1" style={{ padding: 'var(--space-md)', background: 'var(--bg-glass)', borderRadius: 'var(--radius-lg)' }}>
+                        <div className="text-xs text-muted mb-xs">{t('wallet.upcomingFixedCosts')}</div>
+                        <div className="font-bold text-lg" style={{ color: 'var(--accent-purple)' }}>
+                            +{formatCurrency(monthlyFixedTotal, 'TRY')}
+                        </div>
+                        <div className="text-xs mt-xs opacity-70" style={{ color: 'var(--text-tertiary)' }}>
+                            {subscriptions.filter(s => s.isActive).length} {t('wallet.expenses')}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Mini category bars (Only for Realized Expenses) */}
                 {Object.keys(categoryBreakdown).length > 0 && (
-                    <div className="flex gap-xs mt-lg" style={{ height: 6, borderRadius: 'var(--radius-full)', overflow: 'hidden', background: 'var(--bg-glass)' }}>
-                        {Object.entries(categoryBreakdown).map(([cat, amount]) => {
-                            const pct = totalThisMonth > 0 ? (amount / totalThisMonth * 100) : 0;
-                            const catInfo = PERSONAL_CATEGORIES[cat] || PERSONAL_CATEGORIES['Diğer'];
-                            return (
-                                <div
-                                    key={cat}
-                                    style={{
-                                        width: `${pct}%`,
-                                        background: catInfo.color,
-                                        borderRadius: 'var(--radius-full)',
-                                        transition: 'width 0.5s ease',
-                                    }}
-                                    title={`${cat}: ${pct.toFixed(0)}%`}
-                                />
-                            );
-                        })}
+                    <div className="mt-xl">
+                        <div className="flex gap-xs" style={{ height: 6, borderRadius: 'var(--radius-full)', overflow: 'hidden', background: 'var(--bg-glass)' }}>
+                            {Object.entries(categoryBreakdown).map(([cat, amount]) => {
+                                const pct = totalThisMonth > 0 ? (amount / totalThisMonth * 100) : 0;
+                                const catInfo = PERSONAL_CATEGORIES[cat] || PERSONAL_CATEGORIES['Diğer'];
+                                return (
+                                    <div
+                                        key={cat}
+                                        style={{
+                                            width: `${pct}%`,
+                                            background: catInfo.color,
+                                            borderRadius: 'var(--radius-full)',
+                                            transition: 'width 0.5s ease',
+                                        }}
+                                        title={`${catInfo.label}: ${pct.toFixed(0)}%`}
+                                    />
+                                );
+                            })}
+                        </div>
                     </div>
                 )}
             </div>
 
             {/* Filter Button */}
-            <div style={{ marginBottom: 'var(--space-lg)' }}>
+            <div style={{ marginBottom: 'var(--space-md)' }}>
                 {filterUI}
             </div>
+
+            {/* Filtered Total Header (Match SubscriptionsDashboard Style) */}
+            {!emptyState && filteredExpenses.length > 0 && (
+                <div style={{ marginBottom: 'var(--space-md)' }}>
+                    <div className="flex items-center justify-between mb-md">
+                        <h3 className="section-title flex items-center gap-xs m-0">
+                            <Wallet size={18} style={{ color: 'var(--accent-blue)' }} />
+                            {t('wallet.realizedExpenses')}
+                        </h3>
+                    </div>
+
+                    <div className="glass-card static-card" style={{
+                        padding: 'var(--space-xl)',
+                        position: 'relative', overflow: 'hidden',
+                        background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(59, 130, 246, 0.05) 100%)',
+                    }}>
+                        <div style={{ position: 'absolute', top: -30, right: -30, width: 100, height: 100, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', filter: 'blur(30px)', pointerEvents: 'none' }} />
+                        <div className="text-sm text-muted mb-xs">{t('wallet.realizedExpenses')}</div>
+                        <div style={{ fontSize: '2rem', fontWeight: 900 }} className="text-gradient">
+                            {formatCurrency(filteredExpenses.reduce((sum, e) => sum + e.amount, 0), 'TRY')}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Expense List */}
             {emptyState ? emptyState : filteredExpenses.length > 0 ? (
@@ -174,6 +235,11 @@ export default function PersonalWallet() {
                     <p className="text-sm mb-lg">{t('wallet.addExpenseHint')}</p>
                 </div>
             )}
+
+            {/* Subscriptions Dashboard (Fixed Monthly Costs) */}
+            <div style={{ marginTop: 'var(--space-2xl)' }}>
+                <SubscriptionsDashboard />
+            </div>
 
             {showProModal && <ProUpgradeModal onClose={() => setShowProModal(false)} />}
         </div>

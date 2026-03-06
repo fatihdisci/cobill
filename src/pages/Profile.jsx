@@ -6,7 +6,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { useTranslation } from 'react-i18next';
 import { auth } from '../config/firebase';
-import { sendPasswordResetEmail, verifyBeforeUpdateEmail, deleteUser } from 'firebase/auth';
+import { sendPasswordResetEmail, verifyBeforeUpdateEmail, deleteUser, signOut } from 'firebase/auth';
 import { dbService } from '../utils/dbService';
 import AvatarPicker from '../components/ui/AvatarPicker';
 import { createPortal } from 'react-dom';
@@ -133,11 +133,20 @@ export default function Profile() {
         showToast(t('profile.reminderUpdated'));
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
         if (window.confirm(t('profile.logoutConfirm'))) {
-            sessionStorage.removeItem('MOCK_FIREBASE_USER');
-            navigate('/login');
-            window.location.reload();
+            try {
+                // 1. Varsa sahte test kullanıcısını temizle
+                sessionStorage.removeItem('MOCK_FIREBASE_USER');
+
+                // 2. Gerçek Firebase oturumunu kapat
+                await signOut(auth);
+
+                // 3. Login sayfasına yönlendir (Reload'a gerek yok, auth state listener halledecek)
+                navigate('/login');
+            } catch (error) {
+                console.error("Çıkış yapılırken hata oluştu:", error);
+            }
         }
     };
 
